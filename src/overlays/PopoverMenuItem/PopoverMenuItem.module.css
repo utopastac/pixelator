@@ -1,0 +1,54 @@
+.item {
+  @mixin menu-item;
+  min-width: 140px;
+  white-space: nowrap;
+}
+
+.item:hover:not(:disabled) {
+  background-color: var(--surface-subtle);
+  color: var(--text-primary);
+}
+
+.item:focus-visible {
+  @mixin focus-ring-inset;
+}
+
+.item:disabled {
+  @mixin disabled-button;
+}
+
+/* Destructive variant — mirrors ContextMenu's .destructive. Keeps the label
+   tinted warning at rest and keeps the same tint on hover (no fill swap,
+   since the row is already inside a popover surface). */
+.destructive {
+  color: var(--text-warning);
+}
+
+.destructive:hover:not(:disabled) {
+  background-color: var(--surface-subtle);
+  color: var(--text-warning);
+}
+
+/* Leading slot that reserves the check-mark's footprint even when an item is
+   not selected — keeps labels vertically aligned across the menu. */
+.slot {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
+.icon {
+  @mixin menu-item-icon;
+}
+
+.label {
+  @mixin menu-item-label;
+}

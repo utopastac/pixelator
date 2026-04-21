@@ -1,0 +1,282 @@
+:root {
+  /* Primitive colors */
+  --white-100: #ffffff;
+  --black-100: #000000;
+  /* Black ramp — black-N ≈ N% black mixed with white. Existing 2/5/10 values
+     are kept verbatim for backwards compatibility even though they're slightly
+     lighter than a strict percentage mix would be. */
+  --black-2:   #f5f5f5;
+  --black-5:   #efefef;
+  --black-10:  #e8e8e8;
+  --black-20:  #cccccc;
+  --black-30:  #b3b3b3;
+  --black-40:  #999999;
+  --black-50:  #7b7b7b;
+  --black-60:  #666666;
+  --black-70:  #525252;
+  --black-80:  #333333;
+  --black-90:  #1a1a1a;
+  /* White ramp — white-N ≈ N% white mixed with black. Mirrors the black ramp
+     for use on inverted/dark surfaces. */
+  --white-2:   #050505;
+  --white-5:   #0d0d0d;
+  --white-10:  #1a1a1a;
+  --white-20:  #333333;
+  --white-30:  #4d4d4d;
+  --white-40:  #666666;
+  --white-50:  #808080;
+  --white-60:  #999999;
+  --white-70:  #b3b3b3;
+  --white-80:  #cccccc;
+  --white-90:  #e6e6e6;
+  /* Black/white alpha ramps — parallel scales for tinting over arbitrary
+     surfaces (scrims, dividers, disabled veils, hover washes). */
+  --black-alpha-5:  rgb(0 0 0 / 0.05);
+  --black-alpha-10: #0000001a; /* ≈0.1; kept verbatim for backwards compatibility */
+  --black-alpha-15: rgb(0 0 0 / 0.15);
+  --black-alpha-20: rgb(0 0 0 / 0.2);
+  --black-alpha-30: rgb(0 0 0 / 0.3);
+  --black-alpha-40: rgb(0 0 0 / 0.4);
+  --black-alpha-50: rgb(0 0 0 / 0.5);
+  --black-alpha-60: rgb(0 0 0 / 0.6);
+  --black-alpha-70: rgb(0 0 0 / 0.7);
+  --black-alpha-80: rgb(0 0 0 / 0.8);
+  --black-alpha-90: rgb(0 0 0 / 0.9);
+  --white-alpha-5:  rgb(255 255 255 / 0.05);
+  --white-alpha-10: rgb(255 255 255 / 0.1);
+  --white-alpha-12: rgb(255 255 255 / 0.12); /* kept for backwards compatibility */
+  --white-alpha-15: rgb(255 255 255 / 0.15);
+  --white-alpha-20: rgb(255 255 255 / 0.2);
+  --white-alpha-30: rgb(255 255 255 / 0.3);
+  --white-alpha-40: rgb(255 255 255 / 0.4);
+  --white-alpha-50: rgb(255 255 255 / 0.5);
+  --white-alpha-60: rgb(255 255 255 / 0.6);
+  --white-alpha-70: rgb(255 255 255 / 0.7);
+  --white-alpha-80: rgb(255 255 255 / 0.8);
+  --white-alpha-90: rgb(255 255 255 / 0.9);
+
+  /* Status hues — primary shades are used for solid fills / text on light
+     surfaces. Subtle variants are lightly tinted backgrounds for banners and
+     inline status messaging. "-bright" variants are used in dark mode where
+     dimmer hues lose contrast against dark chrome. */
+  --blue-100:   #0033d9;
+  --blue-50:    #d8e0ff;
+  --blue-200:   #6b8aff;
+  --red-100:    #e01515;
+  --red-50:     #fde2e2;
+  --red-200:    #ff6b6b;
+  --green-100:  #1a7f3c;
+  --green-50:   #d8f0de;
+  --green-200:  #4ade80;
+  --yellow-100: #b07800;
+  --yellow-50:  #fff4d1;
+  --yellow-200: #fbbf24;
+  --orange-150: #8e4700;
+
+  /* Dark-mode primitives — used by [data-theme="dark"] below. Component CSS
+     should read the semantic tokens, not these. */
+  --neutral-900: #1a1a1a;  /* primary chrome surface */
+  --neutral-850: #202020;  /* extra-subtle surface */
+  --neutral-800: #262626;  /* subtle surface */
+  --neutral-700: #333333;
+  --neutral-500: #7a7a7a;  /* subtle text */
+  --neutral-300: #a3a3a3;  /* secondary text */
+
+  /* Surface */
+  --surface-primary: var(--white-100);
+  --surface-subtle: var(--black-5);
+  --surface-extra-subtle: var(--black-2);
+  --surface-elevated: var(--white-100);
+  --surface-inverted-primary: var(--black-100);
+  --surface-inverted-subtle: var(--black-90);
+  --surface-inverted-extra-subtle: var(--black-80);
+
+  /* Status surfaces — primary = solid fills, subtle = tinted banner backgrounds */
+  --surface-error-primary: var(--red-100);
+  --surface-error-subtle: var(--red-50);
+  --surface-warning-primary: var(--yellow-100);
+  --surface-warning-subtle: var(--yellow-50);
+  --surface-success-primary: var(--green-100);
+  --surface-success-subtle: var(--green-50);
+  --surface-info-primary: var(--blue-100);
+  --surface-info-subtle: var(--blue-50);
+
+  /* Accent (brand) — swap this family to re-theme the UI's primary hue. */
+  --accent-primary: var(--black-100);
+  --accent-subtle: var(--blue-50);
+  --text-on-accent: var(--white-100);
+
+  /* Text */
+  --text-primary: var(--black-100);
+  --text-secondary: var(--black-70);
+  --text-subtle: var(--black-50);
+  --text-highlight: var(--accent-primary);
+  --text-warning: var(--orange-150);
+  --text-error: var(--red-100);
+  --text-success: var(--green-100);
+  --text-info: var(--blue-100);
+  --text-inverted-primary: var(--white-100);
+  --text-inverted-secondary: var(--black-30);
+  --text-inverted-subtle: var(--black-50);
+
+  /* Border */
+  --border-prominent: var(--surface-inverted-primary);
+  --border-subtle: var(--black-alpha-10);
+  --border-inverted-subtle: var(--white-alpha-12);
+  --border-highlight: var(--surface-inverted-primary);
+  --border-disabled: var(--black-10);
+
+  /* Icon buttons */
+  --icon-button-size-xs: 1.5rem;
+  --icon-button-size-md: 2.2rem;
+
+  /* Inputs */
+  --input-height-sm: 1.5rem;
+  --input-background: var(--surface-extra-subtle);
+  --input-border-focus: var(--border-highlight);
+
+  /* Disabled state */
+  --opacity-disabled: 0.5;
+  --text-disabled: var(--black-40);
+  --surface-disabled: var(--black-5);
+
+  /* Interactive */
+  --interactive-hover: var(--surface-extra-subtle);
+  --interactive-selected: var(--surface-subtle);
+  --interactive-radius: var(--radius-sm);
+  --interactive-focus: var(--accent-primary);
+
+  /* Focus ring — color comes from --interactive-focus. Width/offset are
+     broken out so high-contrast themes can thicken the ring without forking
+     every focus mixin. */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Overlay / scrim — dims content behind modals (heavy) and tooltips (light). */
+  --overlay-scrim: var(--black-alpha-30);
+  --overlay-scrim-light: var(--black-alpha-15);
+
+  /* Selection highlight — used by ::selection. Color matches the accent so it
+     re-themes automatically. */
+  --selection-background: var(--accent-subtle);
+  --selection-text: var(--text-primary);
+
+  /* Transparency checker pattern — two swatches the component CSS alternates
+     into a checkerboard under transparent color previews. */
+  --checker-a: var(--white-100);
+  --checker-b: var(--black-5);
+
+  /* Z-index scale — assign each floating layer a slot with headroom between
+     tiers so a one-off adjustment in a component doesn't clash with the next
+     tier up. Ordering follows existing intent: popovers and menus render
+     above modals so popovers-inside-dialogs work. */
+  --z-sheet: 500;
+  --z-modal: 1000;
+  --z-tooltip: 2000;
+  --z-popover: 3000;
+  --z-menu: 4000;
+
+  /* Border radius */
+  --radius: 0;
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-pill: 0;
+
+  /* Floating panel layout */
+  --floating-offset: 16px;
+  --floating-stack-gap: 8px;
+  --floating-panel-height: 40px;
+
+  /* Shadows — hard-edged offset shadows give panels a pixel-UI feel. No blur. */
+  --shadow-md: 3px 3px 0 0 rgb(0 0 0 / 0.2);
+  --shadow-xl: 5px 5px 0 0 rgb(0 0 0 / 0.25);
+
+  /* Spacing */
+  --space-xl: 1.75rem;
+  --space-l: 1.25rem;
+  --space-m: 1rem;
+  --space-s: 0.5rem;
+  --space-xs: 0.25rem;
+  --space-xxs: 0.25rem;
+
+  /* Typography */
+  --font-sans: 'VT323', ui-monospace, Menlo, Consolas, monospace;
+  --font-size-s: 1.152rem;
+  --font-size-xs: 1.044rem;
+  --font-size-ui: 0.9rem;
+  --font-weight-body: 400;
+  --font-weight-medium: 500;
+  --font-weight-emphasis: 600;
+  --tracking-normal: 0;
+
+  /* Deprecated alias kept for vendored CSS */
+  --background-primary: var(--surface-primary);
+}
+
+/* Dark mode — chrome only. The pixel canvas clears to literal #ffffff in
+   compositeLayers, so drawings and exports are theme-invariant. */
+[data-theme="dark"] {
+  --surface-primary: var(--neutral-900);
+  --surface-subtle: var(--neutral-800);
+  --surface-extra-subtle: var(--neutral-850);
+  --surface-elevated: var(--neutral-800);
+  --surface-inverted-primary: var(--white-100);
+  --surface-inverted-subtle: var(--black-10);
+  --surface-inverted-extra-subtle: var(--black-5);
+
+  /* Status surfaces re-point to the -bright hues so solid fills still read;
+     subtle tints become dim washes over the dark chrome. */
+  --surface-error-primary: var(--red-200);
+  --surface-error-subtle: #3a1515;
+  --surface-warning-primary: var(--yellow-200);
+  --surface-warning-subtle: #3a2a0c;
+  --surface-success-primary: var(--green-200);
+  --surface-success-subtle: #143a1f;
+  --surface-info-primary: var(--blue-200);
+  --surface-info-subtle: #14203a;
+
+  --accent-primary: var(--white-100);
+  --accent-subtle: #14203a;
+  --text-on-accent: var(--neutral-900);
+
+  --text-primary: var(--white-100);
+  --text-secondary: var(--neutral-300);
+  --text-subtle: var(--neutral-500);
+  --text-highlight: var(--accent-primary);
+  --text-error: var(--red-200);
+  --text-success: var(--green-200);
+  --text-info: var(--blue-200);
+  --text-warning: var(--yellow-200);
+  --text-inverted-primary: var(--neutral-900);
+  --text-inverted-secondary: var(--black-70);
+  --text-inverted-subtle: var(--black-50);
+
+  --border-prominent: var(--white-100);
+  --border-subtle: var(--white-alpha-12);
+  --border-inverted-subtle: var(--black-alpha-10);
+  --border-highlight: var(--white-100);
+  --border-disabled: var(--neutral-700);
+
+  --text-disabled: var(--neutral-500);
+  --surface-disabled: var(--neutral-800);
+
+  --interactive-focus: var(--accent-primary);
+
+  /* Scrim sits on dark chrome; the light-black alpha still reads because the
+     dark surface beneath it darkens further. */
+  --overlay-scrim: var(--black-alpha-50);
+  --overlay-scrim-light: var(--black-alpha-15);
+
+  --selection-background: var(--accent-subtle);
+  --selection-text: var(--text-primary);
+
+  /* Flip the checkerboard so transparency previews read on dark chrome. */
+  --checker-a: var(--neutral-800);
+  --checker-b: var(--neutral-850);
+
+  /* Offset shadows tinted white so they read on dark surfaces. */
+  --shadow-md: 3px 3px 0 0 rgb(0 0 0 / 0.6);
+  --shadow-xl: 5px 5px 0 0 rgb(0 0 0 / 0.7);
+}

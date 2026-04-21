@@ -1,0 +1,6 @@
+.menuPopover {
+  @mixin popover-panel;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xxs);
+}

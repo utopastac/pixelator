@@ -1,0 +1,38 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-m);
+  height: 100%;
+  width: 100%;
+  padding: var(--space-xl);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.title {
+  @mixin type-body-s-strong;
+  color: var(--text-error);
+}
+
+.message {
+  @mixin type-body-xs;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  max-width: 40ch;
+  text-align: center;
+}
+
+.button {
+  @mixin type-body-xs;
+  padding: var(--space-xs) var(--space-m);
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+  border: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  opacity: 0.85;
+}

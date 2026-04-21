@@ -1,0 +1,53 @@
+/* Matches PopoverMenuItem's rhythm (same typography, same padding/gap) so
+   the PNG row aligns with sibling menu items inside a popover or context
+   menu. */
+.row {
+  @mixin type-body-xs;
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-xs) var(--space-s);
+  color: var(--text-secondary);
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
+.label {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.chipGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xxs);
+}
+
+.chip {
+  @mixin type-body-xs;
+  min-width: 28px;
+  height: 22px;
+  padding: 0 var(--space-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip:hover {
+  background-color: var(--surface-subtle);
+  color: var(--text-primary);
+  border-color: var(--border-prominent);
+}
+
+.chip:focus-visible {
+  @mixin focus-ring-inset-strong;
+}

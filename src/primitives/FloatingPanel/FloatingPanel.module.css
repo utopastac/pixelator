@@ -1,0 +1,85 @@
+.panel {
+  position: fixed;
+  z-index: var(--z-sheet);
+  display: flex;
+  align-items: center;
+  background: var(--surface-primary);
+  border-radius: 0;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  max-width: calc(100vw - 32px);
+}
+
+/* Direction variants — row is the horizontal pill default; column stacks
+   children vertically for side-of-viewport toolboxes (e.g. the help pill in
+   the bottom-left corner). */
+.row {
+  flex-direction: row;
+}
+
+.column {
+  flex-direction: column;
+}
+
+/* Size variants — inner padding + gap scale with the controls inside.
+   `sm` matches the 2px inner padding of sm ToolbarButtons; `md` matches the
+   4px inner padding of md ToolbarButtons. */
+.sm {
+  gap: 2px;
+  padding: 4px;
+}
+
+.md {
+  gap: 0;
+  padding: 0;
+}
+
+.bottomCenter {
+  bottom: var(--floating-offset);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.topCenter {
+  top: var(--floating-offset);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.topRight {
+  top: var(--floating-offset);
+  right: var(--floating-offset);
+}
+
+.bottomRight {
+  bottom: var(--floating-offset);
+  right: var(--floating-offset);
+}
+
+/* `--chrome-inset` is set by App.module.css's .main and collapses to
+   `--floating-offset` when no panel is docked. When the DrawingsPanel opens,
+   `.main` widens the inset so this pill slides past the drawings panel,
+   matching the hamburger + RecentColorsPanel motion. Falls back cleanly when
+   FloatingPanel is used outside that layout. */
+.bottomLeft {
+  bottom: var(--floating-offset);
+  left: var(--chrome-inset, var(--floating-offset));
+  transition: left 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.topLeft {
+  top: var(--floating-offset);
+  left: var(--floating-offset);
+}
+
+.rightCenter {
+  top: 50%;
+  right: var(--floating-offset);
+  transform: translateY(-50%);
+}
+
+.leftCenter {
+  top: 50%;
+  left: var(--floating-offset);
+  transform: translateY(-50%);
+}

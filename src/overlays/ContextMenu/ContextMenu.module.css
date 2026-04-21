@@ -1,0 +1,60 @@
+.menu {
+  @mixin popover-panel;
+  position: fixed;
+  z-index: var(--z-menu);
+  min-width: 180px;
+  padding: var(--space-xxs);
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Shares PopoverMenuItem's anatomy via @mixin menu-item. Differences
+   (destructive variant, trailing shortcut) are additive only. */
+.item {
+  @mixin menu-item;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.item:hover:not(:disabled) {
+  background-color: var(--surface-subtle);
+  color: var(--text-primary);
+}
+
+.item:focus-visible {
+  @mixin focus-ring-inset;
+}
+
+.destructive {
+  color: var(--text-warning);
+
+  &:hover:not(:disabled) {
+    background-color: var(--surface-subtle);
+    color: var(--text-warning);
+  }
+}
+
+.disabled {
+  @mixin disabled-button;
+}
+
+.icon {
+  @mixin menu-item-icon;
+}
+
+.label {
+  @mixin menu-item-label;
+}
+
+.shortcut {
+  color: var(--text-subtle);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.separator {
+  height: 1px;
+  background-color: var(--border-subtle);
+  margin: var(--space-xxs) var(--space-xs);
+}

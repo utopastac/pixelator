@@ -1,0 +1,48 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.groupHeader {
+  @mixin type-body-xs;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  padding: var(--space-xxs) var(--space-xs);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-subtle);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.groupHeader:hover {
+  background-color: var(--interactive-hover);
+  color: var(--text-primary);
+}
+
+.groupHeader:focus-visible {
+  @mixin focus-ring-inset;
+}
+
+.groupChevron :global(svg) {
+  transition: transform 0.15s ease;
+}
+
+.groupChevronExpanded :global(svg) {
+  transform: rotate(0deg);
+}
+
+.groupChevronCollapsed :global(svg) {
+  transform: rotate(270deg);
+}
+
+.groupRows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: var(--space-s);
+}

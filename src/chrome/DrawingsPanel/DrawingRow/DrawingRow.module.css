@@ -1,0 +1,65 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xxs) var(--space-xs);
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.row:hover {
+  background-color: var(--interactive-hover);
+}
+
+.row:focus-visible {
+  @mixin focus-ring-inset;
+}
+
+.rowActive {
+  background-color: var(--interactive-selected);
+}
+
+.thumb {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  background: var(--surface-primary);
+  image-rendering: pixelated;
+  display: block;
+  object-fit: contain;
+}
+
+.nameSlot {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.nameSlot > * {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dims {
+  @mixin type-body-xs;
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.overflowAnchor {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}

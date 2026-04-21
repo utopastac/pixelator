@@ -1,0 +1,92 @@
+/* Custom-size row — mirrors PopoverMenuItem's anatomy (leading 14px
+   check/empty slot + --space-s gap + body) so it lines up with the preset
+   rows above. The inputs use a nested tight-gap flex so the W/H pair still
+   feels like one unit. */
+.customSizeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-xs) var(--space-s);
+}
+
+.customSizeSlot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.customSizeCheck {
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
+.customSizeControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  flex: 1;
+  min-width: 0;
+}
+
+.customSizeInput {
+  width: 48px;
+  height: 24px;
+  padding: 0 var(--space-xxs);
+  background: var(--input-background);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--font-size-s);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.customSizeInput::-webkit-outer-spin-button,
+.customSizeInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.customSizeInput:focus-visible {
+  outline: none;
+  border-color: var(--input-border-focus);
+}
+
+.customSizeX {
+  color: var(--text-subtle);
+  font-size: var(--font-size-xs);
+}
+
+/* Visual styling lives on the Button primitive; this rule only pushes the
+   Apply button to the right end of the size row. */
+.customSizeApply {
+  margin-left: auto;
+}
+
+/* Text-style readout for canvas size (parallels the zoom percent button).
+   Opens a popover with size presets. */
+.sizeReadoutAnchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Widens the size readout to fit the leading grid icon alongside "W×H". */
+.sizeReadoutButton {
+  width: auto;
+  min-width: 64px;
+  gap: var(--space-xs);
+  padding: 0 var(--space-xs);
+}
+
+/* Thin horizontal divider between preset rows and the custom-size row in the
+   canvas-size popover. */
+.menuSeparator {
+  height: 1px;
+  margin: var(--space-xxs) var(--space-xs);
+  background-color: var(--border-subtle);
+}

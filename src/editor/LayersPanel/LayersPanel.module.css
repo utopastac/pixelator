@@ -1,0 +1,315 @@
+/* Overrides the FloatingPanel defaults (horizontal pill, centered) so the
+   LayersPanel renders as a vertical card. Applied via className prop. */
+.panel {
+  @mixin popover-panel;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  gap: 0;
+  width: 272px;
+  max-height: calc(100vh - 32px);
+  overflow: hidden;
+}
+
+/* Drag handle on the left edge for resizing panel width. */
+.resizeHandle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  z-index: 1;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.resizeHandle::after {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: transparent;
+  transition: background 0.12s ease;
+}
+
+.resizeHandle:hover::after {
+  background: var(--border-highlight, var(--border-strong));
+}
+
+/* While dragging: freeze the cursor and keep the indicator visible. */
+.panelResizing,
+.panelResizing * {
+  cursor: ew-resize !important;
+}
+
+.panelResizing .resizeHandle::after {
+  background: var(--border-highlight, var(--border-strong));
+}
+
+/* Top bar: utilities (zoom/undo/redo/download, portaled in from the toolbar)
+   on the LEFT, add-layer button on the RIGHT. No separate "Layers" title
+   header anymore — this row is the only chrome. */
+.utilitiesBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  padding: var(--space-xs);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* Utilities slot — grows to push the add-layer button to the right edge. */
+.utilitiesSlot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  gap: 1px;
+  /* Anchor for the absolutely-positioned drop indicator shown during drag. */
+  position: relative;
+  /* Prevent native text-selection during drag reorder from highlighting layer
+     names and bleeding into adjacent rows. Row-level inputs (EditableText) use
+     their own <input> when in edit mode, which isn't affected by this. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.listDragging,
+.listDragging * {
+  cursor: grabbing !important;
+}
+
+.listDuplicating,
+.listDuplicating * {
+  cursor: copy !important;
+}
+
+/* Suppress hover feedback on sibling rows while a drag is in flight — the drop
+   indicator is the only feedback we want, and hover backgrounds read as
+   "you're about to activate this layer" which is wrong mid-drag. */
+.listDragging .row:hover,
+.listDuplicating .row:hover {
+  background-color: transparent;
+}
+
+.listDragging .rowActive:hover,
+.listDuplicating .rowActive:hover {
+  background-color: var(--interactive-selected);
+}
+
+.rowDragging {
+  opacity: 0.4;
+}
+
+/* Hidden layers dim the row's content to signal "off" without making the
+   thumbnail unreadable — the thumbnail and eye toggle stay full opacity so
+   the user can see what will come back and can click to re-enable. */
+.rowHidden .nameSlot,
+.rowHidden .opacityWrap,
+.rowHidden .thumb,
+.rowHidden .overflowAnchor {
+  opacity: 0.55;
+}
+
+.rowHidden .nameSlot {
+  font-style: italic;
+}
+
+/* When the ACTIVE layer is also hidden, swap the left-edge accent to the
+   warning colour — the user is about to paint on a layer that won't accept
+   strokes — and undo the hidden-row dimming for this one row so the active
+   selection reads clearly even through the "hidden" treatment. */
+.rowHidden.rowActive {
+  box-shadow: inset 3px 0 0 0 var(--surface-warning-primary);
+}
+
+.rowHidden.rowActive .nameSlot,
+.rowHidden.rowActive .opacityWrap,
+.rowHidden.rowActive .thumb,
+.rowHidden.rowActive .overflowAnchor {
+  opacity: 1;
+}
+
+/* Horizontal bar that marks the drop slot during a drag. Positioned by inline
+   `top` = `dropSlot * rowHeight`. Relative to `.list`'s padding box, so the
+   inline-padding of the list effectively inset it from both edges. */
+.dropIndicator {
+  position: absolute;
+  left: var(--space-xxs);
+  right: var(--space-xxs);
+  height: 2px;
+  background: var(--border-highlight, var(--text-primary));
+  border-radius: 2px;
+  pointer-events: none;
+  transform: translateY(-1px);
+  z-index: 1;
+}
+
+.dropIndicatorDuplicate {
+  background: var(--text-highlight, var(--border-highlight, var(--text-primary)));
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xxs) var(--space-xs) var(--space-xxs) var(--space-s);
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+/* Drag handle at the far left of each row. Only this element initiates a
+   reorder drag — the rest of the row is a plain click target. */
+.grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 24px;
+  color: var(--text-subtle);
+  cursor: grab;
+  touch-action: none;
+}
+
+.grip:hover {
+  color: var(--text-primary);
+}
+
+.listDragging .grip,
+.listDuplicating .grip {
+  cursor: grabbing;
+}
+
+.row:hover {
+  background-color: var(--interactive-hover);
+}
+
+.row:focus-visible {
+  @mixin focus-ring-inset;
+}
+
+/* Always-visible left-edge accent marks the active layer. The background
+   fill alone is too subtle to read when the row is also dimmed (hidden
+   layer); the bar survives the dim and keeps the selection obvious. */
+.rowActive {
+  background-color: var(--interactive-selected);
+  box-shadow: inset 3px 0 0 0 var(--text-highlight);
+}
+
+.rowActive:hover {
+  background-color: var(--interactive-selected);
+}
+
+.thumb {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  background: var(--surface-primary);
+  image-rendering: pixelated;
+  display: block;
+  object-fit: contain;
+}
+
+.nameSlot {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.nameSlot > * {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Wraps the opacity CompactInput. `data-stop-row-click` on the span prevents
+   the row's drag/select handlers from firing while the user scrubs the %. */
+.opacityWrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.destructive {
+  color: var(--surface-error-primary);
+}
+
+.destructive:hover:not(:disabled) {
+  background-color: var(--surface-subtle);
+  color: var(--surface-error-primary);
+}
+
+.overflowAnchor {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Lock toggle. Hidden by default so the row stays quiet; surfaces on hover,
+   keyboard focus within the row, or whenever the layer is actually locked
+   (the user needs to see the lock state even when they're not hovering). */
+.lockSlot {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s ease-out;
+}
+
+.row:hover .lockSlot,
+.row:focus-within .lockSlot,
+.lockActive {
+  opacity: 1;
+}
+
+.chevronExpanded :global(svg),
+.chevronCollapsed :global(svg) {
+  transition: transform 0.15s ease;
+}
+
+.chevronExpanded :global(svg) {
+  transform: rotate(180deg);
+}
+
+.downloadAnchor {
+  display: flex;
+  align-items: center;
+}
+
+/* Transient toast shown when image import fails. Absolutely positioned at the
+   top-center of the panel so it doesn't shift panel content. */
+.importToast {
+  position: absolute;
+  top: var(--space-s);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-sheet);
+}

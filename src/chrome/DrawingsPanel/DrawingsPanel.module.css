@@ -1,0 +1,59 @@
+/* Floating-style left-side gallery, layered on top of the canvas rather
+   than pushing it — canvas stays full-width underneath so panning left
+   isn't clipped. Matches the visual language of the LayersPanel and the
+   bottom tool/colour pills (inset from the page, rounded, shadowed).
+   Slide animation: `transform: translateX(…)` shifts the panel off-screen
+   to the left when closed. Pure visual slide — no layout effect on the
+   canvas behind it. */
+.panel {
+  @mixin popover-panel;
+  position: absolute;
+  left: var(--floating-offset);
+  top: var(--floating-offset);
+  bottom: var(--floating-offset);
+  width: 280px;
+  z-index: var(--z-sheet);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  transform: translateX(0);
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.panelClosed {
+  /* Slide fully past the left gutter so no edge peeks out. */
+  transform: translateX(calc(-100% - var(--floating-offset)));
+  pointer-events: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xs) var(--space-s);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.headerTitle {
+  @mixin type-section-heading
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-xxs);
+  gap: 2px;
+}
+

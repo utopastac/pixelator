@@ -1,0 +1,16 @@
+.popover {
+  position: fixed;
+  z-index: var(--z-popover);
+  overflow-y: auto;
+}
+
+/* Default shadow — consumer classNames on <Popover> can override trivially
+   because `:where()` contributes zero specificity. Menu popovers that put
+   their panel styles on an INNER div don't get a shadow otherwise: their
+   child's shadow paints outside the child box, where this element's
+   `overflow-y: auto` clips it. An element's own shadow paints outside its
+   own overflow container, so putting it here avoids the clip. */
+:where(.popover) {
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-subtle);
+}

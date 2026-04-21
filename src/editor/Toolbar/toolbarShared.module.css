@@ -1,0 +1,13 @@
+/* Shared toolbar styles imported by toolbar components. */
+
+/* Full-height 1px rule between tool groups. `align-self: stretch` makes it
+   fill the row's content-box cross-axis; the negative block margin pushes it
+   through the FloatingPanel's vertical padding so the line runs pill edge to
+   pill edge. */
+.toolDivider {
+  width: 1px;
+  align-self: stretch;
+  margin: 0;
+  background-color: var(--border-subtle);
+  flex-shrink: 0;
+}

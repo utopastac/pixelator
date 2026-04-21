@@ -1,0 +1,103 @@
+import { useRef, useCallback, useEffect } from 'react';
+import type React from 'react';
+import type { Layer } from '@/lib/storage';
+import { drawLayer } from '../lib/pixelArtCanvas';
+import { compositeLayers } from '../lib/composite';
+
+interface UseEditorCanvasSetupProps {
+  committedCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  previewCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  canvasMounted: boolean;
+  width: number;
+  height: number;
+  layers: Layer[];
+  layerTransformIsPending: boolean;
+  activeLayerId: string;
+  onAfterComposite?: () => void;
+}
+
+/**
+ * Manages offscreen-canvas allocation and the committed-canvas composite pipeline.
+ * Keeps one offscreen per layer, rasterises each layer's pixels onto it, and
+ * blits them onto the committed canvas in bottom-to-top order. Mounts a cleanup
+ * effect that evicts the entire offscreen map on unmount.
+ */
+export function useEditorCanvasSetup({
+  committedCanvasRef,
+  previewCanvasRef,
+  canvasMounted,
+  width,
+  height,
+  layers,
+  layerTransformIsPending,
+  activeLayerId,
+  onAfterComposite,
+}: UseEditorCanvasSetupProps): void {
+  // Resize all canvases when dimensions change. Canvases are sized 1:1 with
+  // the logical grid — one raster pixel = one logical pixel — and visual
+  // scaling is done via CSS transform on the wrapper.
+  useEffect(() => {
+    if (committedCanvasRef.current) {
+      committedCanvasRef.current.width = width;
+      committedCanvasRef.current.height = height;
+    }
+    if (previewCanvasRef.current) {
+      previewCanvasRef.current.width = width;
+      previewCanvasRef.current.height = height;
+    }
+  }, [committedCanvasRef, previewCanvasRef, width, height, canvasMounted]);
+
+  // Per-layer offscreen canvases, keyed by layer id. Each offscreen holds
+  // the rasterised pixels for one layer at grid dimensions; the composite
+  // pipeline blits them in order to the committed canvas.
+  const offscreensRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
+
+  // Ensure offscreens exist for every current layer, are sized to
+  // `width × height`, and that orphaned entries are evicted.
+  const syncOffscreens = useCallback(() => {
+    const map = offscreensRef.current;
+    const validIds = new Set(layers.map((l) => l.id));
+    for (const key of Array.from(map.keys())) {
+      if (!validIds.has(key)) map.delete(key);
+    }
+    for (const layer of layers) {
+      let off = map.get(layer.id);
+      if (!off) {
+        off = document.createElement('canvas');
+        map.set(layer.id, off);
+      }
+      if (off.width !== width) off.width = width;
+      if (off.height !== height) off.height = height;
+    }
+    return map;
+  }, [layers, width, height]);
+
+  // Rasterise each layer's pixels onto its offscreen, then composite onto
+  // the committed canvas. Runs on any layers/pixels/dimension change.
+  // While a move-tool transform is pending, the active layer is skipped in
+  // the composite so the committed canvas stops showing its original pixels —
+  // the preview canvas draws the transformed version on top. Skipping (rather
+  // than dispatching empty pixels) preserves the active layer's real pixel
+  // state, so `commitPixels` at commit time captures the correct pre-transform
+  // snapshot as the undo target.
+  useEffect(() => {
+    if (!committedCanvasRef.current) return;
+    const map = syncOffscreens();
+    for (const layer of layers) {
+      const off = map.get(layer.id);
+      if (!off) continue;
+      drawLayer(off, layer.pixels, width);
+    }
+    const skipLayerId = layerTransformIsPending ? activeLayerId : undefined;
+    compositeLayers(committedCanvasRef.current, layers, map, width, height, { skipLayerId });
+    onAfterComposite?.();
+  }, [committedCanvasRef, layers, width, height, canvasMounted, syncOffscreens, layerTransformIsPending, activeLayerId, onAfterComposite]);
+
+  // Evict the entire offscreen map on unmount.
+  useEffect(() => {
+    const map = offscreensRef.current;
+    return () => {
+      map.clear();
+    };
+  }, []);
+}

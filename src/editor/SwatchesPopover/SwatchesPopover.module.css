@@ -1,0 +1,146 @@
+/* Popover that opens from the active-color swatch — palette + custom swatches
+   wrapped in a grid, with a trailing "+" button to open the color picker. */
+/* ── Color picker popover content ─────────────────────────────── */
+
+.colorPickerPopover {
+  @mixin popover-panel;
+  padding: var(--space-s);
+}
+
+.colorPickerBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+/* Swatches popover: palette header + scrollable grid + fixed "+" row. The
+   outer container is a column-flex; the grid in the middle scrolls vertically
+   when the palette is large, while the "+" row stays pinned outside the
+   scroll so it's always reachable. Width caps at ~240px to match the editor
+   popover's rhythm. */
+.swatchesPopover {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  /* Match the ColorPicker's default width so the hex row and swatch grid
+     align with the gradient square above, rather than extending past its
+     right edge. */
+  width: 200px;
+}
+
+/* Hex input + palette picker sit side-by-side on one row. Both share the
+   CompactInput sizing language so they read as a matched pair. */
+.hexRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* Button that opens the palette picker — styled to match CompactInput so the
+   input + palette selector read as a paired row. Fixed width; the hex input
+   to its left flexes to fill the remaining space. */
+.paletteHeader {
+  @mixin type-body-ui;
+  @mixin input-wrapper;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  height: var(--input-height-sm);
+  padding: 0 var(--space-s);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  width: 112px;
+  min-width: 0;
+
+  &:focus-visible {
+    @mixin focus-ring-inset-strong;
+  }
+}
+
+.paletteHeaderActive {
+  background-color: var(--surface-subtle);
+}
+
+.paletteHeaderLabel {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Scrollable container that wraps both the palette grid and the custom-colors
+   grid. Keeps both sections in one scroll region so long palettes + lots of
+   custom colors don't blow out the popover height. Inner padding gives the
+   active-swatch outline room so it isn't clipped by `overflow`. */
+.swatchScroll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 3px;
+}
+
+.swatchGrid {
+  display: grid;
+  /* Fixed 8-track grid so both the palette and custom-swatches grids line up
+     on the same column boundaries even when one has fewer than 8 items.
+     Tracks are `1fr` so the grid fills the popover width; 20px swatches sit
+     centered in their cells. */
+  grid-template-columns: repeat(8, 1fr);
+  justify-items: center;
+  gap: var(--space-xxs);
+}
+
+/* Divider between the palette swatches and the user's custom swatches. */
+.swatchDivider {
+  height: 1px;
+  background-color: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.addColorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* Pill-edged "+" button matching the swatch grid's cell size. Uses the same
+   radius/border treatment as other toolbar affordances so it reads as a
+   toolbar button rather than a form control. */
+.addColorButton {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    background-color: var(--surface-subtle);
+    color: var(--text-primary);
+    border-color: var(--border-prominent);
+  }
+
+  &:focus-visible {
+    @mixin focus-ring-inset-strong;
+  }
+}
+
+/* Retained for compatibility in case any external caller still targets
+   `.swatchesGrid` — same layout as `.swatchGrid` for visual parity. */
+.swatchesGrid {
+  display: grid;
+  grid-template-columns: repeat(8, auto);
+  gap: var(--space-xs);
+  max-width: 240px;
+}

@@ -1,0 +1,14 @@
+/* System font stack — keycaps read most cleanly in the OS's native UI face
+   (matches the ⌘ / ⇧ / ⌥ glyph metrics and doesn't clash with the app's
+   pixel-style body font). */
+.kbd {
+  display: inline-block;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+  background: var(--surface-extra-subtle);
+  border-radius: var(--radius-xs);
+  padding: 1px var(--space-xs);
+  color: var(--text-subtle);
+  white-space: nowrap;
+}

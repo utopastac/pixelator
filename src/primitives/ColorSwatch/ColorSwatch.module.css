@@ -1,0 +1,66 @@
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: var(--border-prominent);
+  }
+}
+
+.sizeXs {
+  width: 20px;
+  height: 20px;
+}
+
+.sizeSm {
+  width: var(--icon-button-size-xs);
+  height: var(--icon-button-size-xs);
+}
+
+.sizeMd {
+  width: var(--icon-button-size-md);
+  height: var(--icon-button-size-md);
+}
+
+.shapeRounded {
+  border-radius: var(--radius-xs);
+}
+
+.shapePill {
+  border-radius: var(--radius-pill);
+}
+
+/* Surface-coloured ring around the colour bead. Implemented via padding +
+   `background-clip: content-box` (not a border): the inline backgroundColor
+   paints only the content area, and the 8px padding lets the parent
+   surface show through as the ring. Avoids the sub-pixel seams a layered
+   border-width override can leave at the swatch's vertical edges.
+   The base `.swatch` border gives the button a visible outer edge.
+   A `::before` pseudo-element adds a 1px inner border at the edge of the
+   colour content area, ensuring the swatch is visible for any colour. */
+.ring {
+  border: none;
+  padding: 8px;
+  background-clip: content-box;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    pointer-events: none;
+  }
+}
+
+.selected {
+  outline: 2px solid var(--border-highlight);
+  outline-offset: 1px;
+}

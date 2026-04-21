@@ -1,0 +1,118 @@
+/* ── Canvas container ─────────────────────────────────────────── */
+
+/* Phase 1: the container is the viewport. Canvases inside are sized 1:1 with
+   the logical grid and visually scaled by a CSS transform on .canvasInner. */
+.canvasContainer {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  line-height: 0;
+  background-color: var(--surface-extra-subtle);
+}
+
+.gridOverlay {
+  position: absolute;
+  pointer-events: none;
+  /* Two 1-CSS-pixel lines tiled at `zoom × zoom`, anchored at panX/panY via
+     inline style. Stays crisp at any zoom because it's outside the scaled
+     wrapper. */
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+  /* The tiled pattern only places a line at the START of each cell, so the
+     grid's right and bottom edges are missing a line. An inset box-shadow
+     with negative offsets paints those two trailing edges without changing
+     layout or bleeding outside the grid. */
+  box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Diagonal stripe overlay shown over the canvas when the active layer is
+   hidden. A passive cue so the user knows why their strokes aren't landing,
+   without blocking pointer events (they can still click to pick a different
+   layer in LayersPanel). Fixed 8px stripe rhythm — independent of zoom so
+   the pattern reads the same whether the canvas is tiny or huge. */
+.hiddenLayerOverlay {
+  position: absolute;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--black-alpha-10) 0,
+    var(--black-alpha-10) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  box-shadow: inset 0 0 0 1px var(--black-alpha-20);
+}
+
+/* Transient toast wrapper — pinned to the top-center of the canvas container
+   so it's visible without occluding the canvas or the top-center title panel.
+   Visual styles (typography, color, shadow) live in Toast.module.css. */
+.canvasToast {
+  position: absolute;
+  top: calc(var(--floating-offset) + var(--floating-panel-height) + var(--floating-stack-gap));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-sheet);
+}
+
+/* Symmetry axis guide lines. One CSS-pixel line per active axis, centred on
+   the canvas. Outside canvasInner so they stay 1px regardless of zoom. */
+.symmetryOverlay {
+  position: absolute;
+  pointer-events: none;
+}
+
+.symmetryOverlay_vertical {
+  background-image:
+    linear-gradient(to right, transparent calc(50% - 1.5px), rgba(255, 0, 0, 0.35) calc(50% - 1.5px), rgba(255, 0, 0, 0.35) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+}
+
+.symmetryOverlay_horizontal {
+  background-image:
+    linear-gradient(to bottom, transparent calc(50% - 1.5px), rgba(255, 0, 0, 0.35) calc(50% - 1.5px), rgba(255, 0, 0, 0.35) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+}
+
+.symmetryOverlay_both {
+  background-image:
+    linear-gradient(to right, transparent calc(50% - 1.5px), rgba(255, 0, 0, 0.35) calc(50% - 1.5px), rgba(255, 0, 0, 0.35) calc(50% + 1.5px), transparent calc(50% + 1.5px)),
+    linear-gradient(to bottom, transparent calc(50% - 1.5px), rgba(255, 0, 0, 0.35) calc(50% - 1.5px), rgba(255, 0, 0, 0.35) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+}
+
+.screenOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.canvasInner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* transform set via inline style (driven by useViewport) */
+  /* Safari rasterises descendants of a transformed element into a backing
+     store and upscales *that* with bilinear filtering, ignoring
+     `image-rendering` on the child canvas. Putting the hint on the
+     transformed element itself makes WebKit use nearest-neighbour for the
+     composited layer. `-webkit-optimize-contrast` is the legacy Safari
+     spelling; `crisp-edges` is an additional fallback. Chromium honours
+     `pixelated` on the canvas child, so this is belt-and-braces. */
+  image-rendering: pixelated;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+}
+
+.canvasPreview {
+  top: 0;
+  left: 0;
+}

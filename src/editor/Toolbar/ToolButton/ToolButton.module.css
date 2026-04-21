@@ -1,0 +1,68 @@
+.toolButton {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: var(--interactive-radius);
+  transition: background-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+  position: relative;
+
+  &:hover {
+    background-color: var(--interactive-hover);
+  }
+
+  &.selected {
+    background-color: var(--interactive-selected);
+
+    &:hover {
+      background-color: var(--interactive-selected);
+    }
+
+    &:after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background-color: var(--input-border-focus);
+    }
+  }
+}
+
+/* Corner indicator for tools with extra options */
+.cornerIndicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  line-height: 0;
+  pointer-events: none;
+  color: var(--text-primary);
+}
+
+.selected .cornerIndicator {
+  opacity: 0.8;
+}
+
+.main {
+  @mixin icon-button;
+  border-radius: var(--interactive-radius);
+  color: var(--text-primary);
+  transition: background-color 0.15s, color 0.15s;
+
+  &:focus-visible {
+    @mixin focus-ring-inset;
+  }
+}
+
+/* Size variants */
+.sm {
+  width: var(--icon-button-size-xs);
+  height: var(--icon-button-size-xs);
+  padding: 2px;
+}
+
+.md {
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+}

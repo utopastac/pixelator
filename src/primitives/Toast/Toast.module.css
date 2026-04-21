@@ -1,0 +1,10 @@
+.toast {
+  @mixin type-body-xs;
+  padding: var(--space-xs) var(--space-s);
+  background: var(--surface-inverted-primary);
+  color: var(--text-inverted-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  white-space: nowrap;
+}

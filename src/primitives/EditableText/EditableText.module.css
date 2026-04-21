@@ -1,0 +1,79 @@
+.field {
+  display: inline-block;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 var(--space-xs);
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+
+  &.sm {
+    @mixin type-body-xs;
+  }
+
+  &.md {
+    @mixin type-body-s;
+  }
+
+  &.lg {
+    /* Pixelator's design-token slice doesn't include type-body-m/l, so the
+       largest EditableText size falls back to body-s. */
+    @mixin type-body-s;
+  }
+
+  &.editable {
+    cursor: text;
+
+    &:hover {
+      background: var(--interactive-hover);
+    }
+  }
+
+  &.disabled {
+    opacity: var(--opacity-disabled);
+    cursor: default;
+  }
+
+  &.placeholder {
+    color: var(--text-placeholder);
+  }
+
+  &.editing {
+    outline: none;
+    border-color: var(--border-highlight);
+    background: transparent;
+    color: var(--text-primary);
+  }
+}
+
+input.field {
+  appearance: none;
+  -webkit-appearance: none;
+  line-height: inherit;
+  max-width: 100%;
+
+  &::placeholder {
+    color: var(--text-placeholder);
+  }
+}
+
+/* Wraps the input + hidden sizer during edit mode. The sizer mirrors the
+   draft text so the input's measured width tracks the typed content. */
+.editWrapper {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.sizer {
+  /* Measured but not painted. Sits under the input in normal flow so its
+     width reflects the draft text with identical typography and padding. */
+  visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: pre;
+  pointer-events: none;
+}

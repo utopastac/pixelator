@@ -1,0 +1,11 @@
+.view {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: var(--surface-extra-subtle, #fafafa);
+}
+
+.editor {
+  position: absolute;
+  inset: 0;
+}

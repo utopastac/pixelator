@@ -1,0 +1,23 @@
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: 14px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-subtle);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: background-color 0.15s, color 0.15s;
+
+  &:hover {
+    background-color: var(--interactive-hover);
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    @mixin focus-ring-inset;
+  }
+}

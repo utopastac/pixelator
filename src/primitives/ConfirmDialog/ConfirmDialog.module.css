@@ -1,0 +1,39 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  padding: var(--space-l);
+}
+
+.card {
+  @mixin popover-panel;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  min-width: 320px;
+  max-width: 440px;
+  padding: var(--space-l);
+  background: var(--surface-primary);
+}
+
+.title {
+  @mixin type-section-heading;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.body {
+  @mixin type-body-s;
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-s);
+  margin-top: var(--space-xs);
+}

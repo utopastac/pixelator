@@ -1,0 +1,78 @@
+.toolbarButton {
+  @mixin icon-button;
+  width: var(--icon-button-size-md);
+  height: var(--icon-button-size-md);
+  border-radius: var(--interactive-radius);
+  color: var(--text-primary);
+  transition: background-color 0.15s, color 0.15s;
+  position: relative;
+
+  &:hover {
+    background-color: var(--interactive-hover);
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    @mixin focus-ring;
+  }
+
+  &.pressed {
+    background-color: var(--surface-subtle);
+    color: var(--text-primary);
+
+    &:hover {
+      background-color: var(--surface-subtle);
+      color: var(--text-primary);
+    }
+  }
+
+  &.selected {
+    background-color: var(--interactive-selected);
+    color: var(--text-primary);
+    outline: 1.5px solid var(--input-border-focus);
+    outline-offset: -1.5px;
+
+    &:hover {
+      background-color: var(--interactive-selected);
+      color: var(--text-primary);
+    }
+  }
+
+  &.inUse::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--text-highlight);
+  }
+
+  &.fillHeight {
+    height: 100%;
+    align-self: stretch;
+    aspect-ratio: 1;
+  }
+
+  /* Sizes */
+  &.sm {
+    width: var(--icon-button-size-xs);
+    height: var(--icon-button-size-xs);
+    padding: 2px;
+    border-radius: var(--radius-xs);
+
+    &.inUse::after {
+      width: 4px;
+      height: 4px;
+      top: 2px;
+      right: 2px;
+    }
+  }
+
+  &.md {
+    width: var(--icon-button-size-md);
+    height: var(--icon-button-size-md);
+    padding: 4px;
+  }
+}

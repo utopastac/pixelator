@@ -1,0 +1,68 @@
+/* Text button for inline actions inside popovers, dialogs, and forms.
+   Base rules shared across variants; colour/border comes from the variant. */
+.button {
+  @mixin type-body-xs;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xxs);
+  padding: 0 var(--space-s);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  outline: none;
+  background: transparent;
+}
+
+.button:focus-visible {
+  @mixin focus-ring-inset-strong;
+}
+
+.button:disabled {
+  @mixin disabled-button;
+}
+
+/* Primary — filled dark. Highest emphasis. */
+.primary {
+  background: var(--surface-inverted-primary);
+  color: var(--text-inverted-primary);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--surface-inverted-subtle);
+}
+
+/* Secondary — bordered on a transparent surface. Lower emphasis. Used for
+   the default-safe action in a dialog (e.g. Cancel). */
+.secondary {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--surface-subtle);
+  border-color: var(--border-prominent);
+}
+
+/* Destructive — red fill for irreversible actions (Reset, Delete). */
+.destructive {
+  background: var(--surface-error-primary);
+  color: var(--text-inverted-primary);
+}
+
+.destructive:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* Size variants — match the height rhythm of CompactInput / ToolbarButton
+   so Button lines up cleanly next to them in a row. */
+.sm {
+  height: var(--input-height-sm);
+}
+
+.md {
+  height: var(--icon-button-size-md);
+  padding: 0 var(--space-m);
+}

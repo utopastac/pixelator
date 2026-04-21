@@ -1,0 +1,59 @@
+.wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-primary);
+  overflow: hidden;
+}
+
+.wrapperPopover {
+  width: auto;
+  height: auto;
+  border: 2px solid var(--border-prominent);
+  border-radius: 0;
+}
+
+.editorPopover {
+  box-shadow: var(--shadow-xl);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* ── Popover mode ─────────────────────────────────────────────── */
+
+.popoverContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.popoverTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  background: var(--input-background);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--border-subtle);
+  }
+
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+  }
+}
+
+.popoverTriggerOpen {
+  visibility: hidden;
+}
+
+.miniPreview {
+  display: block;
+  image-rendering: pixelated;
+  border-radius: var(--radius-xs);
+}

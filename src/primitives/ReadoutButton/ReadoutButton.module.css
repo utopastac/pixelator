@@ -1,0 +1,32 @@
+/* Fixed-width text button that doubles as a popover anchor — used for the zoom
+   percentage and the canvas-size readout. Width is tuned to fit the widest
+   label the caller expects (e.g. "6400%", "64×64") so stepping through values
+   doesn't reflow the toolbar. */
+.readout {
+  @mixin type-body-xs;
+  width: 48px;
+  height: 24px;
+  padding: 0 var(--space-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: var(--surface-subtle);
+  }
+
+  &:focus-visible {
+    @mixin focus-ring-inset-strong;
+  }
+}
+
+.active {
+  background-color: var(--surface-subtle);
+}

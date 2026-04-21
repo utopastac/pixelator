@@ -1,0 +1,155 @@
+/*
+ * Component pattern mixins — ported from admin-ui. Consumed via postcss-mixins
+ * (see postcss.config.js). Edit tokens in tokens.css, not here.
+ */
+
+/* ──────────────── FOCUS RINGS ──────────────── */
+
+@define-mixin focus-ring {
+  outline: 1px solid var(--interactive-focus);
+  outline-offset: 2px;
+}
+
+@define-mixin focus-ring-inset {
+  outline: var(--focus-ring-width) solid var(--interactive-focus);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+/* High-contrast inset focus ring — used on bordered buttons that sit on their
+   own surface (chips, readout buttons, palette header) where the blue
+   interactive-focus colour would clash with adjacent accent fills. */
+@define-mixin focus-ring-inset-strong {
+  outline: var(--focus-ring-width) solid var(--border-prominent);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+/* ──────────────── POPOVER PANEL ──────────────── */
+
+@define-mixin popover-panel {
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0;
+  box-shadow: var(--shadow-md);
+}
+
+/* ──────────────── ICON BUTTON ──────────────── */
+
+@define-mixin icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ──────────────── MENU ITEM ──────────────── */
+
+/* Shared anatomy for rows rendered inside popover/context menus — icon slot,
+   label, optional trailing slot. Callers layer their own hover, focus, width,
+   and variant styles on top. */
+@define-mixin menu-item {
+  @mixin type-body-xs;
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-xs) var(--space-s);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Leading icon slot inside a `menu-item` row. Colour is pinned to
+   --text-primary so the icon reads as a strong UI glyph independent of the
+   label's colour state (e.g. destructive labels keep a primary-coloured icon).
+   Consumers render the actual icon at 16px to match the baseline. */
+@define-mixin menu-item-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
+/* Label slot inside a `menu-item` row — takes the remaining horizontal
+   space so trailing slots (shortcut hints, chevrons) can right-align. */
+@define-mixin menu-item-label {
+  flex: 1;
+}
+
+/* ──────────────── INPUTS ──────────────── */
+
+@define-mixin input-wrapper {
+  border: 1px solid transparent;
+  background-color: var(--input-background);
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--border-subtle);
+  }
+
+  &:focus-within {
+    border-color: var(--input-border-focus);
+  }
+}
+
+/* ──────────────── DISABLED STATES ──────────────── */
+
+@define-mixin disabled-state {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+@define-mixin disabled-button {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* ──────────────── TYPOGRAPHY ──────────────── */
+
+@define-mixin type-body-xs {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-body);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-normal);
+}
+
+@define-mixin type-body-s {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-body);
+  font-size: var(--font-size-s);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-normal);
+}
+
+@define-mixin type-body-s-strong {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-emphasis);
+  font-size: var(--font-size-s);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-normal);
+}
+
+@define-mixin type-body-ui {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-body);
+  font-size: var(--font-size-ui);
+  line-height: 1.25;
+  letter-spacing: var(--tracking-normal);
+}
+
+@define-mixin type-section-heading {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-emphasis);
+  font-size: var(--font-size-s);
+  line-height: 1.5;
+  letter-spacing: var(--tracking-normal);
+}
+
+@define-mixin weight-medium {
+  font-weight: var(--font-weight-medium);
+}

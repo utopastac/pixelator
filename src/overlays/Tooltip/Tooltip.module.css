@@ -1,0 +1,50 @@
+.wrapper {
+  display: inline-flex;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: var(--z-tooltip);
+  white-space: nowrap;
+  padding: var(--space-xs) var(--space-s);
+  background: var(--surface-inverted-primary);
+  color: var(--text-inverted-primary);
+  border-radius: var(--interactive-radius);
+  pointer-events: none;
+  @mixin type-body-xs;
+
+  /* `--arrow-shift` is set inline by the component after viewport clamping,
+     so the arrow can stay centered on the trigger even when the tooltip has
+     been pushed sideways to stay in view. Defaults to 0 when unclamped. */
+  &::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: var(--surface-inverted-primary);
+  }
+
+  &.top::after {
+    bottom: -3px;
+    left: calc(50% + var(--arrow-shift, 0px));
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  &.bottom::after {
+    top: -3px;
+    left: calc(50% + var(--arrow-shift, 0px));
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  &.left::after {
+    right: -3px;
+    top: calc(50% + var(--arrow-shift, 0px));
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  &.right::after {
+    left: -3px;
+    top: calc(50% + var(--arrow-shift, 0px));
+    transform: translateY(-50%) rotate(45deg);
+  }
+}

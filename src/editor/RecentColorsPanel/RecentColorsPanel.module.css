@@ -1,0 +1,35 @@
+/* Positioned inside `.main` (the editor area) so it follows the editor when
+   the DrawingsPanel pushes it right. Pill styling matches FloatingPanel.
+   `--chrome-inset` is set on `.main` and collapses to 0 when the drawings
+   panel is docked — so this panel sits flush to the drawings panel's right
+   gutter, then animates back to a `--floating-offset` inset when the panel
+   closes. Fallback keeps a usable offset if the variable isn't set. */
+.panel {
+  @mixin popover-panel;
+  /* Pill shape — override the mixin's default --radius-md. */
+  border-radius: var(--radius-pill);
+  position: absolute;
+  left: var(--chrome-inset, var(--floating-offset));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-sheet);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs);
+  transition: left 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}

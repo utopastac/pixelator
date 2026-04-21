@@ -1,0 +1,33 @@
+.field {
+  display: flex;
+  gap: var(--space-s);
+}
+
+.fieldTop {
+  flex-direction: column;
+}
+
+.fieldLeft {
+  flex-direction: row;
+  align-items: center;
+}
+
+.label {
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.sm {
+  @mixin type-body-xs;
+  @mixin weight-medium;
+  color: var(--text-subtle);
+}
+
+.lg {
+  @mixin type-body-s-strong;
+  color: var(--text-primary);
+}
+
+.disabled {
+  @mixin disabled-state;
+}
