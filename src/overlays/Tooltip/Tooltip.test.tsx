@@ -6,6 +6,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { AppMobileContext } from '@/AppMobileContext';
 import Tooltip, { _resetTooltipChainForTests } from './Tooltip';
 
 beforeEach(() => {
@@ -102,5 +103,19 @@ describe('Tooltip', () => {
     fireEvent.mouseEnter(trigger.parentElement!);
     const tip = screen.getByRole('tooltip');
     expect(trigger).toHaveAttribute('aria-describedby', tip.id);
+  });
+
+  it('renders only the child when app is in mobile layout (no tooltip wrapper)', () => {
+    render(
+      <AppMobileContext.Provider value={{ isMobile: true, setMobile: vi.fn() }}>
+        <Tooltip content="Hidden on mobile" delay={0}>
+          <button>Trigger</button>
+        </Tooltip>
+      </AppMobileContext.Provider>,
+    );
+    const trigger = screen.getByRole('button', { name: 'Trigger' });
+    fireEvent.mouseEnter(trigger);
+    fireEvent.focus(trigger);
+    expect(screen.queryByRole('tooltip')).toBeNull();
   });
 });

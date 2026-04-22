@@ -8,7 +8,8 @@ export type AppMobileContextValue = {
   setMobile: (next: boolean) => void;
 };
 
-const AppMobileContext = createContext<AppMobileContextValue | null>(null);
+/** Exposed for `Tooltip` and unit tests; prefer `useAppMobile` in app code. */
+export const AppMobileContext = createContext<AppMobileContextValue | null>(null);
 
 export function AppMobileProvider({ children }: { children: ReactNode }) {
   const [isMobile, setMobile] = useState(false);
@@ -33,4 +34,9 @@ export function useAppMobile(): AppMobileContextValue {
     throw new Error('useAppMobile must be used within AppMobileProvider');
   }
   return v;
+}
+
+/** Returns null outside `AppMobileProvider` (e.g. isolated primitives tests). */
+export function useAppMobileOptional(): AppMobileContextValue | null {
+  return useContext(AppMobileContext);
 }

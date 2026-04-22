@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useId, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useAppMobileOptional } from '@/AppMobileContext';
 import styles from './Tooltip.module.css';
 
 export interface TooltipProps {
@@ -81,6 +82,9 @@ export default function Tooltip({
   children,
   className,
 }: TooltipProps) {
+  const appMobile = useAppMobileOptional();
+  const isMobile = appMobile?.isMobile ?? false;
+
   const [visible, setVisible] = useState(false);
   const [placed, setPlaced] = useState<Placement | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -123,7 +127,7 @@ export default function Tooltip({
   // Measure + clamp synchronously after the tooltip mounts. Runs only on the
   // render where `visible` is true and `placed` is still null (first frame).
   useLayoutEffect(() => {
-    if (!visible || placed !== null) return;
+    if (isMobile || !visible || placed !== null) return;
     const tip = tooltipRef.current;
     const wrapper = wrapperRef.current;
     if (!tip || !wrapper) return;
@@ -164,7 +168,7 @@ export default function Tooltip({
     }
 
     setPlaced({ top, left, arrowShift });
-  }, [visible, placed, placement]);
+  }, [isMobile, visible, placed, placement]);
 
   const preMeasureStyle: React.CSSProperties = {
     top: -9999,
@@ -178,6 +182,10 @@ export default function Tooltip({
         ['--arrow-shift' as string]: `${placed.arrowShift}px`,
       } as React.CSSProperties)
     : null;
+
+  if (isMobile) {
+    return children;
+  }
 
   return (
     <>
