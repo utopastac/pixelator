@@ -16,9 +16,21 @@ import type { PixelArtSelection } from './pixelArtUtils';
 let ctxMock: ReturnType<typeof makeCtx>;
 let getContextSpy: Mock;
 
+/** jsdom has no `ImageData`; match the browser surface the helpers need. */
+function makeTestImageData(sw: number, sh: number): ImageData {
+  return {
+    width: sw,
+    height: sh,
+    data: new Uint8ClampedArray(sw * sh * 4),
+    colorSpace: 'srgb',
+  } as ImageData;
+}
+
 function makeCtx() {
   return {
     clearRect: vi.fn(),
+    createImageData: (sw: number, sh: number) => makeTestImageData(sw, sh),
+    putImageData: vi.fn(),
     fillRect: vi.fn(),
     strokeRect: vi.fn(),
     beginPath: vi.fn(),
@@ -74,50 +86,38 @@ function makePixels(w: number, h: number, painted: Array<[number, number, string
 // ── drawCommitted ─────────────────────────────────────────────────────────────
 
 describe('drawCommitted', () => {
-  it('calls clearRect then fillRect with #ffffff for the background', () => {
+  it('calls putImageData once with an opaque white bitmap for an empty grid', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4);
-    let bgCalled = false;
-
-    const fillRectCalls: Array<[string, number, number, number, number]> = [];
-    vi.spyOn(ctxMock, 'fillRect').mockImplementation((...args) => {
-      fillRectCalls.push([ctxMock.fillStyle as string, ...(args as [number, number, number, number])]);
-    });
-    let currentFillStyle = '';
-    Object.defineProperty(ctxMock, 'fillStyle', {
-      get: () => currentFillStyle,
-      set: (v: string) => {
-        currentFillStyle = v;
-        if (v === '#ffffff') bgCalled = true;
-      },
-      configurable: true,
-    });
 
     drawCommitted(canvas, pixels, 4);
 
-    expect(ctxMock.clearRect).toHaveBeenCalledOnce();
-    expect(bgCalled).toBe(true);
-    expect(ctxMock.fillRect).toHaveBeenCalled();
+    expect(ctxMock.putImageData).toHaveBeenCalledOnce();
+    expect(ctxMock.fillRect).not.toHaveBeenCalled();
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    expect(img.data[0]).toBe(255);
+    expect(img.data[1]).toBe(255);
+    expect(img.data[2]).toBe(255);
+    expect(img.data[3]).toBe(255);
   });
 
-  it('paints non-empty cells at correct (col, row) positions after the background', () => {
+  it('paints non-empty cells at correct (col, row) positions over the white background', () => {
     const canvas = makeCanvas(4, 4);
     // Paint cells: (1,0)=red, (0,2)=blue
     const pixels = makePixels(4, 4, [[1, 0, '#ff0000'], [0, 2, '#0000ff']]);
 
-    const calls: Array<[number, number, number, number]> = [];
-    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
-      calls.push([x, y, w, h]);
-    });
-
     drawCommitted(canvas, pixels, 4);
 
-    // First call is the white background at (0,0,4,4)
-    expect(calls[0]).toEqual([0, 0, 4, 4]);
-    // Subsequent calls are pixel cells
-    expect(calls).toContainEqual([1, 0, 1, 1]); // col=1, row=0
-    expect(calls).toContainEqual([0, 2, 1, 1]); // col=0, row=2
-    expect(calls.length).toBe(3); // background + 2 cells
+    expect(ctxMock.putImageData).toHaveBeenCalledOnce();
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    const d = img.data;
+    const px = (col: number, row: number) => {
+      const o = (row * 4 + col) * 4;
+      return [d[o], d[o + 1], d[o + 2], d[o + 3]] as const;
+    };
+    expect(px(1, 0)).toEqual([255, 0, 0, 255]);
+    expect(px(0, 2)).toEqual([0, 0, 255, 255]);
+    expect(px(0, 0)).toEqual([255, 255, 255, 255]);
   });
 
   it('skips empty cells', () => {
@@ -126,9 +126,15 @@ describe('drawCommitted', () => {
 
     drawCommitted(canvas, pixels, 4);
 
-    // Only the background fillRect should be called
-    expect(ctxMock.fillRect).toHaveBeenCalledOnce();
-    expect(ctxMock.fillRect).toHaveBeenCalledWith(0, 0, 4, 4);
+    expect(ctxMock.putImageData).toHaveBeenCalledOnce();
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    for (let p = 0; p < 4 * 4; p++) {
+      const o = p * 4;
+      expect(img.data[o]).toBe(255);
+      expect(img.data[o + 1]).toBe(255);
+      expect(img.data[o + 2]).toBe(255);
+      expect(img.data[o + 3]).toBe(255);
+    }
   });
 
   it('no-ops gracefully when getContext returns null', () => {
@@ -137,66 +143,66 @@ describe('drawCommitted', () => {
     const pixels = makePixels(4, 4, [[0, 0, '#ff0000']]);
 
     expect(() => drawCommitted(canvas, pixels, 4)).not.toThrow();
-    expect(ctxMock.clearRect).not.toHaveBeenCalled();
+    expect(ctxMock.putImageData).not.toHaveBeenCalled();
   });
 
   it('paints single pixel at (0,0) in a 4×4 grid', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4, [[0, 0, '#ff0000']]);
 
-    const calls: Array<[number, number, number, number]> = [];
-    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
-      calls.push([x, y, w, h]);
-    });
-
     drawCommitted(canvas, pixels, 4);
-    expect(calls).toContainEqual([0, 0, 1, 1]);
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    const o = 0;
+    expect(img.data[o]).toBe(255);
+    expect(img.data[o + 1]).toBe(0);
+    expect(img.data[o + 2]).toBe(0);
+    expect(img.data[o + 3]).toBe(255);
   });
 
   it('paints single pixel at (3,0) in a 4×4 grid', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4, [[3, 0, '#ff0000']]);
 
-    const calls: Array<[number, number, number, number]> = [];
-    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
-      calls.push([x, y, w, h]);
-    });
-
     drawCommitted(canvas, pixels, 4);
-    expect(calls).toContainEqual([3, 0, 1, 1]);
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    const o = (0 * 4 + 3) * 4;
+    expect(img.data[o]).toBe(255);
+    expect(img.data[o + 1]).toBe(0);
+    expect(img.data[o + 2]).toBe(0);
+    expect(img.data[o + 3]).toBe(255);
   });
 
   it('paints single pixel at (0,2) in a 4×4 grid', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4, [[0, 2, '#ff0000']]);
 
-    const calls: Array<[number, number, number, number]> = [];
-    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
-      calls.push([x, y, w, h]);
-    });
-
     drawCommitted(canvas, pixels, 4);
-    expect(calls).toContainEqual([0, 2, 1, 1]);
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    const o = (2 * 4 + 0) * 4;
+    expect(img.data[o]).toBe(255);
+    expect(img.data[o + 1]).toBe(0);
+    expect(img.data[o + 2]).toBe(0);
+    expect(img.data[o + 3]).toBe(255);
   });
 
   it('paints single pixel at (3,3) in a 4×4 grid', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4, [[3, 3, '#ff0000']]);
 
-    const calls: Array<[number, number, number, number]> = [];
-    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
-      calls.push([x, y, w, h]);
-    });
-
     drawCommitted(canvas, pixels, 4);
-    expect(calls).toContainEqual([3, 3, 1, 1]);
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    const o = (3 * 4 + 3) * 4;
+    expect(img.data[o]).toBe(255);
+    expect(img.data[o + 1]).toBe(0);
+    expect(img.data[o + 2]).toBe(0);
+    expect(img.data[o + 3]).toBe(255);
   });
 });
 
 // ── drawLayer ─────────────────────────────────────────────────────────────────
 
 describe('drawLayer', () => {
-  it('calls clearRect but does NOT paint a white (#ffffff) background', () => {
+  it('uses putImageData without painting a white (#ffffff) background', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4);
 
@@ -213,48 +219,55 @@ describe('drawLayer', () => {
 
     drawLayer(canvas, pixels, 4);
 
-    expect(ctxMock.clearRect).toHaveBeenCalledOnce();
     expect(fillStylesSet).not.toContain('#ffffff');
     expect(ctxMock.fillRect).not.toHaveBeenCalled();
+    expect(ctxMock.putImageData).toHaveBeenCalledOnce();
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    expect(img.data.every((v) => v === 0)).toBe(true);
   });
 
   it('paints non-empty cells', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4, [[2, 1, '#00ff00']]);
 
-    const calls: Array<[number, number, number, number]> = [];
-    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
-      calls.push([x, y, w, h]);
-    });
-
     drawLayer(canvas, pixels, 4);
 
-    expect(calls).toContainEqual([2, 1, 1, 1]);
-    expect(calls.length).toBe(1);
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    const o = (1 * 4 + 2) * 4;
+    expect(img.data[o]).toBe(0);
+    expect(img.data[o + 1]).toBe(255);
+    expect(img.data[o + 2]).toBe(0);
+    expect(img.data[o + 3]).toBe(255);
   });
 
   it('skips empty cells', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4, [[0, 0, '#ff0000'], [1, 0, ''], [2, 0, '']]);
 
-    const calls: Array<[number, number, number, number]> = [];
-    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
-      calls.push([x, y, w, h]);
-    });
-
     drawLayer(canvas, pixels, 4);
-    expect(calls.length).toBe(1);
-    expect(calls[0]).toEqual([0, 0, 1, 1]);
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    const o0 = 0;
+    expect(img.data[o0]).toBe(255);
+    expect(img.data[o0 + 1]).toBe(0);
+    expect(img.data[o0 + 2]).toBe(0);
+    expect(img.data[o0 + 3]).toBe(255);
+    const o1 = 4 * 4;
+    expect(img.data[o1]).toBe(0);
+    expect(img.data[o1 + 1]).toBe(0);
+    expect(img.data[o1 + 2]).toBe(0);
+    expect(img.data[o1 + 3]).toBe(0);
   });
 
-  it('all-empty pixel array → just clearRect, no fillRect', () => {
+  it('all-empty pixel array → fully transparent putImageData, no fillRect', () => {
     const canvas = makeCanvas(4, 4);
     const pixels = makePixels(4, 4);
 
     drawLayer(canvas, pixels, 4);
 
-    expect(ctxMock.clearRect).toHaveBeenCalledOnce();
     expect(ctxMock.fillRect).not.toHaveBeenCalled();
+    expect(ctxMock.putImageData).toHaveBeenCalledOnce();
+    const img = (ctxMock.putImageData as ReturnType<typeof vi.fn>).mock.calls[0][0] as ImageData;
+    expect(img.data.every((v) => v === 0)).toBe(true);
   });
 });
 

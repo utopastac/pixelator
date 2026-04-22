@@ -10,13 +10,25 @@
  * a `cellSize` argument; they operate in pure cell coordinates.
  */
 
+import { HEX_REGEX } from './pixelArtFormat';
 import { type PixelArtSelection } from './pixelArtUtils';
+
+function hexToRgb(hex: string): [number, number, number] | null {
+  if (!HEX_REGEX.test(hex)) return null;
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+}
 
 /**
  * Redraws the committed pixel state onto the canvas, including the background
- * and all painted cells. The grid is intentionally not drawn at unit scale —
- * it would be 1px wide, i.e. invisible after upscaling via CSS. A future phase
- * will draw a zoom-aware grid overlay on a separate layer.
+ * and all painted cells. Rasterises via a single `ImageData` + `putImageData`
+ * pass (not per-cell `fillRect`) for better mobile performance. The grid is
+ * intentionally not drawn at unit scale — it would be 1px wide, i.e. invisible
+ * after upscaling via CSS. A future phase will draw a zoom-aware grid overlay
+ * on a separate layer.
  *
  * @param canvas - The canvas element to draw into. Must be sized `width × height`.
  * @param pixels - Flat row-major pixel array; empty strings are treated as transparent.
@@ -30,27 +42,40 @@ export function drawCommitted(
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Draw filled cells — each logical pixel is exactly 1 raster pixel now.
+  const w = canvas.width;
+  const h = canvas.height;
+  const imageData = ctx.createImageData(w, h);
+  const d = imageData.data;
+  const cellCount = w * h;
+  for (let o = 0; o < cellCount * 4; o += 4) {
+    d[o] = 255;
+    d[o + 1] = 255;
+    d[o + 2] = 255;
+    d[o + 3] = 255;
+  }
   for (let i = 0; i < pixels.length; i++) {
-    const color = pixels[i];
-    if (!color) continue;
     const col = i % logicalWidth;
     const row = Math.floor(i / logicalWidth);
-    ctx.fillStyle = color;
-    ctx.fillRect(col, row, 1, 1);
+    if (col >= w || row >= h) continue;
+    const color = pixels[i];
+    if (!color) continue;
+    const rgb = hexToRgb(color);
+    if (!rgb) continue;
+    const o = (row * w + col) * 4;
+    d[o] = rgb[0];
+    d[o + 1] = rgb[1];
+    d[o + 2] = rgb[2];
+    d[o + 3] = 255;
   }
+  ctx.putImageData(imageData, 0, 0);
 }
 
 /**
  * Rasterises `pixels` onto `canvas` WITHOUT painting any background. Used for
  * per-layer offscreen canvases, which must stay transparent where no cell is
- * painted so upper layers can composite correctly. Contrast with
- * `drawCommitted`, which also paints a white fullbleed first for the
- * single-layer editor rendering.
+ * painted so upper layers can composite correctly. Uses one `ImageData` +
+ * `putImageData` pass. Contrast with `drawCommitted`, which also paints a white
+ * fullbleed first for the single-layer editor rendering.
  *
  * @param canvas - The canvas element to draw into. Must be sized `width × height`.
  * @param pixels - Flat row-major pixel array; empty strings are skipped.
@@ -64,15 +89,25 @@ export function drawLayer(
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const w = canvas.width;
+  const h = canvas.height;
+  const imageData = ctx.createImageData(w, h);
+  const d = imageData.data;
   for (let i = 0; i < pixels.length; i++) {
-    const color = pixels[i];
-    if (!color) continue;
     const col = i % logicalWidth;
     const row = Math.floor(i / logicalWidth);
-    ctx.fillStyle = color;
-    ctx.fillRect(col, row, 1, 1);
+    if (col >= w || row >= h) continue;
+    const color = pixels[i];
+    if (!color) continue;
+    const rgb = hexToRgb(color);
+    if (!rgb) continue;
+    const o = (row * w + col) * 4;
+    d[o] = rgb[0];
+    d[o + 1] = rgb[1];
+    d[o + 2] = rgb[2];
+    d[o + 3] = 255;
   }
+  ctx.putImageData(imageData, 0, 0);
 }
 
 /**
