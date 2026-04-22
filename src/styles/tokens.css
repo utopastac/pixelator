@@ -331,4 +331,7 @@ html[data-mobile='true'] {
 
   /* Swatches colour popover: full-width column for SV grid + fluid swatches. */
   --swatches-popover-max-width: min(360px, calc(100vw - 24px));
+
+  /* Layers panel — right-floating card width on small viewports. */
+  --layers-panel-mobile-width: 80vw;
 }

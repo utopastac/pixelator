@@ -205,7 +205,7 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
         position="top-right"
         mobile={mobile}
         className={`${styles.panel}${isResizing ? ` ${styles.panelResizing}` : ''}${mobile ? ` ${styles.mobile}` : ''}`}
-        style={{ width: panelWidth }}
+        style={mobile ? undefined : { width: panelWidth }}
         aria-label="Layers"
       >
         {!mobile && (

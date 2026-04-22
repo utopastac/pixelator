@@ -12,6 +12,7 @@
   overflow: hidden;
 
   &.mobile {
+    width: var(--layers-panel-mobile-width, 80vw);
     /* Below EditorBars mobile top strip — `tokens.css` `--mobile-editor-top-chrome-height`. */
     top: var(--mobile-editor-top-chrome-height);
     max-height: calc(100vh - var(--mobile-editor-top-chrome-height) - var(--space-m));
