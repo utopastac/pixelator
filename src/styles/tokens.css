@@ -127,8 +127,8 @@
   --border-disabled: var(--black-10);
 
   /* Icon buttons */
-  --icon-button-size-xs: 1.5rem;
-  --icon-button-size-md: 2.2rem;
+  --icon-button-size-xs: 1.8rem;
+  --icon-button-size-md: 2.4rem;
 
   /* ToolbarButton — hit area, padding, and SVG box; defaults track icon-button
      sizes so desktop matches legacy layout. Override on `html[data-mobile]`. */

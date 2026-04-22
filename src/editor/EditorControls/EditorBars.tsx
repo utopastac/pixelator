@@ -137,6 +137,12 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
               {c.historyUndo}
               {c.historyRedo}
             </ToolGroupCluster>
+            <ToolGroupCluster>
+              {c.gridOverlay}
+            </ToolGroupCluster>
+            <ToolGroupCluster trailingDivider={false}>
+              {c.tiling}
+            </ToolGroupCluster>
             <ToolGroupCluster align="right" trailingDivider={false} leadingDivider={true}>
               {c.themeToggle}
               {c.download}
@@ -153,7 +159,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           aria-label="Editor"
         >
           <div className={styles.toolsStrip} role="region" aria-label="Drawing title">
-            <ToolGroupCluster>
+            <ToolGroupCluster trailingDivider={false}>
               {c.symmetry}
               {c.wrap}
               {c.alphaLock}
@@ -220,7 +226,9 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           <ToolGroupCluster>
             {c.zoom}
           </ToolGroupCluster>
-          {c.gridOverlay}
+          <ToolGroupCluster>
+            {c.gridOverlay}
+          </ToolGroupCluster>
           <ToolGroupCluster>
             {c.tiling}
           </ToolGroupCluster>

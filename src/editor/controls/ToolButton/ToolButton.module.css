@@ -17,7 +17,7 @@
       background-color: var(--interactive-selected);
     }
 
-    &:after {
+    &::after {
       content: '';
       position: absolute;
       bottom: -4px;
@@ -25,6 +25,14 @@
       right: 0;
       height: 4px;
       background-color: var(--input-border-focus);
+    }
+
+    /* Same breakpoint as `MOBILE_MEDIA_QUERY` in `AppMobileContext`. */
+    @media (max-width: 768px) {
+      &::after {
+        bottom: 0px;
+        height: 1px;
+      }
     }
   }
 }
@@ -69,11 +77,9 @@
 .sm {
   width: var(--icon-button-size-xs);
   height: var(--icon-button-size-xs);
-  padding: 2px;
 }
 
 .md {
-  width: 40px;
-  height: 40px;
-  padding: 4px;
+  width: var(--icon-button-size-md);
+  height: var(--icon-button-size-md);
 }

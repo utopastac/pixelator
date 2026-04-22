@@ -4,10 +4,10 @@
   height: var(--toolbar-button-size-md);
   border-radius: var(--interactive-radius);
   color: var(--text-primary);
-  transition: background-color 0.15s, color 0.15s;
+  transition: background-color 0.15s, color 0.15s, opacity 0.15s;
   position: relative;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: var(--interactive-hover);
     color: var(--text-primary);
   }
@@ -16,11 +16,17 @@
     @mixin focus-ring;
   }
 
+  &:disabled {
+    cursor: not-allowed;
+    opacity: var(--opacity-disabled);
+    color: var(--text-disabled);
+  }
+
   &.pressed {
     background-color: var(--surface-subtle);
     color: var(--text-primary);
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: var(--surface-subtle);
       color: var(--text-primary);
     }
@@ -32,7 +38,7 @@
     outline: 1.5px solid var(--input-border-focus);
     outline-offset: -1.5px;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: var(--interactive-selected);
       color: var(--text-primary);
     }

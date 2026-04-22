@@ -48,7 +48,7 @@
    4px inner padding of md ToolbarButtons. */
 .sm {
   gap: 2px;
-  padding: 4px;
+  padding: 0;
 }
 
 .md {
