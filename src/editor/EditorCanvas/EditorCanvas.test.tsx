@@ -52,6 +52,7 @@ function makeProps(overrides: Partial<EditorCanvasProps> = {}): EditorCanvasProp
     committedCanvasCallbackRef: noop,
     previewCanvasRef: { current: null },
     overlayCanvasRef: { current: null },
+    gridCanvasRef: { current: null },
     onContextMenu: vi.fn(),
     activeLayerVisible: true,
     blockToast: null,
@@ -95,41 +96,21 @@ describe('EditorCanvas — rendering basics', () => {
 // ---------------------------------------------------------------------------
 
 describe('EditorCanvas — grid overlay', () => {
-  it('is present in the DOM when zoom >= 4', () => {
-    render(<EditorCanvas {...makeProps({ zoom: 4 })} />);
-    // The grid overlay is a div with aria-hidden and inline backgroundSize
-    const overlays = document.querySelectorAll('[aria-hidden="true"]:not(canvas)');
-    const gridOverlay = Array.from(overlays).find((el) =>
-      (el as HTMLElement).style.backgroundSize !== '',
-    );
-    expect(gridOverlay).toBeDefined();
-  });
+  // The grid is now a <canvas> managed imperatively by useGridCanvasDraw.
+  // It is always mounted; the hook clears it when zoom < 4 and draws when >= 4.
+  // DOM tests verify the canvas is always present regardless of zoom.
 
-  it('is present when zoom > 4', () => {
-    render(<EditorCanvas {...makeProps({ zoom: 8 })} />);
-    const overlays = document.querySelectorAll('[aria-hidden="true"]:not(canvas)');
-    const gridOverlay = Array.from(overlays).find((el) =>
-      (el as HTMLElement).style.backgroundSize !== '',
-    );
-    expect(gridOverlay).toBeDefined();
-  });
-
-  it('is absent when zoom < 4', () => {
+  it('the grid canvas element is always present in the DOM', () => {
     render(<EditorCanvas {...makeProps({ zoom: 1 })} />);
-    const overlays = document.querySelectorAll('[aria-hidden="true"]:not(canvas)');
-    const gridOverlay = Array.from(overlays).find((el) =>
-      (el as HTMLElement).style.backgroundSize !== '',
-    );
-    expect(gridOverlay).toBeUndefined();
+    // All aria-hidden canvases: committed, preview, grid, screen-overlay.
+    const hiddenCanvases = document.querySelectorAll('canvas[aria-hidden="true"]');
+    expect(hiddenCanvases.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('is absent when zoom === 3', () => {
-    render(<EditorCanvas {...makeProps({ zoom: 3 })} />);
-    const overlays = document.querySelectorAll('[aria-hidden="true"]:not(canvas)');
-    const gridOverlay = Array.from(overlays).find((el) =>
-      (el as HTMLElement).style.backgroundSize !== '',
-    );
-    expect(gridOverlay).toBeUndefined();
+  it('the grid canvas is still present at zoom >= 4', () => {
+    render(<EditorCanvas {...makeProps({ zoom: 4 })} />);
+    const hiddenCanvases = document.querySelectorAll('canvas[aria-hidden="true"]');
+    expect(hiddenCanvases.length).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -157,13 +138,15 @@ describe('EditorCanvas — hidden-layer overlay', () => {
     expect(hiddenLayerOverlays.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('is present when layer is hidden even with zoom >= 4 (both overlays coexist)', () => {
+  it('is present when layer is hidden even with zoom >= 4 (grid canvas and div coexist)', () => {
     render(
       <EditorCanvas {...makeProps({ activeLayerVisible: false, zoom: 4 })} />,
     );
-    const overlays = document.querySelectorAll('[aria-hidden="true"]:not(canvas)');
-    // At least 2 non-canvas aria-hidden elements: grid + hidden-layer
-    expect(overlays.length).toBeGreaterThanOrEqual(2);
+    // The grid is now a canvas; the hidden-layer overlay is a div.
+    const nonCanvasOverlays = document.querySelectorAll('[aria-hidden="true"]:not(canvas)');
+    expect(nonCanvasOverlays.length).toBeGreaterThanOrEqual(1);
+    const gridCanvases = document.querySelectorAll('canvas[aria-hidden="true"]');
+    expect(gridCanvases.length).toBeGreaterThanOrEqual(1);
   });
 });
 

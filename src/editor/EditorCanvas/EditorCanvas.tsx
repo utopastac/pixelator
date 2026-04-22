@@ -40,6 +40,7 @@ export interface EditorCanvasProps {
   committedCanvasCallbackRef: (el: HTMLCanvasElement | null) => void;
   previewCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   overlayCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  gridCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   // Context menu
   onContextMenu: (e: React.MouseEvent) => void;
   symmetryMode?: SymmetryMode;
@@ -85,6 +86,7 @@ const EditorCanvas = forwardRef<HTMLDivElement, EditorCanvasProps>(
       committedCanvasCallbackRef,
       previewCanvasRef,
       overlayCanvasRef,
+      gridCanvasRef,
       symmetryMode,
       onContextMenu,
       activeLayerVisible,
@@ -213,25 +215,16 @@ const EditorCanvas = forwardRef<HTMLDivElement, EditorCanvasProps>(
             style={{ pointerEvents: 'none' }}
           />
         </div>
-        {zoom >= 4 && (
-          <div
-            className={styles.gridOverlay}
-            style={{
-              left: panX,
-              top: panY,
-              width: width * zoom,
-              height: height * zoom,
-              backgroundSize: `${zoom}px ${zoom}px`,
-            }}
-            aria-hidden="true"
-          />
-        )}
+        <canvas
+          ref={gridCanvasRef}
+          className={styles.gridCanvas}
+          aria-hidden="true"
+        />
         {!activeLayerVisible && (
           <div
             className={styles.hiddenLayerOverlay}
             style={{
-              left: panX,
-              top: panY,
+              transform: `translate(${panX}px, ${panY}px)`,
               width: width * zoom,
               height: height * zoom,
             }}
@@ -242,8 +235,7 @@ const EditorCanvas = forwardRef<HTMLDivElement, EditorCanvasProps>(
           <div
             className={`${styles.symmetryOverlay} ${styles[`symmetryOverlay_${symmetryMode}`]}`}
             style={{
-              left: panX,
-              top: panY,
+              transform: `translate(${panX}px, ${panY}px)`,
               width: width * zoom,
               height: height * zoom,
             }}

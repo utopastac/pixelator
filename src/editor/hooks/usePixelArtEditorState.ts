@@ -8,6 +8,7 @@ import { usePolygonSelectTool } from './usePolygonSelectTool';
 import { usePixelArtPointerHandlers } from './usePixelArtPointerHandlers';
 import { useViewport } from './useViewport';
 import { useScreenOverlayDraw } from './useScreenOverlayDraw';
+import { useGridCanvasDraw } from './useGridCanvasDraw';
 import { useLayerTransform } from './useLayerTransform';
 import { useMoveTransformTool } from './useMoveTransformTool';
 import { useCanvasWheelZoom } from './useCanvasWheelZoom';
@@ -64,6 +65,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const committedCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const gridCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [canvasMounted, setCanvasMounted] = useState(false);
   const committedCanvasCallbackRef = useCallback((el: HTMLCanvasElement | null) => {
     committedCanvasRef.current = el;
@@ -370,6 +372,16 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     marqueeShape,
   });
 
+  useGridCanvasDraw({
+    gridCanvasRef,
+    containerRef,
+    zoom,
+    panX,
+    panY,
+    width,
+    height,
+  });
+
   // Auto-commit pending transform on tool/layer change.
   useEffect(() => {
     if (activeTool === 'move') return;
@@ -568,6 +580,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     committedCanvasCallbackRef,
     previewCanvasRef,
     overlayCanvasRef,
+    gridCanvasRef,
     tilingCanvasRef,
     tilingEnabled,
     symmetryMode,

@@ -12,20 +12,16 @@
   background-color: var(--surface-extra-subtle);
 }
 
-.gridOverlay {
+/* Grid drawn imperatively by useGridCanvasDraw / drawGridOverlay in screen
+   space. Identical footprint to .screenOverlay — inset: 0, pointer-events none.
+   Drawing on a canvas (rather than a CSS-transformed div) means the grid lines
+   share the same coordinate space as all other overlays and are immune to
+   Safari's subpixel compositing differences between transformed and
+   layout-positioned siblings. */
+.gridCanvas {
   position: absolute;
+  inset: 0;
   pointer-events: none;
-  /* Two 1-CSS-pixel lines tiled at `zoom × zoom`, anchored at panX/panY via
-     inline style. Stays crisp at any zoom because it's outside the scaled
-     wrapper. */
-  background-image:
-    linear-gradient(to right, rgba(0, 0, 0, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 1px, transparent 1px);
-  /* The tiled pattern only places a line at the START of each cell, so the
-     grid's right and bottom edges are missing a line. An inset box-shadow
-     with negative offsets paints those two trailing edges without changing
-     layout or bleeding outside the grid. */
-  box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.12);
 }
 
 /* Diagonal stripe overlay shown over the canvas when the active layer is
@@ -35,6 +31,8 @@
    the pattern reads the same whether the canvas is tiny or huge. */
 .hiddenLayerOverlay {
   position: absolute;
+  left: 0;
+  top: 0;
   pointer-events: none;
   background-image: repeating-linear-gradient(
     45deg,
@@ -61,6 +59,8 @@
    the canvas. Outside canvasInner so they stay 1px regardless of zoom. */
 .symmetryOverlay {
   position: absolute;
+  left: 0;
+  top: 0;
   pointer-events: none;
 }
 

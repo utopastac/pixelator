@@ -545,3 +545,50 @@ export function drawScreenOverlay(
     }
   }
 }
+
+/**
+ * Draws the pixel-grid overlay onto a full-container-size canvas in screen
+ * space. Drawing directly in screen coordinates (rather than relying on CSS
+ * transforms) avoids the subpixel compositing misalignment Safari has between
+ * CSS-transformed elements and their layout-positioned siblings.
+ *
+ * @param canvas - Sized to the container (not the logical grid).
+ * @param opts.zoom - Current zoom level (CSS px per logical cell).
+ * @param opts.panX - Horizontal pan offset in CSS pixels.
+ * @param opts.panY - Vertical pan offset in CSS pixels.
+ * @param opts.width - Grid width in logical pixels.
+ * @param opts.height - Grid height in logical pixels.
+ */
+export function drawGridOverlay(
+  canvas: HTMLCanvasElement,
+  opts: { zoom: number; panX: number; panY: number; width: number; height: number },
+): void {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const { zoom, panX, panY, width, height } = opts;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
+  ctx.lineWidth = 1;
+
+  ctx.beginPath();
+
+  // +0.5 snaps each line centre onto a physical half-pixel so the 1 px stroke
+  // lands on exactly one pixel row/column when pan/zoom land on whole pixels.
+
+  for (let col = 0; col <= width; col++) {
+    const x = panX + col * zoom + 0.5;
+    ctx.moveTo(x, panY);
+    ctx.lineTo(x, panY + height * zoom);
+  }
+
+  for (let row = 0; row <= height; row++) {
+    const y = panY + row * zoom + 0.5;
+    ctx.moveTo(panX, y);
+    ctx.lineTo(panX + width * zoom, y);
+  }
+
+  ctx.stroke();
+}

@@ -72,6 +72,9 @@ export function useViewport({ width, height, containerRef }: UseViewportArgs): U
       const maxX = cw - halfW;
       const minY = halfH - canvasH;
       const maxY = ch - halfH;
+      // Keep pan as full-precision floats. Rounding here breaks trackpad / wheel
+      // panning: tiny deltas clamp to the same integer and the viewport never
+      // moves (especially noticeable in Safari).
       return {
         x: Math.max(minX, Math.min(maxX, x)),
         y: Math.max(minY, Math.min(maxY, y)),
