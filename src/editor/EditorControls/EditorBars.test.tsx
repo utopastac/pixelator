@@ -1,9 +1,16 @@
 /**
  * Tests for `EditorBars` — floating tools + optional title chrome (desktop split vs
  * mobile stacked). Merges former `ToolsPanel` and `TitlePanel` coverage.
+ *
+ * **Resilience:** Prefer `getByRole` + stable `aria-label`s over `data-testid`.
+ * Main paint tools are queried *inside* the `toolbar` named "Pixel art tools"
+ * so controls can move between rows without breaking. Chrome-only controls
+ * (download, layers toggle, theme) are queried globally by role/name — when
+ * you move them between mobile/desktop clusters, update only the `describe`
+ * or render helper that wraps the scenario, not every test.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EditorBars from './EditorBars';
 import type { EditorBarsProps } from './EditorBars';
@@ -79,6 +86,37 @@ function renderWithTitleChrome(
   return render(<EditorBars {...props} />);
 }
 
+/** Main tool strip (desktop bottom cluster; mobile bottom `Pixel art tools` toolbar). */
+function getMainToolsToolbar(): HTMLElement {
+  return screen.getByRole('toolbar', { name: 'Pixel art tools' });
+}
+
+function mainToolButton(name: string | RegExp) {
+  return within(getMainToolsToolbar()).getByRole('button', { name });
+}
+
+/** Keep in sync with each tool control's `aria-label`. */
+const MAIN_TOOL_ARIA_LABELS = [
+  'Move',
+  'Marquee selection',
+  'Brush size',
+  'Paint',
+  'Pen',
+  'Line',
+  'Shapes',
+  'Eraser',
+  'Fill',
+  'Eyedropper',
+] as const;
+
+function getDownloadButton() {
+  return screen.getByRole('button', { name: 'Download' });
+}
+
+function getLayersPanelToggleButton() {
+  return screen.getByRole('button', { name: /show layers panel|hide layers panel/i });
+}
+
 // ---------------------------------------------------------------------------
 // Tools toolbar (desktop)
 // ---------------------------------------------------------------------------
@@ -86,25 +124,14 @@ function renderWithTitleChrome(
 describe('EditorBars — tools toolbar', () => {
   it('renders a toolbar region', () => {
     renderToolsOnly();
-    expect(screen.getByRole('toolbar', { name: 'Pixel art tools' })).toBeInTheDocument();
+    expect(getMainToolsToolbar()).toBeInTheDocument();
   });
 
   it('renders all standard tool buttons', () => {
     renderToolsOnly();
-    const labels = [
-      'Move',
-      'Marquee selection',
-      'Brush size',
-      'Paint',
-      'Pen',
-      'Line',
-      'Shapes',
-      'Eraser',
-      'Fill',
-      'Eyedropper',
-    ];
-    for (const label of labels) {
-      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    const toolbar = getMainToolsToolbar();
+    for (const label of MAIN_TOOL_ARIA_LABELS) {
+      expect(within(toolbar).getByRole('button', { name: label })).toBeInTheDocument();
     }
   });
 
@@ -124,7 +151,7 @@ describe('EditorBars — tools toolbar', () => {
   ] as const)('clicking %s sets activeTool to "%s"', async (label, tool) => {
     const user = userEvent.setup();
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: label }));
+    await user.click(mainToolButton(label));
     expect(useEditorSessionStore.getState().activeTool).toBe(tool);
   });
 
@@ -133,14 +160,14 @@ describe('EditorBars — tools toolbar', () => {
     const cancelPenPath = vi.fn();
     useEditorSessionStore.setState({ cancelPenPath });
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Paint' }));
+    await user.click(mainToolButton('Paint'));
     expect(cancelPenPath).toHaveBeenCalled();
   });
 
   it('clicking Marquee sets activeTool to "marquee"', async () => {
     const user = userEvent.setup();
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Marquee selection' }));
+    await user.click(mainToolButton('Marquee selection'));
     expect(useEditorSessionStore.getState().activeTool).toBe('marquee');
   });
 });
@@ -149,15 +176,15 @@ describe('EditorBars — desktop help cluster', () => {
   it('renders drawings toggle in top-left chrome when wired', () => {
     renderToolsOnly();
     expect(screen.getByRole('button', { name: 'Drawings' })).toBeInTheDocument();
-    expect(screen.getByTestId('open-drawings')).toBeInTheDocument();
   });
 
   it('renders Help region with panels, shortcuts, and theme controls', () => {
     renderToolsOnly();
-    expect(screen.getByLabelText('Help')).toBeInTheDocument();
-    expect(screen.getByTestId('toggle-panels')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Keyboard shortcuts' })).toBeInTheDocument();
-    expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
+    const help = screen.getByLabelText('Help');
+    expect(help).toBeInTheDocument();
+    expect(within(help).getByRole('button', { name: /show panels|hide panels/i })).toBeInTheDocument();
+    expect(within(help).getByRole('button', { name: 'Keyboard shortcuts' })).toBeInTheDocument();
+    expect(within(help).getByRole('button', { name: /dark mode|light mode/i })).toBeInTheDocument();
   });
 
   it('does not render Help on mobile', () => {
@@ -178,7 +205,6 @@ describe('EditorBars — desktop help cluster', () => {
     };
     render(<EditorBars {...props} />);
     expect(screen.getByRole('button', { name: 'Drawings' })).toBeInTheDocument();
-    expect(screen.getByTestId('open-drawings')).toBeInTheDocument();
   });
 
   it('keeps Help visible when panels are hidden (desktop)', () => {
@@ -190,8 +216,8 @@ describe('EditorBars — desktop help cluster', () => {
       />,
     );
     expect(screen.queryByRole('toolbar', { name: 'Pixel art tools' })).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Help')).toBeInTheDocument();
-    expect(screen.getByTestId('toggle-panels')).toBeInTheDocument();
+    const help = screen.getByLabelText('Help');
+    expect(within(help).getByRole('button', { name: /show panels|hide panels/i })).toBeInTheDocument();
   });
 
   it('returns null when panels hidden on mobile', () => {
@@ -207,7 +233,7 @@ describe('EditorBars — shape button short press', () => {
     const user = userEvent.setup();
     useEditorSessionStore.setState({ activeTool: 'paint', lastShape: 'circle' });
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    await user.click(mainToolButton('Shapes'));
     expect(useEditorSessionStore.getState().activeTool).toBe('circle');
   });
 
@@ -215,7 +241,7 @@ describe('EditorBars — shape button short press', () => {
     const user = userEvent.setup();
     useEditorSessionStore.setState({ activeTool: 'rect', rectFillMode: 'fill' });
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    await user.click(mainToolButton('Shapes'));
     expect(useEditorSessionStore.getState().rectFillMode).toBe('outline');
   });
 
@@ -223,7 +249,7 @@ describe('EditorBars — shape button short press', () => {
     const user = userEvent.setup();
     useEditorSessionStore.setState({ activeTool: 'circle', circleFillMode: 'fill' });
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    await user.click(mainToolButton('Shapes'));
     expect(useEditorSessionStore.getState().circleFillMode).toBe('outline');
   });
 
@@ -231,7 +257,7 @@ describe('EditorBars — shape button short press', () => {
     const user = userEvent.setup();
     useEditorSessionStore.setState({ activeTool: 'triangle', triangleFillMode: 'fill' });
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    await user.click(mainToolButton('Shapes'));
     expect(useEditorSessionStore.getState().triangleFillMode).toBe('outline');
   });
 
@@ -239,7 +265,7 @@ describe('EditorBars — shape button short press', () => {
     const user = userEvent.setup();
     useEditorSessionStore.setState({ activeTool: 'star', starFillMode: 'fill' });
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    await user.click(mainToolButton('Shapes'));
     expect(useEditorSessionStore.getState().starFillMode).toBe('outline');
   });
 
@@ -247,7 +273,7 @@ describe('EditorBars — shape button short press', () => {
     const user = userEvent.setup();
     useEditorSessionStore.setState({ activeTool: 'arrow', arrowFillMode: 'fill' });
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    await user.click(mainToolButton('Shapes'));
     expect(useEditorSessionStore.getState().arrowFillMode).toBe('outline');
   });
 
@@ -255,9 +281,9 @@ describe('EditorBars — shape button short press', () => {
     const user = userEvent.setup();
     useEditorSessionStore.setState({ activeTool: 'rect', rectFillMode: 'fill' });
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    await user.click(mainToolButton('Shapes'));
     expect(useEditorSessionStore.getState().rectFillMode).toBe('outline');
-    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    await user.click(mainToolButton('Shapes'));
     expect(useEditorSessionStore.getState().rectFillMode).toBe('fill');
   });
 });
@@ -271,22 +297,22 @@ describe('EditorBars — brush size popover', () => {
   it('clicking brush size button opens the popover', async () => {
     const user = userEvent.setup();
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Brush size' }));
+    await user.click(mainToolButton('Brush size'));
     expect(screen.getByRole('menu', { name: 'Brush size' })).toBeInTheDocument();
   });
 
   it('clicking brush size again closes the popover', async () => {
     const user = userEvent.setup();
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Brush size' }));
-    await user.click(screen.getByRole('button', { name: 'Brush size' }));
+    await user.click(mainToolButton('Brush size'));
+    await user.click(mainToolButton('Brush size'));
     expect(screen.queryByRole('menu', { name: 'Brush size' })).not.toBeInTheDocument();
   });
 
   it('picking a brush size updates store and closes the popover', async () => {
     const user = userEvent.setup();
     renderToolsOnly();
-    await user.click(screen.getByRole('button', { name: 'Brush size' }));
+    await user.click(mainToolButton('Brush size'));
     await user.click(screen.getByRole('menuitemradio', { name: /medium/i }));
     expect(useEditorSessionStore.getState().brushSize).toBe('md');
     expect(screen.queryByRole('menu', { name: 'Brush size' })).not.toBeInTheDocument();
@@ -488,21 +514,17 @@ describe('EditorBars — mobile layout', () => {
     expect(screen.getByRole('toolbar', { name: 'Pixel art tools' })).toBeInTheDocument();
   });
 
-  it('renders the Download control in the top bar', () => {
+  it('exposes download and layers controls (role + label; placement-independent)', () => {
     renderWithTitleChrome({ title: 'M' }, { isMobile: true });
-    expect(screen.getByTestId('download-menu')).toBeInTheDocument();
-  });
-
-  it('renders layers panel toggle in the top bar', () => {
-    renderWithTitleChrome({ title: 'M' }, { isMobile: true });
-    expect(screen.getByTestId('toggle-layers-panel')).toBeInTheDocument();
+    expect(getDownloadButton()).toBeInTheDocument();
+    expect(getLayersPanelToggleButton()).toBeInTheDocument();
   });
 
   it('clicking layers panel toggle flips layersPanelVisible in session store', async () => {
     const user = userEvent.setup();
     useEditorSessionStore.setState({ layersPanelVisible: true });
     renderWithTitleChrome({ title: 'M' }, { isMobile: true });
-    await user.click(screen.getByTestId('toggle-layers-panel'));
+    await user.click(getLayersPanelToggleButton());
     expect(useEditorSessionStore.getState().layersPanelVisible).toBe(false);
   });
 });
