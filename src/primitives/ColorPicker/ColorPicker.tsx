@@ -1,11 +1,14 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useMemo, useLayoutEffect } from 'react';
+import { useAppMobileOptional } from '@/AppMobileContext';
 import { hsvToRgb } from '@/lib/colorUtils';
+import styles from './ColorPicker.module.css';
 
 interface ColorPickerProps {
   hue: number;
   saturation: number;
   brightness: number;
   onChange: (h: number, s: number, v: number) => void;
+  /** Logical pixel width/height of the SV square; defaults 200 desktop, larger on mobile. */
   size?: number;
   'data-testid'?: string;
 }
@@ -14,32 +17,41 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-const HUE_BAR_HEIGHT = 18;
-const GAP = 8;
+const HUE_BAR_HEIGHT_DESKTOP = 18;
+const HUE_BAR_HEIGHT_MOBILE = 32;
 const SV_CELLS = 20;
 const HUE_CELLS = 24;
+
+const MOBILE_SPECTRUM_PX = 272;
 
 /**
  * HSV colour picker: a saturation/brightness square plus a hue bar underneath.
  * Both canvases are drag-interactive. Colour state is fully controlled via
  * (hue, saturation, brightness) props; the parent decides how to convert
  * to/from hex (see `hsvToHex` / `hexToHsv` helpers in this module).
+ *
+ * Dragging uses **Pointer Events** on `document` (non-passive `pointermove`)
+ * so touch drags work reliably; legacy mouse events alone miss `mousemove`
+ * during many mobile touch gestures.
  */
 const ColorPicker: React.FC<ColorPickerProps> = ({
   hue,
   saturation,
   brightness,
   onChange,
-  size = 200,
+  size: sizeProp,
   'data-testid': dataTestId,
 }) => {
+  const isMobile = useAppMobileOptional()?.isMobile ?? false;
+  const size = sizeProp ?? (isMobile ? MOBILE_SPECTRUM_PX : 200);
+  const hueBarHeight = isMobile ? HUE_BAR_HEIGHT_MOBILE : HUE_BAR_HEIGHT_DESKTOP;
+
   const svCanvasRef = useRef<HTMLCanvasElement>(null);
   const hueCanvasRef = useRef<HTMLCanvasElement>(null);
   const isDraggingRef = useRef<'sv' | 'hue' | null>(null);
 
   const svHeight = size;
 
-  // Draw the saturation/brightness gradient area
   const drawSV = useCallback(() => {
     const canvas = svCanvasRef.current;
     if (!canvas) return;
@@ -52,7 +64,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     ctx.scale(dpr, dpr);
     ctx.imageSmoothingEnabled = false;
 
-    // Pixellated SV grid: sample HSV at each cell centre.
     for (let cy = 0; cy < SV_CELLS; cy++) {
       const y0 = Math.round((cy * svHeight) / SV_CELLS);
       const y1 = Math.round(((cy + 1) * svHeight) / SV_CELLS);
@@ -67,7 +78,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
       }
     }
 
-    // Draw SV indicator as a pixel-aligned square around the selected cell.
     const selCx = clamp(Math.floor(saturation * SV_CELLS), 0, SV_CELLS - 1);
     const selCy = clamp(Math.floor((1 - brightness) * SV_CELLS), 0, SV_CELLS - 1);
     const sx0 = Math.round((selCx * size) / SV_CELLS);
@@ -82,7 +92,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     ctx.strokeRect(sx0 + 0.5, sy0 + 0.5, sx1 - sx0 - 1, sy1 - sy0 - 1);
   }, [hue, saturation, brightness, size, svHeight]);
 
-  // Draw the hue bar
   const drawHue = useCallback(() => {
     const canvas = hueCanvasRef.current;
     if (!canvas) return;
@@ -91,31 +100,29 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
 
     const dpr = window.devicePixelRatio || 1;
     canvas.width = size * dpr;
-    canvas.height = HUE_BAR_HEIGHT * dpr;
+    canvas.height = hueBarHeight * dpr;
     ctx.scale(dpr, dpr);
     ctx.imageSmoothingEnabled = false;
 
-    // Pixellated hue strip: one discrete cell per hue step.
     for (let i = 0; i < HUE_CELLS; i++) {
       const x0 = Math.round((i * size) / HUE_CELLS);
       const x1 = Math.round(((i + 1) * size) / HUE_CELLS);
       const h = (i + 0.5) / HUE_CELLS;
       const [r, g, b] = hsvToRgb(h, 1, 1);
       ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fillRect(x0, 0, x1 - x0, HUE_BAR_HEIGHT);
+      ctx.fillRect(x0, 0, x1 - x0, hueBarHeight);
     }
 
-    // Draw hue indicator as a pixel-aligned square around the selected cell.
     const selH = clamp(Math.floor((hue / 360) * HUE_CELLS), 0, HUE_CELLS - 1);
     const hx0 = Math.round((selH * size) / HUE_CELLS);
     const hx1 = Math.round(((selH + 1) * size) / HUE_CELLS);
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#000000';
-    ctx.strokeRect(hx0 + 0.5, 0.5, hx1 - hx0 - 1, HUE_BAR_HEIGHT - 1);
+    ctx.strokeRect(hx0 + 0.5, 0.5, hx1 - hx0 - 1, hueBarHeight - 1);
     ctx.lineWidth = 1;
     ctx.strokeStyle = '#ffffff';
-    ctx.strokeRect(hx0 + 0.5, 0.5, hx1 - hx0 - 1, HUE_BAR_HEIGHT - 1);
-  }, [hue, size]);
+    ctx.strokeRect(hx0 + 0.5, 0.5, hx1 - hx0 - 1, hueBarHeight - 1);
+  }, [hue, size, hueBarHeight]);
 
   useEffect(() => {
     drawSV();
@@ -151,79 +158,114 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     [size, saturation, brightness, onChange],
   );
 
+  const handleSVInteractionRef = useRef(handleSVInteraction);
+  const handleHueInteractionRef = useRef(handleHueInteraction);
+  useLayoutEffect(() => {
+    handleSVInteractionRef.current = handleSVInteraction;
+    handleHueInteractionRef.current = handleHueInteraction;
+  }, [handleSVInteraction, handleHueInteraction]);
+
+  const pointerOpts = useMemo(
+    () => ({ capture: true, passive: false }) as const,
+    [],
+  );
+
   useEffect(() => {
     const svCanvas = svCanvasRef.current;
     const hueCanvas = hueCanvasRef.current;
     if (!svCanvas || !hueCanvas) return;
 
-    const handleMouseDown = (e: MouseEvent) => {
+    const handlePointerDown = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       e.preventDefault();
       e.stopPropagation();
       if (svCanvas.contains(e.target as Node)) {
         isDraggingRef.current = 'sv';
-        handleSVInteraction(e.clientX, e.clientY);
+        try {
+          svCanvas.setPointerCapture(e.pointerId);
+        } catch {
+          /* no-op: jsdom / older engines */
+        }
+        handleSVInteractionRef.current(e.clientX, e.clientY);
       } else if (hueCanvas.contains(e.target as Node)) {
         isDraggingRef.current = 'hue';
-        handleHueInteraction(e.clientX);
+        try {
+          hueCanvas.setPointerCapture(e.pointerId);
+        } catch {
+          /* no-op */
+        }
+        handleHueInteractionRef.current(e.clientX);
       }
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       if (isDraggingRef.current === 'sv') {
-        handleSVInteraction(e.clientX, e.clientY);
+        e.preventDefault();
+        handleSVInteractionRef.current(e.clientX, e.clientY);
       } else if (isDraggingRef.current === 'hue') {
-        handleHueInteraction(e.clientX);
+        e.preventDefault();
+        handleHueInteractionRef.current(e.clientX);
       }
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
+      if (isDraggingRef.current === 'sv' && svCanvas.hasPointerCapture?.(e.pointerId)) {
+        try {
+          svCanvas.releasePointerCapture(e.pointerId);
+        } catch {
+          /* no-op */
+        }
+      }
+      if (isDraggingRef.current === 'hue' && hueCanvas.hasPointerCapture?.(e.pointerId)) {
+        try {
+          hueCanvas.releasePointerCapture(e.pointerId);
+        } catch {
+          /* no-op */
+        }
+      }
       isDraggingRef.current = null;
     };
 
-    svCanvas.addEventListener('mousedown', handleMouseDown);
-    hueCanvas.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    svCanvas.addEventListener('pointerdown', handlePointerDown);
+    hueCanvas.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('pointermove', handlePointerMove, pointerOpts);
+    document.addEventListener('pointerup', handlePointerUp, pointerOpts);
+    document.addEventListener('pointercancel', handlePointerUp, pointerOpts);
 
     return () => {
-      svCanvas.removeEventListener('mousedown', handleMouseDown);
-      hueCanvas.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      svCanvas.removeEventListener('pointerdown', handlePointerDown);
+      hueCanvas.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('pointermove', handlePointerMove, pointerOpts);
+      document.removeEventListener('pointerup', handlePointerUp, pointerOpts);
+      document.removeEventListener('pointercancel', handlePointerUp, pointerOpts);
     };
-  }, [handleSVInteraction, handleHueInteraction]);
+  }, [pointerOpts]);
 
   return (
     <div
       data-testid={dataTestId}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: GAP,
-        width: size,
-      }}
+      className={styles.root}
+      style={{ width: size }}
     >
-      <div style={{ overflow: 'hidden', lineHeight: 0 }}>
+      <div className={styles.canvasWrap}>
         <canvas
           ref={svCanvasRef}
+          className={styles.canvas}
           style={{
             width: size,
             height: svHeight,
-            cursor: 'crosshair',
-            display: 'block',
-            imageRendering: 'pixelated',
           }}
         />
       </div>
-      <div style={{ overflow: 'hidden', lineHeight: 0 }}>
+      <div className={styles.canvasWrap}>
         <canvas
           ref={hueCanvasRef}
+          className={styles.canvas}
           style={{
             width: size,
-            height: HUE_BAR_HEIGHT,
-            cursor: 'crosshair',
-            display: 'block',
-            imageRendering: 'pixelated',
+            height: hueBarHeight,
           }}
         />
       </div>

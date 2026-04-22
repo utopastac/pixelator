@@ -3,6 +3,7 @@ import type React from 'react';
 import type { Layer } from '@/lib/storage';
 import { drawLayer, patchOpaqueCells } from '../lib/pixelArtCanvas';
 import { compositeLayers } from '../lib/composite';
+import type { PaintDragCanvasFlushFn } from './usePixelArtHistory';
 
 interface UseEditorCanvasSetupProps {
   committedCanvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -16,6 +17,11 @@ interface UseEditorCanvasSetupProps {
   onAfterComposite?: () => void;
   /** Stroke cells to patch on the active layer offscreen (same `pixels` ref as last draw). */
   activeLayerRasterPatchAccRef?: React.MutableRefObject<Set<number>> | null;
+  /** Latest layer stack for paint-drag canvas bypass (same order as `layers`). */
+  layersRef?: React.MutableRefObject<Layer[]>;
+  paintDragFlushRef?: React.MutableRefObject<PaintDragCanvasFlushFn | null>;
+  /** Redraw committed canvas from React layer pixels after aborting a bypassed stroke. */
+  paintDragAbortResyncRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 /**
@@ -40,6 +46,9 @@ export function useEditorCanvasSetup({
   activeLayerId,
   onAfterComposite,
   activeLayerRasterPatchAccRef,
+  layersRef,
+  paintDragFlushRef,
+  paintDragAbortResyncRef,
 }: UseEditorCanvasSetupProps): void {
   // Resize all canvases when dimensions change. Canvases are sized 1:1 with
   // the logical grid — one raster pixel = one logical pixel — and visual
@@ -143,6 +152,99 @@ export function useEditorCanvasSetup({
     activeLayerId,
     onAfterComposite,
     activeLayerRasterPatchAccRef,
+  ]);
+
+  // Paint/eraser mid-stroke: RAF dispatch can rasterise pending pixels straight
+  // onto offscreens + committed canvas (see `usePixelArtHistory` bypass) so
+  // React is not driven every frame. `layersRef` keeps inactive layers current.
+  useLayoutEffect(() => {
+    if (!layersRef || !paintDragFlushRef || !paintDragAbortResyncRef) {
+      if (paintDragFlushRef) paintDragFlushRef.current = null;
+      if (paintDragAbortResyncRef) paintDragAbortResyncRef.current = null;
+      return;
+    }
+
+    const syncMapForLayerList = (layerList: Layer[]) => {
+      const map = offscreensRef.current;
+      const validIds = new Set(layerList.map((l) => l.id));
+      for (const key of Array.from(map.keys())) {
+        if (!validIds.has(key)) map.delete(key);
+      }
+      for (const layer of layerList) {
+        let off = map.get(layer.id);
+        if (!off) {
+          off = document.createElement('canvas');
+          map.set(layer.id, off);
+        }
+        if (off.width !== width) off.width = width;
+        if (off.height !== height) off.height = height;
+      }
+      return map;
+    };
+
+    const flush: PaintDragCanvasFlushFn = (buffer, cloneToLayer) => {
+      const canvas = committedCanvasRef.current;
+      if (!canvas) return;
+      const L = layersRef.current;
+      const map = syncMapForLayerList(L);
+      const off = map.get(activeLayerId);
+      if (!off) return;
+
+      const acc = activeLayerRasterPatchAccRef;
+      if (cloneToLayer || !acc || acc.current.size === 0) {
+        acc?.current.clear();
+        drawLayer(off, buffer as string[], width);
+      } else {
+        const batch = Array.from(acc.current);
+        acc.current.clear();
+        if (batch.length > 0) {
+          patchOpaqueCells(off, buffer, width, batch);
+        } else {
+          drawLayer(off, buffer as string[], width);
+        }
+      }
+
+      const compositeInput = L.map((l) =>
+        l.id === activeLayerId ? { ...l, pixels: buffer as string[] } : l,
+      );
+      const skipLayerId = layerTransformIsPending ? activeLayerId : undefined;
+      compositeLayers(canvas, compositeInput, map, width, height, { skipLayerId });
+      onAfterComposite?.();
+    };
+
+    const abortResync = () => {
+      const canvas = committedCanvasRef.current;
+      if (!canvas) return;
+      const L = layersRef.current;
+      const map = syncMapForLayerList(L);
+      for (const layer of L) {
+        const off = map.get(layer.id);
+        if (!off) continue;
+        drawLayer(off, layer.pixels, width);
+        lastDrawnPixelsRef.current.set(layer.id, layer.pixels);
+      }
+      const skipLayerId = layerTransformIsPending ? activeLayerId : undefined;
+      compositeLayers(canvas, L, map, width, height, { skipLayerId });
+      onAfterComposite?.();
+    };
+
+    paintDragFlushRef.current = flush;
+    paintDragAbortResyncRef.current = abortResync;
+    return () => {
+      paintDragFlushRef.current = null;
+      paintDragAbortResyncRef.current = null;
+    };
+  }, [
+    layersRef,
+    paintDragFlushRef,
+    paintDragAbortResyncRef,
+    committedCanvasRef,
+    width,
+    height,
+    activeLayerId,
+    layerTransformIsPending,
+    activeLayerRasterPatchAccRef,
+    onAfterComposite,
   ]);
 
   // Evict the entire offscreen map on unmount.

@@ -21,6 +21,53 @@ const MOCK_RECT = {
   toJSON: () => ({}),
 } as DOMRect;
 
+/** jsdom may omit `PointerEvent`; ColorPicker uses pointer capture + document listeners. */
+if (typeof globalThis.PointerEvent === 'undefined') {
+  globalThis.PointerEvent = class PolyPointerEvent extends MouseEvent {
+    pointerId: number;
+    isPrimary: boolean;
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, init);
+      this.pointerId = init.pointerId ?? 0;
+      this.isPrimary = init.isPrimary ?? true;
+    }
+  } as unknown as typeof PointerEvent;
+}
+
+function pointerDown(target: Element, clientX: number, clientY: number) {
+  target.dispatchEvent(
+    new PointerEvent('pointerdown', {
+      clientX,
+      clientY,
+      bubbles: true,
+      isPrimary: true,
+      pointerId: 1,
+    }),
+  );
+}
+
+function pointerMoveOnDocument(clientX: number, clientY: number) {
+  document.dispatchEvent(
+    new PointerEvent('pointermove', {
+      clientX,
+      clientY,
+      bubbles: true,
+      isPrimary: true,
+      pointerId: 1,
+    }),
+  );
+}
+
+function pointerUpOnDocument() {
+  document.dispatchEvent(
+    new PointerEvent('pointerup', {
+      bubbles: true,
+      isPrimary: true,
+      pointerId: 1,
+    }),
+  );
+}
+
 describe('ColorPicker', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let getContextSpy: any;
@@ -53,14 +100,13 @@ describe('ColorPicker', () => {
     expect(container.querySelectorAll('canvas')).toHaveLength(2);
   });
 
-  it('mousedown on the SV canvas calls onChange with s/v from click position', () => {
+  it('pointerdown on the SV canvas calls onChange with s/v from click position', () => {
     const onChange = vi.fn();
     const { container } = render(
       <ColorPicker hue={180} saturation={0} brightness={1} onChange={onChange} />,
     );
     const [svCanvas] = container.querySelectorAll('canvas');
-    // rect is 200×200; clicking at (100, 100) → s = 100/200 = 0.5, v = 1 - 100/200 = 0.5
-    svCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 100, bubbles: true }));
+    pointerDown(svCanvas, 100, 100);
     expect(onChange).toHaveBeenCalledOnce();
     const [h, s, v] = onChange.mock.calls[0] as [number, number, number];
     expect(h).toBe(180);
@@ -68,15 +114,14 @@ describe('ColorPicker', () => {
     expect(v).toBeCloseTo(0.5, 2);
   });
 
-  it('mousedown on the hue canvas calls onChange with new hue', () => {
+  it('pointerdown on the hue canvas calls onChange with new hue', () => {
     const onChange = vi.fn();
     const { container } = render(
       <ColorPicker hue={0} saturation={0.8} brightness={0.6} onChange={onChange} />,
     );
     const canvases = container.querySelectorAll('canvas');
     const hueCanvas = canvases[1];
-    // clicking at x=100, width=200 → h = (100/200) * 360 = 180
-    hueCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: 100, clientY: 0, bubbles: true }));
+    pointerDown(hueCanvas, 100, 0);
     expect(onChange).toHaveBeenCalledOnce();
     const [h, s, v] = onChange.mock.calls[0] as [number, number, number];
     expect(h).toBe(180);
@@ -84,28 +129,28 @@ describe('ColorPicker', () => {
     expect(v).toBe(0.6);
   });
 
-  it('mousemove while dragging on SV calls onChange', () => {
+  it('pointermove while dragging on SV calls onChange', () => {
     const onChange = vi.fn();
     const { container } = render(
       <ColorPicker hue={0} saturation={0} brightness={1} onChange={onChange} />,
     );
     const [svCanvas] = container.querySelectorAll('canvas');
-    svCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0, bubbles: true }));
+    pointerDown(svCanvas, 0, 0);
     onChange.mockClear();
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50 }));
+    pointerMoveOnDocument(50, 50);
     expect(onChange).toHaveBeenCalledOnce();
   });
 
-  it('mouseup ends drag — mousemove after mouseup does not fire onChange', () => {
+  it('pointerup ends drag — pointermove after pointerup does not fire onChange', () => {
     const onChange = vi.fn();
     const { container } = render(
       <ColorPicker hue={0} saturation={0} brightness={1} onChange={onChange} />,
     );
     const [svCanvas] = container.querySelectorAll('canvas');
-    svCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0, bubbles: true }));
-    document.dispatchEvent(new MouseEvent('mouseup'));
+    pointerDown(svCanvas, 0, 0);
+    pointerUpOnDocument();
     onChange.mockClear();
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 50, clientY: 50 }));
+    pointerMoveOnDocument(50, 50);
     expect(onChange).not.toHaveBeenCalled();
   });
 
@@ -115,8 +160,7 @@ describe('ColorPicker', () => {
       <ColorPicker hue={0} saturation={0.5} brightness={0.5} onChange={onChange} />,
     );
     const [svCanvas] = container.querySelectorAll('canvas');
-    // clientX=300 is past the 200px width → s clamped to 1; clientY=-50 → v clamped to 1
-    svCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: 300, clientY: -50, bubbles: true }));
+    pointerDown(svCanvas, 300, -50);
     const [, s, v] = onChange.mock.calls[0] as [number, number, number];
     expect(s).toBe(1);
     expect(v).toBe(1);

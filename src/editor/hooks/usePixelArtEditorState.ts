@@ -1,6 +1,6 @@
 import { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import { DEFAULT_PALETTE, pixelsToSvg } from '../lib/pixelArtUtils';
-import { usePixelArtHistory, type ActivePixels } from './usePixelArtHistory';
+import { usePixelArtHistory, type ActivePixels, type PaintDragCanvasFlushFn } from './usePixelArtHistory';
 import { useEditorCommands } from '../useEditorCommands';
 import { usePixelArtSelection } from './usePixelArtSelection';
 import { usePenTool } from './usePenTool';
@@ -138,6 +138,10 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // mount-only
 
+  const paintDragBypassReactRef = useRef(false);
+  const paintDragFlushRef = useRef<PaintDragCanvasFlushFn | null>(null);
+  const paintDragAbortResyncRef = useRef<(() => void) | null>(null);
+
   const {
     pixels,
     layers,
@@ -174,7 +178,13 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     initialActiveLayerId: initialSeed.activeLayerId,
     onChange,
     onSizeChange: handleHistorySizeChange,
+    paintDragBypassReactRef,
+    paintDragFlushRef,
+    paintDragAbortResyncRef,
   });
+
+  const layersRef = useRef(layers);
+  layersRef.current = layers;
 
   useEffect(() => {
     if (onActiveLayerIdChange) onActiveLayerIdChange(activeLayerId);
@@ -287,6 +297,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
       wrapMode,
       alphaLock,
       activeLayerRasterPatchAccRef,
+      paintDragBypassReactRef,
     });
 
   // ── Editor commands ──────────────────────────────────────────────────────────
@@ -368,6 +379,9 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     activeLayerId,
     onAfterComposite: paintTiles,
     activeLayerRasterPatchAccRef,
+    layersRef,
+    paintDragFlushRef,
+    paintDragAbortResyncRef,
   });
 
   const moveTransform = useMoveTransformTool({

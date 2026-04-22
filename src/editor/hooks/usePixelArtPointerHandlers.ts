@@ -101,6 +101,8 @@ export interface UsePixelArtPointerHandlersParams {
 
   /** Accumulates linear cell indices for incremental active-layer raster updates. */
   activeLayerRasterPatchAccRef?: React.MutableRefObject<Set<number>> | null;
+  /** When true, history routes paint/eraser RAF dispatch to the canvas bridge instead of React. */
+  paintDragBypassReactRef?: React.MutableRefObject<boolean>;
 }
 
 export interface UsePixelArtPointerHandlersResult {
@@ -142,6 +144,7 @@ export function usePixelArtPointerHandlers({
   wrapMode,
   alphaLock,
   activeLayerRasterPatchAccRef,
+  paintDragBypassReactRef,
 }: UsePixelArtPointerHandlersParams): UsePixelArtPointerHandlersResult {
   const isDragging = useRef(false);
   const dragStart = useRef<[number, number] | null>(null);
@@ -442,6 +445,7 @@ export function usePixelArtPointerHandlers({
       isDragging.current = true;
 
       if (activeTool === 'paint') {
+        if (paintDragBypassReactRef) paintDragBypassReactRef.current = false;
         paintStrokeMovedRef.current = false;
         selectionDragContext.strokeInsideSelection.current = selectionContainsCell(col, row);
         lastPaintCell.current = [col, row];
@@ -456,6 +460,7 @@ export function usePixelArtPointerHandlers({
         activePixels.emit(next);
         brushStrokePixelsRef.current = [...next];
       } else if (activeTool === 'eraser') {
+        if (paintDragBypassReactRef) paintDragBypassReactRef.current = false;
         paintStrokeMovedRef.current = false;
         selectionDragContext.strokeInsideSelection.current = selectionContainsCell(col, row);
         lastPaintCell.current = [col, row];
@@ -520,7 +525,7 @@ export function usePixelArtPointerHandlers({
       getCellFromEvent, isCellInBounds, selection, selectionContainsCell,
       marqueeShape, setSelection, setActiveColor, setIndependentHue, setActiveTool, layers,
       activePixels, penContext, polygonSelectContext, selectionDragContext, symmetryMode, wrapMode, alphaLock, moveOnDown,
-      handleWandSelect, liftSelectionPixels, paintLiftedToPreview,
+      handleWandSelect, liftSelectionPixels, paintLiftedToPreview, paintDragBypassReactRef,
     ],
   );
 
@@ -590,6 +595,7 @@ export function usePixelArtPointerHandlers({
       if (!isDragging.current) return;
 
       if (activeTool === 'paint') {
+        if (paintDragBypassReactRef) paintDragBypassReactRef.current = true;
         paintStrokeMovedRef.current = true;
         // Interpolate between the last painted cell and the current one so that
         // fast pointer movement doesn't leave gaps in the stroke.
@@ -638,6 +644,7 @@ export function usePixelArtPointerHandlers({
           }
         }
       } else if (activeTool === 'eraser') {
+        if (paintDragBypassReactRef) paintDragBypassReactRef.current = true;
         paintStrokeMovedRef.current = true;
         // Interpolate between the last erased cell and the current one.
         const eraserPrev = lastPaintCell.current ?? [col, row];
@@ -677,7 +684,7 @@ export function usePixelArtPointerHandlers({
       brushSize, activeColor, width, height, getCellFromEvent,
       selection, setSelection, activePixels, selectionDragContext, penContext, polygonSelectContext,
       previewCanvasRef, renderShiftAwarePreview, symmetryMode, wrapMode, alphaLock, selectionContainsCell, moveOnMove,
-      paintLiftedToPreview, activeLayerRasterPatchAccRef,
+      paintLiftedToPreview, activeLayerRasterPatchAccRef, paintDragBypassReactRef,
     ],
   );
 
@@ -764,6 +771,7 @@ export function usePixelArtPointerHandlers({
       }
 
       if (activeTool === 'paint' || activeTool === 'eraser') {
+        if (paintDragBypassReactRef) paintDragBypassReactRef.current = false;
         const strokeFinal = brushStrokePixelsRef.current;
         activePixels.flushPendingPixelsSync();
         if (paintStrokeMovedRef.current && strokeFinal) {
@@ -807,7 +815,7 @@ export function usePixelArtPointerHandlers({
       disabled, activeTool, rectFillMode, circleFillMode, triangleFillMode, starFillMode, arrowFillMode,
       brushSize, getCellFromEvent, activePixels, width, height, commitCells,
       previewCanvasRef, setSelection, selectionDragContext, applyShiftConstraint,
-      selection, selectionContainsCell, moveOnUp, moveDragRef,
+      selection, selectionContainsCell, moveOnUp, moveDragRef, paintDragBypassReactRef,
     ],
   );
 
@@ -836,6 +844,7 @@ export function usePixelArtPointerHandlers({
       polygonSelectContext.cancel();
     }
     if ((activeTool === 'paint' || activeTool === 'eraser') && isDragging.current) {
+      if (paintDragBypassReactRef) paintDragBypassReactRef.current = false;
       const strokeFinal = brushStrokePixelsRef.current;
       activePixels.flushPendingPixelsSync();
       if (paintStrokeMovedRef.current && strokeFinal) {
@@ -854,7 +863,7 @@ export function usePixelArtPointerHandlers({
     }
   }, [
     activeTool, marqueeShape, activePixels, width, previewCanvasRef, setSelection, selectionDragContext,
-    polygonSelectContext, moveOnCancel, moveDragRef,
+    polygonSelectContext, moveOnCancel, moveDragRef, paintDragBypassReactRef,
   ]);
 
   const handleDoubleClick = useCallback(() => {

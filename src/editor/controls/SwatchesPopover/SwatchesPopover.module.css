@@ -22,10 +22,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
-  /* Match the ColorPicker's default width so the hex row and swatch grid
-     align with the gradient square above, rather than extending past its
-     right edge. */
-  width: 200px;
+  /* Width follows the ColorPicker (200px desktop, wider on mobile); cap so
+     the popover never spills past the viewport on narrow phones. */
+  width: fit-content;
+  max-width: calc(100vw - 24px);
+  min-width: 200px;
 }
 
 /* Hex input + palette picker sit side-by-side on one row. Both share the

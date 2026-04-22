@@ -1,0 +1,18 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.canvasWrap {
+  overflow: hidden;
+  line-height: 0;
+  touch-action: none;
+}
+
+.canvas {
+  display: block;
+  touch-action: none;
+  cursor: crosshair;
+  image-rendering: pixelated;
+}

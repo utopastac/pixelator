@@ -1,3 +1,7 @@
+/* Must not use `display: contents` — Popover measures `anchorRef` with
+   getBoundingClientRect(); a contents box has no layout box and reads as 0×0
+   at the origin, so the menu pins to the top-left of the viewport. */
 .anchor {
-  display: contents;
+  display: inline-flex;
+  align-items: center;
 }

@@ -6,7 +6,8 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { HISTORY_LIMIT, usePixelArtHistory } from './usePixelArtHistory';
+import type { MutableRefObject } from 'react';
+import { HISTORY_LIMIT, usePixelArtHistory, type PaintDragCanvasFlushFn } from './usePixelArtHistory';
 import { usePixelArtSelection } from './usePixelArtSelection';
 import type { Layer } from '@/lib/storage';
 
@@ -67,6 +68,60 @@ describe('usePixelArtHistory', () => {
     expect(result.current.pixels).not.toBe(px);
     act(() => result.current.flushPendingPixelsSync());
     expect(result.current.pixels).toEqual(px);
+  });
+
+  it('paint drag bypass: RAF flush calls canvas bridge and skips React until flushPendingPixelsSync', async () => {
+    const bypassRef = { current: true };
+    const flush = vi.fn() as PaintDragCanvasFlushFn;
+    const flushRef: MutableRefObject<PaintDragCanvasFlushFn> = { current: flush };
+    const abortRef: MutableRefObject<() => void> = { current: vi.fn() };
+    const l1 = makeLayer('l1', 'Background', ['', '', '', '']);
+    const l2 = makeLayer('l2', 'Lines', ['#ff0000', '', '', '']);
+    const { result } = renderHook(() =>
+      usePixelArtHistory({
+        width: 2,
+        height: 2,
+        initialLayers: [l1, l2],
+        initialActiveLayerId: 'l2',
+        paintDragBypassReactRef: bypassRef,
+        paintDragFlushRef: flushRef,
+        paintDragAbortResyncRef: abortRef,
+      }),
+    );
+    const px = ['#00aa00', '#00aa00', '', ''];
+    act(() => result.current.dispatchPixels(px));
+    await waitFor(() => expect(flush).toHaveBeenCalledTimes(1));
+    expect(flush).toHaveBeenCalledWith(px, false);
+    expect(result.current.pixels).toEqual(['#ff0000', '', '', '']);
+    act(() => {
+      bypassRef.current = false;
+      result.current.flushPendingPixelsSync();
+    });
+    expect(result.current.pixels).toEqual(px);
+  });
+
+  it('discardPendingDispatch invokes paintDragAbortResync when paint drag bypass was active', () => {
+    const bypassRef = { current: true };
+    const flushRef: MutableRefObject<PaintDragCanvasFlushFn> = { current: vi.fn() };
+    const abort = vi.fn();
+    const abortRef: MutableRefObject<() => void> = { current: abort };
+    const { result } = renderHook(() =>
+      usePixelArtHistory({
+        width: 2,
+        height: 2,
+        initialLayers: [makeLayer('l1', 'Background', ['', '', '', '']), makeLayer('l2', 'Lines', ['#ff0000', '', '', ''])],
+        initialActiveLayerId: 'l2',
+        paintDragBypassReactRef: bypassRef,
+        paintDragFlushRef: flushRef,
+        paintDragAbortResyncRef: abortRef,
+      }),
+    );
+    act(() => {
+      result.current.dispatchPixels(['#111111', '', '', '']);
+      result.current.clearLayer('l1');
+    });
+    expect(bypassRef.current).toBe(false);
+    expect(abort).toHaveBeenCalled();
   });
 
   it('emit after dispatch in the same turn still applies pixels (regression: emit must not discard pending RAF)', async () => {

@@ -14,6 +14,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MutableRefObject } from 'react';
 import type { Layer } from '@/lib/storage';
 import { createEmptyPixels, newId } from '@/lib/storage';
 import { useLayers } from './useLayers';
@@ -29,6 +30,8 @@ interface LayerSnapshot {
   height: number;
 }
 
+export type PaintDragCanvasFlushFn = (buffer: readonly string[], cloneToLayer: boolean) => void;
+
 export interface UsePixelArtHistoryParams {
   width: number;
   height: number;
@@ -39,6 +42,12 @@ export interface UsePixelArtHistoryParams {
    *  different dimensions than the current editor. Consumers update managed
    *  size / persist dimensions through this callback. */
   onSizeChange?: (width: number, height: number) => void;
+  /** When true, coalesced `dispatchPixels` RAF flushes update the canvas via
+   *  `paintDragFlushRef` instead of mutating React layer state (paint/eraser drag). */
+  paintDragBypassReactRef?: MutableRefObject<boolean>;
+  paintDragFlushRef?: MutableRefObject<PaintDragCanvasFlushFn | null>;
+  /** Redraw committed canvas from React after discarding a bypassed pending dispatch. */
+  paintDragAbortResyncRef?: MutableRefObject<(() => void) | null>;
 }
 
 /**
@@ -139,7 +148,17 @@ function cloneLayers(layers: Layer[]): Layer[] {
 export function usePixelArtHistory(
   params: UsePixelArtHistoryParams,
 ): UsePixelArtHistoryResult {
-  const { width, height, initialLayers, initialActiveLayerId, onChange, onSizeChange } = params;
+  const {
+    width,
+    height,
+    initialLayers,
+    initialActiveLayerId,
+    onChange,
+    onSizeChange,
+    paintDragBypassReactRef,
+    paintDragFlushRef,
+    paintDragAbortResyncRef,
+  } = params;
 
   const layersApi = useLayers({
     width,
@@ -169,9 +188,12 @@ export function usePixelArtHistory(
   }, []);
 
   const discardPendingDispatch = useCallback(() => {
+    const needAbortResync = paintDragBypassReactRef?.current === true;
     cancelDispatchRaf();
     pendingDispatchRef.current = null;
-  }, [cancelDispatchRaf]);
+    if (paintDragBypassReactRef) paintDragBypassReactRef.current = false;
+    if (needAbortResync) paintDragAbortResyncRef?.current?.();
+  }, [cancelDispatchRaf, paintDragBypassReactRef, paintDragAbortResyncRef]);
 
   /** Apply pending pixels to the active layer, then clear the pending slot. */
   const applyPendingPixelsToLayers = useCallback(() => {
@@ -188,8 +210,17 @@ export function usePixelArtHistory(
 
   const flushDispatchPixelsToLayers = useCallback(() => {
     dispatchRafRef.current = null;
+    const job = pendingDispatchRef.current;
+    if (
+      job &&
+      paintDragBypassReactRef?.current &&
+      paintDragFlushRef?.current
+    ) {
+      paintDragFlushRef.current(job.pixels, job.cloneToLayer);
+      return;
+    }
     applyPendingPixelsToLayers();
-  }, [applyPendingPixelsToLayers]);
+  }, [applyPendingPixelsToLayers, paintDragBypassReactRef, paintDragFlushRef]);
 
   const flushPendingPixelsSync = useCallback(() => {
     cancelDispatchRaf();
@@ -217,6 +248,7 @@ export function usePixelArtHistory(
 
   const commitPixels = useCallback(
     (px: string[], beforePixels?: string[]) => {
+      if (paintDragBypassReactRef) paintDragBypassReactRef.current = false;
       const pending = takePendingDispatchOrNull();
 
       // Snapshot current layers (pre-mutation), push onto past, clear future,
@@ -251,7 +283,7 @@ export function usePixelArtHistory(
       setFuture([]);
       layersApi.setActiveLayerPixels(px);
     },
-    [layersApi, width, height, takePendingDispatchOrNull],
+    [layersApi, width, height, takePendingDispatchOrNull, paintDragBypassReactRef],
   );
 
   const clearLayer = useCallback(
