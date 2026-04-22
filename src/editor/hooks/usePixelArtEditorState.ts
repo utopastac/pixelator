@@ -228,7 +228,6 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const {
     selection,
     setSelection,
-    marchingAntsOffset,
     dragContext,
     selectionContainsCell,
   } = usePixelArtSelection({ width });
@@ -386,7 +385,6 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     overlayCanvasRef,
     containerRef,
     selection,
-    marchingAntsOffset,
     activeTool,
     penAnchors: penContext.anchors,
     penCursor: penContext.cursor,

@@ -9,16 +9,12 @@
  * - rect shape: every cell within the bounding box (inclusive) hits; outside misses.
  * - ellipse shape: centre hits; bbox corners miss; ellipse equation is authoritative.
  * - cells (wand) shape: only pixel indices present in the Set hit.
- * - marchingAntsOffset starts at 0 and only ticks when a selection exists.
- * - marchingAntsOffset increments by 1 per MARCHING_ANTS_INTERVAL_MS tick,
- *   wrapping at MARCHING_ANTS_STEPS (8).
  * - dragContext refs all initialise to their documented zero values and the
  *   object identity is stable across re-renders.
  */
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { usePixelArtSelection } from './usePixelArtSelection';
-import { MARCHING_ANTS_INTERVAL_MS, MARCHING_ANTS_STEPS } from '../lib/pixelArtUtils';
 
 function setup(width = 8) {
   return renderHook(() => usePixelArtSelection({ width }));
@@ -28,7 +24,6 @@ describe('usePixelArtSelection', () => {
   it('initialises with null selection and idle drag context', () => {
     const { result } = setup();
     expect(result.current.selection).toBeNull();
-    expect(result.current.marchingAntsOffset).toBe(0);
     expect(result.current.dragContext.dragMode.current).toBeNull();
     expect(result.current.dragContext.dragStart.current).toBeNull();
     expect(result.current.dragContext.lifted.current).toBeNull();
@@ -152,66 +147,4 @@ describe('usePixelArtSelection', () => {
     expect(result.current.selectionContainsCell(0, 0)).toBe(false);
   });
 
-  // ── marchingAntsOffset animation ─────────────────────────────────────────────
-
-  describe('marchingAntsOffset animation', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('marchingAntsOffset starts at 0', () => {
-      const { result } = setup();
-      expect(result.current.marchingAntsOffset).toBe(0);
-    });
-
-    it('marchingAntsOffset does not advance when selection is null', () => {
-      const { result } = setup();
-      // No selection set — interval should not be running.
-      act(() => {
-        vi.advanceTimersByTime(MARCHING_ANTS_INTERVAL_MS * 3);
-      });
-      expect(result.current.marchingAntsOffset).toBe(0);
-    });
-
-    it('marchingAntsOffset increments by 1 on each interval tick', () => {
-      const { result } = setup();
-      act(() => result.current.setSelection({ shape: 'rect', x1: 0, y1: 0, x2: 2, y2: 2 }));
-      act(() => {
-        vi.advanceTimersByTime(MARCHING_ANTS_INTERVAL_MS);
-      });
-      expect(result.current.marchingAntsOffset).toBe(1);
-      act(() => {
-        vi.advanceTimersByTime(MARCHING_ANTS_INTERVAL_MS);
-      });
-      expect(result.current.marchingAntsOffset).toBe(2);
-    });
-
-    it(`marchingAntsOffset wraps back to 0 after ${MARCHING_ANTS_STEPS} ticks`, () => {
-      const { result } = setup();
-      act(() => result.current.setSelection({ shape: 'rect', x1: 0, y1: 0, x2: 2, y2: 2 }));
-      act(() => {
-        vi.advanceTimersByTime(MARCHING_ANTS_INTERVAL_MS * MARCHING_ANTS_STEPS);
-      });
-      expect(result.current.marchingAntsOffset).toBe(0);
-    });
-
-    it('marchingAntsOffset stops advancing after selection is cleared', () => {
-      const { result } = setup();
-      act(() => result.current.setSelection({ shape: 'rect', x1: 0, y1: 0, x2: 2, y2: 2 }));
-      act(() => {
-        vi.advanceTimersByTime(MARCHING_ANTS_INTERVAL_MS * 2);
-      });
-      const offsetAfterTwoTicks = result.current.marchingAntsOffset;
-      act(() => result.current.setSelection(null));
-      act(() => {
-        vi.advanceTimersByTime(MARCHING_ANTS_INTERVAL_MS * 4);
-      });
-      // Offset must not have advanced further after selection cleared.
-      expect(result.current.marchingAntsOffset).toBe(offsetAfterTwoTicks);
-    });
-  });
 });

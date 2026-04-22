@@ -1,10 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type React from 'react';
-import {
-  MARCHING_ANTS_STEPS,
-  MARCHING_ANTS_INTERVAL_MS,
-  type PixelArtSelection,
-} from '../lib/pixelArtUtils';
+import { type PixelArtSelection } from '../lib/pixelArtUtils';
 
 // Re-export so consumers (clipboard helpers, etc.) can import the selection
 // shape from the hook that owns the selection state without reaching into
@@ -47,7 +43,6 @@ export interface SelectionDragContext {
 export interface UsePixelArtSelectionResult {
   selection: PixelArtSelection | null;
   setSelection: React.Dispatch<React.SetStateAction<PixelArtSelection | null>>;
-  marchingAntsOffset: number;
 
   /** Bundle of drag-state refs used by the pointer handlers while a marquee
    *  interaction is in progress. */
@@ -61,16 +56,15 @@ export interface UsePixelArtSelectionResult {
 }
 
 /**
- * Owns everything about the marquee selection: its shape, the marching-ants
- * animation, the drag-state refs used while resizing or moving it, and the
- * hit-test helper. Also redraws the selection overlay canvas when selection
- * geometry or marching-ants offset changes.
+ * Owns everything about the marquee selection: its shape, the drag-state refs
+ * used while resizing or moving it, and the hit-test helper. Marching-ants
+ * timing is handled in `useScreenOverlayDraw` so animation does not schedule
+ * React renders.
  */
 export function usePixelArtSelection({
   width,
 }: UsePixelArtSelectionParams): UsePixelArtSelectionResult {
   const [selection, setSelection] = useState<PixelArtSelection | null>(null);
-  const [marchingAntsOffset, setMarchingAntsOffset] = useState(0);
 
   const dragMode = useRef<'draw' | 'move' | null>(null);
   const dragStart = useRef<[number, number] | null>(null);
@@ -105,19 +99,9 @@ export function usePixelArtSelection({
     [selection, width],
   );
 
-  // Marching ants animation — only runs while a selection exists.
-  useEffect(() => {
-    if (!selection) return;
-    const id = setInterval(() => {
-      setMarchingAntsOffset(prev => (prev + 1) % MARCHING_ANTS_STEPS);
-    }, MARCHING_ANTS_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [selection]);
-
   return {
     selection,
     setSelection,
-    marchingAntsOffset,
     dragContext,
     selectionContainsCell,
   };

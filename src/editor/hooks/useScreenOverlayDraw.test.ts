@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { drawScreenOverlay } from '../lib/pixelArtCanvas';
+import type { PixelArtSelection } from '../lib/pixelArtUtils';
 import { useScreenOverlayDraw } from './useScreenOverlayDraw';
 
 vi.mock('../lib/pixelArtCanvas', () => ({
@@ -16,6 +17,29 @@ vi.stubGlobal('ResizeObserver', MockResizeObserver);
 
 const drawMock = vi.mocked(drawScreenOverlay);
 
+/** Captures rAF callbacks so tests can flush them with explicit timestamps. */
+function installRafShim() {
+  const queue: FrameRequestCallback[] = [];
+  const origRaf = globalThis.requestAnimationFrame;
+  const origCaf = globalThis.cancelAnimationFrame;
+  globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+    queue.push(cb);
+    return queue.length;
+  }) as typeof requestAnimationFrame;
+  globalThis.cancelAnimationFrame = (id: number) => {
+    if (id >= 1) queue[id - 1] = () => {};
+  };
+  const flush = (now: number) => {
+    const pending = queue.splice(0, queue.length);
+    pending.forEach((cb) => cb(now));
+  };
+  const restore = () => {
+    globalThis.requestAnimationFrame = origRaf;
+    globalThis.cancelAnimationFrame = origCaf;
+  };
+  return { flush, restore };
+}
+
 function makeProps() {
   const overlayCanvasRef = { current: {} as HTMLCanvasElement };
   const fakeContainer = {
@@ -25,8 +49,7 @@ function makeProps() {
   return {
     overlayCanvasRef,
     containerRef,
-    selection: null,
-    marchingAntsOffset: 0,
+    selection: null as PixelArtSelection | null,
     activeTool: 'paint' as const,
     penAnchors: { current: [] as Array<[number, number]> },
     penCursor: null as [number, number] | null,
@@ -75,19 +98,33 @@ describe('useScreenOverlayDraw', () => {
     expect(params.anchors).toEqual([[5, 6], [7, 8]]);
   });
 
-  it('re-runs drawScreenOverlay when marchingAntsOffset changes', () => {
-    const props = makeProps();
+  describe('marching ants via requestAnimationFrame', () => {
+    let raf: ReturnType<typeof installRafShim>;
 
-    const { rerender } = renderHook(
-      (p: Parameters<typeof useScreenOverlayDraw>[0]) => useScreenOverlayDraw(p),
-      { initialProps: props },
-    );
+    beforeEach(() => {
+      raf = installRafShim();
+    });
 
-    expect(drawMock).toHaveBeenCalledTimes(1);
+    afterEach(() => {
+      raf.restore();
+    });
 
-    rerender({ ...props, marchingAntsOffset: 3 });
+    it('advances marchingAntsOffset on the overlay after the interval elapses', () => {
+      const props = makeProps();
+      props.selection = { shape: 'rect', x1: 0, y1: 0, x2: 1, y2: 1 };
 
-    expect(drawMock).toHaveBeenCalledTimes(2);
+      renderHook(() => useScreenOverlayDraw(props));
+
+      expect(drawMock).toHaveBeenCalledTimes(1);
+      expect(drawMock.mock.calls[0][1].marchingAntsOffset).toBe(0);
+
+      raf.flush(0);
+      expect(drawMock).toHaveBeenCalledTimes(1);
+
+      raf.flush(80);
+      expect(drawMock).toHaveBeenCalledTimes(2);
+      expect(drawMock.mock.calls[1][1].marchingAntsOffset).toBe(1);
+    });
   });
 
   it('forwards the selection object to drawScreenOverlay', () => {

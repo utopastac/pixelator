@@ -1,13 +1,16 @@
-import { useEffect, type MutableRefObject, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, type MutableRefObject, type RefObject } from 'react';
 import { drawScreenOverlay, type TransformBoxOverlay } from '../lib/pixelArtCanvas';
-import type { PixelArtSelection } from '../lib/pixelArtUtils';
+import {
+  MARCHING_ANTS_INTERVAL_MS,
+  MARCHING_ANTS_STEPS,
+  type PixelArtSelection,
+} from '../lib/pixelArtUtils';
 import type { PixelArtTool } from '../PixelArtEditor';
 
 export interface UseScreenOverlayDrawArgs {
   overlayCanvasRef: RefObject<HTMLCanvasElement | null>;
   containerRef: RefObject<HTMLDivElement | null>;
   selection: PixelArtSelection | null;
-  marchingAntsOffset: number;
   activeTool: PixelArtTool;
   penAnchors: MutableRefObject<Array<[number, number]>>;
   /** Change-ticking dependency so the effect re-runs when an anchor is added
@@ -29,12 +32,13 @@ export interface UseScreenOverlayDrawArgs {
  * Owns the screen-space overlay canvas: keeps its raster size in sync with
  * the container (ResizeObserver), and redraws marching-ants + pen anchor
  * dots on top of the transformed canvas stack whenever any input changes.
+ * Marching-ants dash offset advances on `requestAnimationFrame` (throttled to
+ * `MARCHING_ANTS_INTERVAL_MS`) so the animation does not trigger React renders.
  */
 export function useScreenOverlayDraw({
   overlayCanvasRef,
   containerRef,
   selection,
-  marchingAntsOffset,
   activeTool,
   penAnchors,
   penCursor,
@@ -47,6 +51,57 @@ export function useScreenOverlayDraw({
   polygonSelectCursor,
   marqueeShape,
 }: UseScreenOverlayDrawArgs) {
+  const antsOffsetRef = useRef(0);
+  const paramsRef = useRef({
+    selection,
+    activeTool,
+    penAnchors,
+    penCursor,
+    gridWidth,
+    zoom,
+    panX,
+    panY,
+    transformBox,
+    polygonSelectAnchors,
+    polygonSelectCursor,
+    marqueeShape,
+  });
+  paramsRef.current = {
+    selection,
+    activeTool,
+    penAnchors,
+    penCursor,
+    gridWidth,
+    zoom,
+    panX,
+    panY,
+    transformBox,
+    polygonSelectAnchors,
+    polygonSelectCursor,
+    marqueeShape,
+  };
+
+  const paintOverlay = useCallback(() => {
+    const canvas = overlayCanvasRef.current;
+    if (!canvas) return;
+    const p = paramsRef.current;
+    drawScreenOverlay(canvas, {
+      selection: p.selection,
+      anchors: p.activeTool === 'pen' ? p.penAnchors.current : [],
+      polygonAnchors:
+        p.activeTool === 'marquee' && p.marqueeShape === 'polygon'
+          ? p.polygonSelectAnchors.current
+          : [],
+      polygonCursor:
+        p.activeTool === 'marquee' && p.marqueeShape === 'polygon' ? p.polygonSelectCursor : null,
+      gridWidth: p.gridWidth,
+      zoom: p.zoom,
+      panX: p.panX,
+      panY: p.panY,
+      marchingAntsOffset: antsOffsetRef.current,
+      transformBox: p.transformBox,
+    });
+  }, [overlayCanvasRef]);
   // Keep raster size in sync with the container, in CSS pixels.
   useEffect(() => {
     const container = containerRef.current;
@@ -70,23 +125,70 @@ export function useScreenOverlayDraw({
   // `.current` at effect time and rely on `penCursor` state updates to make
   // the effect rerun when an anchor is added or the cursor moves.
   useEffect(() => {
-    const canvas = overlayCanvasRef.current;
-    if (!canvas) return;
-    drawScreenOverlay(canvas, {
-      selection,
-      anchors: activeTool === 'pen' ? penAnchors.current : [],
-      polygonAnchors: activeTool === 'marquee' && marqueeShape === 'polygon' ? polygonSelectAnchors.current : [],
-      polygonCursor: activeTool === 'marquee' && marqueeShape === 'polygon' ? polygonSelectCursor : null,
-      gridWidth,
-      zoom,
-      panX,
-      panY,
-      marchingAntsOffset,
-      transformBox,
-    });
+    paintOverlay();
     void penCursor;
   }, [
-    overlayCanvasRef, selection, marchingAntsOffset, activeTool, marqueeShape, penCursor, polygonSelectCursor,
-    zoom, panX, panY, gridWidth, penAnchors, polygonSelectAnchors, transformBox,
+    paintOverlay,
+    selection,
+    activeTool,
+    marqueeShape,
+    penCursor,
+    polygonSelectCursor,
+    zoom,
+    panX,
+    panY,
+    gridWidth,
+    penAnchors,
+    polygonSelectAnchors,
+    transformBox,
   ]);
+
+  const hasSelection = selection != null;
+
+  useEffect(() => {
+    if (!hasSelection) {
+      antsOffsetRef.current = 0;
+      return;
+    }
+
+    let rafId = 0;
+    /** `null` until the first visible frame anchors elapsed time. */
+    let lastAdvance: number | null = null;
+
+    const schedule = () => {
+      if (rafId !== 0) return;
+      rafId = requestAnimationFrame(loop);
+    };
+
+    const loop = (now: number) => {
+      rafId = 0;
+      if (document.visibilityState === 'hidden') return;
+
+      if (lastAdvance === null) {
+        lastAdvance = now;
+      } else {
+        while (now - lastAdvance >= MARCHING_ANTS_INTERVAL_MS) {
+          lastAdvance += MARCHING_ANTS_INTERVAL_MS;
+          antsOffsetRef.current = (antsOffsetRef.current + 1) % MARCHING_ANTS_STEPS;
+          paintOverlay();
+        }
+      }
+      schedule();
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        lastAdvance = null;
+        schedule();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibility);
+    schedule();
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (rafId !== 0) cancelAnimationFrame(rafId);
+    };
+  }, [hasSelection, paintOverlay]);
 }
