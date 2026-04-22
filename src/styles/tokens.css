@@ -130,6 +130,15 @@
   --icon-button-size-xs: 1.5rem;
   --icon-button-size-md: 2.2rem;
 
+  /* ToolbarButton — hit area, padding, and SVG box; defaults track icon-button
+     sizes so desktop matches legacy layout. Override on `html[data-mobile]`. */
+  --toolbar-button-size-sm: var(--icon-button-size-xs);
+  --toolbar-button-size-md: var(--icon-button-size-md);
+  --toolbar-button-padding-sm: 2px;
+  --toolbar-button-padding-md: 4px;
+  --toolbar-button-icon-sm: 16px;
+  --toolbar-button-icon-md: 18px;
+
   /* Inputs */
   --input-height-sm: 1.5rem;
   --input-background: var(--surface-extra-subtle);
@@ -188,6 +197,10 @@
   --floating-offset: 16px;
   --floating-stack-gap: 8px;
   --floating-panel-height: 40px;
+  /** Mobile: outer height of EditorBars top-center strip (`FloatingPanel` `sm`
+   *  + border + one toolbar row). 0 on desktop — add to `top` when clearing
+   *  fixed chrome (DrawingsPanel, LayersPanel, canvas toasts). */
+  --mobile-editor-top-chrome-height: 0px;
 
   /* Shadows — hard-edged offset shadows give panels a pixel-UI feel. No blur. */
   --shadow-md: 3px 3px 0 0 rgb(0 0 0 / 0.2);
@@ -279,4 +292,37 @@
   /* Offset shadows tinted white so they read on dark surfaces. */
   --shadow-md: 3px 3px 0 0 rgb(0 0 0 / 0.6);
   --shadow-xl: 5px 5px 0 0 rgb(0 0 0 / 0.7);
+}
+
+/* Mobile typography — `data-mobile` is toggled on `<html>` by
+   `AppMobileProvider` when `MOBILE_MEDIA_QUERY` matches (same 768px breakpoint
+   as layout). Portaled overlays inherit from the document root. */
+html[data-mobile='true'] {
+  /* Full-bleed floating UI; `.main` still widens `--chrome-inset` when the
+   *  DrawingsPanel is open (`App.module.css`). Must be `0px` (not unitless
+   *  `0`) so `calc(-100% - var(--floating-offset))` stays valid length math. */
+  --floating-offset: 0px;
+
+  --font-size-s: calc(1.152rem * 1.3);
+  --font-size-xs: calc(1.044rem * 1.3);
+  --font-size-ui: calc(0.9rem * 1.3);
+
+  --shadow-md: none;
+
+  /* Toolbar mobile scale — mirror `TOOLBAR_MOBILE_SCALE` in
+     `src/primitives/ToolbarButton/toolbarButtonTokens.ts`. */
+  --toolbar-button-size-sm: calc(var(--icon-button-size-xs) * 1.2);
+  --toolbar-button-size-md: calc(var(--icon-button-size-md) * 1.2);
+  --toolbar-button-padding-sm: 3px;
+  --toolbar-button-padding-md: 5px;
+  --toolbar-button-icon-sm: calc(16px * 1.2);
+  --toolbar-button-icon-md: calc(18px * 1.2);
+
+  /* Matches first `FloatingPanel` in `EditorBars` mobile layout: `sm` padding
+   *  (4+4) + panel border (1+1) + row height. That row is all `size="sm"`
+   *  `ToolbarButton`s (plus a short `ReadoutButton` for canvas size), so use
+   *  `--toolbar-button-size-sm` — `md` would over-count and leave a gap. */
+  --mobile-editor-top-chrome-height: calc(
+    8px + 1px + var(--toolbar-button-size-sm)
+  );
 }

@@ -1,13 +1,15 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { useAppMobileOptional } from '@/AppMobileContext';
 import styles from './ToolbarButton.module.css';
+import { toolbarIconPixel } from './toolbarButtonTokens';
 import { resolveSize, SizeSmMd } from '@/utils/resolveSize';
 import Tooltip, { TooltipProps } from '@/overlays/Tooltip';
 
 type TooltipConfig = string | Omit<TooltipProps, 'children'>;
 
 interface ToolbarButtonProps {
-  icon: LucideIcon | React.ComponentType<{ size?: number }>;
+  icon: LucideIcon | React.ComponentType<{ size?: number; className?: string; 'aria-hidden'?: boolean }>;
   onClick?: () => void;
   size?: SizeSmMd;
   pressed?: boolean;
@@ -48,7 +50,8 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   ...rest
 }) => {
   const resolvedSize = resolveSize(size, 'md');
-  const iconSize = resolvedSize === 'sm' ? 16 : 18;
+  const isMobile = useAppMobileOptional()?.isMobile ?? false;
+  const iconPx = toolbarIconPixel(size, isMobile);
   const isToggle = pressed !== undefined;
 
   // Only forward data-* attrs from the rest props — nothing else should slip through.
@@ -68,7 +71,9 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
       title={title}
       {...dataAttrs}
     >
-      <Icon size={iconSize} />
+      <span className={styles.iconWrap} aria-hidden>
+        <Icon size={iconPx} aria-hidden />
+      </span>
     </button>
   );
 

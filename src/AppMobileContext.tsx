@@ -1,7 +1,25 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 
 /** Viewport at or below this width is treated as mobile layout app-wide. */
 export const MOBILE_MEDIA_QUERY = '(max-width: 768px)';
+
+function readMobileMatch(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  try {
+    return window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+  } catch {
+    return false;
+  }
+}
 
 export type AppMobileContextValue = {
   isMobile: boolean;
@@ -12,7 +30,19 @@ export type AppMobileContextValue = {
 export const AppMobileContext = createContext<AppMobileContextValue | null>(null);
 
 export function AppMobileProvider({ children }: { children: ReactNode }) {
-  const [isMobile, setMobile] = useState(false);
+  const [isMobile, setMobile] = useState(readMobileMatch);
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    if (isMobile) {
+      root.setAttribute('data-mobile', 'true');
+    } else {
+      root.removeAttribute('data-mobile');
+    }
+    return () => {
+      root.removeAttribute('data-mobile');
+    };
+  }, [isMobile]);
 
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') {

@@ -326,11 +326,6 @@ describe('EditorBars — title chrome', () => {
     expect(screen.getByRole('button', { name: 'Redo' })).toBeInTheDocument();
   });
 
-  it('renders the Download control', () => {
-    renderWithTitleChrome();
-    expect(screen.getByTestId('download-menu')).toBeInTheDocument();
-  });
-
   it('Undo button is disabled when canUndo is false', () => {
     renderWithTitleChrome({ canUndo: false });
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled();

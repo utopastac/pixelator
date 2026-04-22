@@ -60,6 +60,12 @@
   z-index: var(--z-sheet);
 }
 
+.canvasContainer[data-mobile='true'] .canvasToast {
+  top: calc(
+    var(--floating-offset) + var(--mobile-editor-top-chrome-height) + var(--floating-stack-gap)
+  );
+}
+
 /* Symmetry axis guide lines. One CSS-pixel line per active axis, centred on
    the canvas. Outside canvasInner so they stay 1px regardless of zoom. */
 .symmetryOverlay {

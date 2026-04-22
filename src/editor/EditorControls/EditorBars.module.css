@@ -4,6 +4,7 @@
   align-items: center;
   gap: var(--space-xs);
   min-width: 0;
+  flex: 1;
 }
 
 .toolsRow {
@@ -14,8 +15,9 @@
 }
 
 .mobileStack {
-  & .mobileTitleStrip {
+  & .toolsStrip {
     min-width: 0;
+    width: 100%;
     border-bottom: 1px solid var(--border-subtle);
   }
 }

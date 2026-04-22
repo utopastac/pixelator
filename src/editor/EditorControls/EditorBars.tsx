@@ -129,10 +129,16 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           <div className={styles.barRow}>
             <ToolGroupCluster>
               {c.openDrawings}
+            </ToolGroupCluster>
+            <ToolGroupCluster>
               {c.canvasSize}
             </ToolGroupCluster>
             <ToolGroupCluster>
-              {c.zoom}
+              {c.historyUndo}
+              {c.historyRedo}
+            </ToolGroupCluster>
+            <ToolGroupCluster align="right" trailingDivider={false} leadingDivider={true}>
+              {c.themeToggle}
               {c.download}
               {c.layersPanelToggle}
             </ToolGroupCluster>
@@ -146,7 +152,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           className={styles.mobileStack}
           aria-label="Editor"
         >
-          <div className={styles.mobileTitleStrip} role="region" aria-label="Drawing title">
+          <div className={styles.toolsStrip} role="region" aria-label="Drawing title">
             <ToolGroupCluster trailingDivider={false}>
               {c.fill}
               {c.eyedropper}
@@ -159,7 +165,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
                 {c.moveTool}
                 {c.marquee}
               </ToolGroupCluster>
-              <ToolGroupCluster>
+              <ToolGroupCluster trailingDivider={false}>
                 {c.brushSize}
                 {c.paint}
                 {c.pen}
@@ -222,7 +228,6 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           <ToolGroupCluster trailingDivider={false}>
             {c.historyUndo}
             {c.historyRedo}
-            {c.download}
           </ToolGroupCluster>
         </div>
       </FloatingPanel>

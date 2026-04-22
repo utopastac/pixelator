@@ -1,7 +1,7 @@
 .toolbarButton {
   @mixin icon-button;
-  width: var(--icon-button-size-md);
-  height: var(--icon-button-size-md);
+  width: var(--toolbar-button-size-md);
+  height: var(--toolbar-button-size-md);
   border-radius: var(--interactive-radius);
   color: var(--text-primary);
   transition: background-color 0.15s, color 0.15s;
@@ -57,9 +57,9 @@
 
   /* Sizes */
   &.sm {
-    width: var(--icon-button-size-xs);
-    height: var(--icon-button-size-xs);
-    padding: 2px;
+    width: var(--toolbar-button-size-sm);
+    height: var(--toolbar-button-size-sm);
+    padding: var(--toolbar-button-padding-sm);
     border-radius: var(--radius-xs);
 
     &.inUse::after {
@@ -71,8 +71,16 @@
   }
 
   &.md {
-    width: var(--icon-button-size-md);
-    height: var(--icon-button-size-md);
-    padding: 4px;
+    width: var(--toolbar-button-size-md);
+    height: var(--toolbar-button-size-md);
+    padding: var(--toolbar-button-padding-md);
+  }
+
+  .iconWrap {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
   }
 }

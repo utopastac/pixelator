@@ -9,7 +9,7 @@
   @mixin popover-panel;
   position: absolute;
   left: var(--floating-offset);
-  top: var(--floating-offset);
+  top: calc(var(--floating-offset) + var(--mobile-editor-top-chrome-height));
   bottom: var(--floating-offset);
   width: 280px;
   z-index: var(--z-sheet);
@@ -24,7 +24,7 @@
 
 .panelClosed {
   /* Slide fully past the left gutter so no edge peeks out. */
-  transform: translateX(calc(-100% - var(--floating-offset)));
+  transform: translateX(calc(-100% - var(--floating-offset, 0px)));
   pointer-events: none;
 }
 

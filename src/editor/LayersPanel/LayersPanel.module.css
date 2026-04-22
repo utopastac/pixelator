@@ -12,11 +12,9 @@
   overflow: hidden;
 
   &.mobile {
-    /* Below mobile top-center chrome (title / zoom row). */
-    top: calc(var(--floating-panel-height) + var(--floating-stack-gap) + var(--space-xs));
-    max-height: calc(
-      100vh - var(--floating-panel-height) - var(--floating-stack-gap) - var(--space-m)
-    );
+    /* Below EditorBars mobile top strip — `tokens.css` `--mobile-editor-top-chrome-height`. */
+    top: var(--mobile-editor-top-chrome-height);
+    max-height: calc(100vh - var(--mobile-editor-top-chrome-height) - var(--space-m));
   }
 }
 
