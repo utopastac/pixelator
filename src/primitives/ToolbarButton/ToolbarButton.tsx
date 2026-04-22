@@ -23,7 +23,7 @@ interface ToolbarButtonProps {
   tooltip?: TooltipConfig;
   className?: string;
   disabled?: boolean;
-  /** When true, the button stretches to fill its parent's height (aspect-ratio 1:1). */
+  /** When true, prefer filling parent height (`height: 100%`) and allow shrinking (`min-height: 0`). */
   fillHeight?: boolean;
   /** Arbitrary data-* attributes to forward onto the underlying button — lets callers attach stable test hooks. */
   [key: `data-${string}`]: string | number | boolean | undefined;
@@ -47,6 +47,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   tooltip,
   className = '',
   disabled,
+  fillHeight,
   ...rest
 }) => {
   const resolvedSize = resolveSize(size, 'md');
@@ -62,7 +63,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   const button = (
     <button
       type="button"
-      className={`${styles.toolbarButton} ${styles[resolvedSize]} ${pressed ? styles.pressed : ''} ${inUse ? styles.inUse : ''} ${selected ? styles.selected : ''} ${className}`}
+      className={`${styles.toolbarButton} ${styles[resolvedSize]} ${pressed ? styles.pressed : ''} ${inUse ? styles.inUse : ''} ${selected ? styles.selected : ''} ${fillHeight ? styles.fillHeight : ''} ${className}`}
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}

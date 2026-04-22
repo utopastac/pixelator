@@ -13,9 +13,19 @@ import styles from './SymmetryControl.module.css';
 export interface SymmetryControlProps {
   symmetryMode: SymmetryMode;
   setSymmetryMode: (mode: SymmetryMode) => void;
+  /** When true, show three inline mirroring toggles instead of a popover menu. */
+  mobile?: boolean;
 }
 
-export default function SymmetryControl({ symmetryMode, setSymmetryMode }: SymmetryControlProps) {
+function toggleExclusive(
+  mode: Exclude<SymmetryMode, 'none'>,
+  current: SymmetryMode,
+  setSymmetryMode: (mode: SymmetryMode) => void,
+) {
+  setSymmetryMode(current === mode ? 'none' : mode);
+}
+
+export default function SymmetryControl({ symmetryMode, setSymmetryMode, mobile = false }: SymmetryControlProps) {
   const anchorRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const SymmetryIcon =
@@ -24,6 +34,37 @@ export default function SymmetryControl({ symmetryMode, setSymmetryMode }: Symme
       : symmetryMode === 'both'
         ? SymmetryBothIcon
         : SymmetryVerticalIcon;
+
+  if (mobile) {
+    return (
+      <div className={styles.mobileRow} role="group" aria-label="Symmetry mode">
+        <ToolbarButton
+          icon={SymmetryVerticalIcon}
+          size="sm"
+          selected={symmetryMode === 'vertical'}
+          onClick={() => toggleExclusive('vertical', symmetryMode, setSymmetryMode)}
+          aria-label="Vertical mirroring"
+          tooltip={{ content: 'Vertical (left ↔ right)', placement: 'bottom' }}
+        />
+        <ToolbarButton
+          icon={SymmetryHorizontalIcon}
+          size="sm"
+          selected={symmetryMode === 'horizontal'}
+          onClick={() => toggleExclusive('horizontal', symmetryMode, setSymmetryMode)}
+          aria-label="Horizontal mirroring"
+          tooltip={{ content: 'Horizontal (top ↔ bottom)', placement: 'bottom' }}
+        />
+        <ToolbarButton
+          icon={SymmetryBothIcon}
+          size="sm"
+          selected={symmetryMode === 'both'}
+          onClick={() => toggleExclusive('both', symmetryMode, setSymmetryMode)}
+          aria-label="Four-way mirroring"
+          tooltip={{ content: '4-way', placement: 'bottom' }}
+        />
+      </div>
+    );
+  }
 
   return (
     <>

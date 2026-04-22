@@ -52,6 +52,11 @@ describe('ToolbarButton', () => {
     expect(screen.getByRole('button')).toHaveClass(styles.selected);
   });
 
+  it('applies fillHeight class when fillHeight is true', () => {
+    render(<ToolbarButton icon={Icon} aria-label="A" fillHeight />);
+    expect(screen.getByRole('button')).toHaveClass(styles.fillHeight);
+  });
+
   it('forwards data-* attributes to the button but drops unknown props', () => {
     render(
       <ToolbarButton

@@ -1,7 +1,10 @@
 .toolbarButton {
   @mixin icon-button;
+  box-sizing: border-box;
   width: var(--toolbar-button-size-md);
-  height: var(--toolbar-button-size-md);
+  align-self: stretch;
+  min-height: var(--toolbar-button-size-md);
+  height: auto;
   border-radius: var(--interactive-radius);
   color: var(--text-primary);
   transition: background-color 0.15s, color 0.15s, opacity 0.15s;
@@ -35,8 +38,16 @@
   &.selected {
     background-color: var(--interactive-selected);
     color: var(--text-primary);
-    outline: 1.5px solid var(--input-border-focus);
-    outline-offset: -1.5px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background-color: var(--input-border-focus);
+    }
 
     &:hover:not(:disabled) {
       background-color: var(--interactive-selected);
@@ -55,16 +66,12 @@
     background-color: var(--text-highlight);
   }
 
-  &.fillHeight {
-    height: 100%;
-    align-self: stretch;
-    aspect-ratio: 1;
-  }
-
   /* Sizes */
   &.sm {
     width: var(--toolbar-button-size-sm);
-    height: var(--toolbar-button-size-sm);
+    /* min-height: var(--toolbar-button-size-sm); */
+    height: auto;
+    align-self: stretch;
     padding: var(--toolbar-button-padding-sm);
     border-radius: var(--radius-xs);
 
@@ -78,8 +85,17 @@
 
   &.md {
     width: var(--toolbar-button-size-md);
-    height: var(--toolbar-button-size-md);
+    /* min-height: var(--toolbar-button-size-md); */
+    height: auto;
+    align-self: stretch;
     padding: var(--toolbar-button-padding-md);
+  }
+
+  /* Opt-in: allow shrinking inside tight flex rows (e.g. scroll strips). */
+  &.fillHeight {
+    min-height: 0;
+    flex: 1 1 auto;
+    height: 100%;
   }
 
   .iconWrap {

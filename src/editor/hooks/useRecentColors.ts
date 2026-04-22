@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const KEY = 'pixelator.recentColors';
-const MAX = 8;
+const MAX = 15;
 const HEX = /^#[0-9a-fA-F]{6}$/;
 const SEED: string[] = ['#000000', '#ffffff'];
 
@@ -32,7 +32,7 @@ export interface UseRecentColors {
 }
 
 /**
- * localStorage-backed rolling list of recently-picked colours (cap 8).
+ * localStorage-backed rolling list of recently-picked colours (cap 15).
  * Call `pushRecent` whenever the user commits to a new colour.
  */
 export function useRecentColors(): UseRecentColors {

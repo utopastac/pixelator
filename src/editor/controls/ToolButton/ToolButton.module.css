@@ -80,6 +80,6 @@
 }
 
 .md {
-  width: var(--icon-button-size-md);
-  height: var(--icon-button-size-md);
+  width: var(--toolbar-button-size-md);
+  height: var(--toolbar-button-size-md);
 }

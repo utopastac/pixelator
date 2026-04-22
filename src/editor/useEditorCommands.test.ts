@@ -296,6 +296,56 @@ describe('downloadPng', () => {
     await act(async () => { await hook.result.current.downloadPng(4); });
     expect(getAnchor().download).toContain('@4x.png');
   });
+
+  it('mobile: uses Web Share with PNG file when canShare succeeds (no anchor download)', async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    const canShare = vi.fn(() => true);
+    vi.stubGlobal('navigator', { ...navigator, share, canShare });
+    let anchorClicks = 0;
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      if (tag === 'a') {
+        return { href: '', download: '', click: () => { anchorClicks++; } } as unknown as HTMLElement;
+      }
+      return _realCreateElement(tag) as HTMLElement;
+    });
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:mock'), revokeObjectURL: vi.fn() });
+    const { hook } = setup({ isMobile: true });
+    await act(async () => { await hook.result.current.downloadPng(2); });
+    expect(share).toHaveBeenCalledTimes(1);
+    const arg = share.mock.calls[0][0] as ShareData;
+    expect(arg.files).toHaveLength(1);
+    expect(arg.files![0].type).toBe('image/png');
+    expect(anchorClicks).toBe(0);
+  });
+
+  it('mobile: falls back to anchor when canShare returns false', async () => {
+    const share = vi.fn();
+    vi.stubGlobal('navigator', { ...navigator, share, canShare: () => false });
+    const { getAnchor } = stubDownload();
+    const { hook } = setup({ isMobile: true });
+    await act(async () => { await hook.result.current.downloadPng(); });
+    expect(share).not.toHaveBeenCalled();
+    expect(getAnchor().click).toHaveBeenCalledTimes(1);
+  });
+
+  it('mobile: user dismisses share sheet (AbortError) — no anchor fallback', async () => {
+    const abort = new Error('dismissed');
+    abort.name = 'AbortError';
+    const share = vi.fn().mockRejectedValue(abort);
+    vi.stubGlobal('navigator', { ...navigator, share, canShare: () => true });
+    let anchorClicks = 0;
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      if (tag === 'a') {
+        return { href: '', download: '', click: () => { anchorClicks++; } } as unknown as HTMLElement;
+      }
+      return _realCreateElement(tag) as HTMLElement;
+    });
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:mock'), revokeObjectURL: vi.fn() });
+    const { hook } = setup({ isMobile: true });
+    await act(async () => { await hook.result.current.downloadPng(); });
+    expect(share).toHaveBeenCalled();
+    expect(anchorClicks).toBe(0);
+  });
 });
 
 // ── downloadLayersSvg ─────────────────────────────────────────────────────────

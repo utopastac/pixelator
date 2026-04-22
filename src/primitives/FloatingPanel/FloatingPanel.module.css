@@ -47,7 +47,7 @@
    `sm` matches the 2px inner padding of sm ToolbarButtons; `md` matches the
    4px inner padding of md ToolbarButtons. */
 .sm {
-  gap: 2px;
+  gap: 0;
   padding: 0;
 }
 

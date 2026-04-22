@@ -273,7 +273,11 @@ export function createEditorControls(p: EditorChromeInput): EditorControlNodes {
           ) : null,
         symmetry:
           t.setSymmetryMode != null ? (
-            <SymmetryControl symmetryMode={t.symmetryMode ?? 'none'} setSymmetryMode={t.setSymmetryMode} />
+            <SymmetryControl
+              symmetryMode={t.symmetryMode ?? 'none'}
+              setSymmetryMode={t.setSymmetryMode}
+              mobile={p.isMobile === true}
+            />
           ) : null,
         wrap:
           t.setWrapMode != null ? <WrapModeControl wrapMode={t.wrapMode ?? false} setWrapMode={t.setWrapMode} /> : null,

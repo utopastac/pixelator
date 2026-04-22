@@ -324,6 +324,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     sizesEnabled,
     title,
     pngExportScale: 8,
+    isMobile,
   });
 
   const exportLayerSvg = useCallback((layerId: string) => {

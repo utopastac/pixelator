@@ -81,7 +81,11 @@ function renderWithTitleChrome(
   const props: EditorBarsProps = {
     panelsVisible: true,
     isMobile: options?.isMobile ?? false,
-    chrome: { ...defaultChrome(), ...makeTitleWiring(titleOverrides) },
+    chrome: {
+      ...defaultChrome(),
+      ...makeTitleWiring(titleOverrides),
+      isMobile: options?.isMobile ?? false,
+    },
   };
   return render(<EditorBars {...props} />);
 }
@@ -448,6 +452,14 @@ describe('EditorBars — symmetry picker', () => {
     await user.click(screen.getByRole('button', { name: 'Symmetry' }));
     await user.click(screen.getByRole('menuitemradio', { name: /none/i }));
     expect(screen.queryByRole('menu', { name: 'Symmetry mode' })).not.toBeInTheDocument();
+  });
+});
+
+describe('EditorBars — symmetry (mobile)', () => {
+  it('renders inline mirroring toggles instead of the Symmetry popover trigger', () => {
+    renderWithTitleChrome({ symmetryMode: 'none', setSymmetryMode: vi.fn() }, { isMobile: true });
+    expect(screen.queryByRole('button', { name: 'Symmetry' })).not.toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Symmetry mode' })).toBeInTheDocument();
   });
 });
 

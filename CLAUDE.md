@@ -82,7 +82,7 @@ optional so older stored data decodes cleanly.
 
 localStorage keys (note the inconsistent punctuation, don't "fix" it blindly):
 - `pixelator.store` — full v2 store
-- `pixelator.recentColors` — recents list (cap 8)
+- `pixelator.recentColors` — recents list (cap 15)
 - `pixelator:customColors` — global custom swatches
 
 ## State ownership (who owns what, and where mutations must go)

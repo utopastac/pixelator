@@ -1,6 +1,6 @@
 /**
- * Tests for `RecentColorsPanel` — left-edge floating column of recent colour
- * swatches with pinned black and white at the bottom.
+ * Tests for `RecentColorsPanel` — desktop: left-edge column of recents + B/W;
+ * mobile: bottom horizontal pill (see `.mobile` in the module).
  */
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';

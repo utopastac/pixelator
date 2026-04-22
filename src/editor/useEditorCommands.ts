@@ -42,6 +42,8 @@ export interface UseEditorCommandsInput {
   // Export metadata.
   title: string | undefined;
   pngExportScale: number;
+  /** When true, PNG export prefers the system share sheet (Save to Photos on iOS / similar on Android). */
+  isMobile?: boolean;
 }
 
 export interface EditorCommands {
@@ -65,6 +67,29 @@ function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * Mobile: `navigator.share({ files: [png] })` opens the OS share sheet, where
+ * the user can pick Photos / “Save Image” (no direct Camera Roll API on the web).
+ * Returns whether the flow finished without needing a file download fallback.
+ */
+async function trySharePngForMobile(blob: Blob, filename: string): Promise<'shared' | 'cancelled' | 'failed'> {
+  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') return 'failed';
+  const file = new File([blob], filename, { type: blob.type || 'image/png' });
+  const data: ShareData = {
+    files: [file],
+    title: filename.replace(/\.png$/i, ''),
+  };
+  if (typeof navigator.canShare === 'function' && !navigator.canShare(data)) return 'failed';
+  try {
+    await navigator.share(data);
+    return 'shared';
+  } catch (e) {
+    const name = e instanceof DOMException ? e.name : (e as Error)?.name;
+    if (name === 'AbortError') return 'cancelled';
+    return 'failed';
+  }
+}
+
 /** Sanitise a human-readable name into something safe for a filesystem. */
 function slugify(name: string, fallback: string): string {
   return name.replace(/[^a-z0-9-_]+/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || fallback;
@@ -76,7 +101,7 @@ export function useEditorCommands(input: UseEditorCommandsInput): EditorCommands
     width, height, pixels, layers,
     allowCommitOrSignal, commitPixels, commitResize, emitChange,
     selection, setSelection, selectionContainsCell, dragContext,
-    sizesEnabled, title, pngExportScale,
+    sizesEnabled, title, pngExportScale, isMobile = false,
   } = input;
 
   const exportBaseName = useCallback(
@@ -93,8 +118,13 @@ export function useEditorCommands(input: UseEditorCommandsInput): EditorCommands
     const s = scale ?? pngExportScale;
     const flattened = flattenLayers(layers, width, height);
     const blob = await pixelsToPngBlob(flattened, width, height, s);
-    downloadBlob(blob, `${exportBaseName()}@${s}x.png`);
-  }, [layers, width, height, pngExportScale, exportBaseName]);
+    const filename = `${exportBaseName()}@${s}x.png`;
+    if (isMobile) {
+      const shareResult = await trySharePngForMobile(blob, filename);
+      if (shareResult === 'shared' || shareResult === 'cancelled') return;
+    }
+    downloadBlob(blob, filename);
+  }, [layers, width, height, pngExportScale, exportBaseName, isMobile]);
 
   const downloadLayersSvg = useCallback(async () => {
     // Visible + non-empty layers only. Hidden layers are "off" by design; empty

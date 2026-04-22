@@ -5,3 +5,11 @@
   display: inline-flex;
   align-items: center;
 }
+
+.mobileRow {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}

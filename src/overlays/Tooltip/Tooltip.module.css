@@ -1,5 +1,9 @@
 .wrapper {
-  display: inline-flex;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  align-self: stretch;
+  min-height: 0;
 }
 
 .tooltip {

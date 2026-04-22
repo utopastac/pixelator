@@ -54,39 +54,25 @@ describe('useRecentColors', () => {
     expect(result.current.recents).toEqual(before);
   });
 
-  it('caps the list at 8 entries, dropping the oldest', () => {
+  it('caps the list at 15 entries, dropping the oldest', () => {
     localStorage.setItem(KEY, JSON.stringify([]));
     const { result } = renderHook(() => useRecentColors());
-    act(() => result.current.pushRecent('#111111'));
-    act(() => result.current.pushRecent('#222222'));
-    act(() => result.current.pushRecent('#333333'));
-    act(() => result.current.pushRecent('#444444'));
-    act(() => result.current.pushRecent('#555555'));
-    act(() => result.current.pushRecent('#666666'));
-    act(() => result.current.pushRecent('#777777'));
-    act(() => result.current.pushRecent('#888888'));
-    expect(result.current.recents).toEqual([
-      '#888888',
-      '#777777',
-      '#666666',
-      '#555555',
-      '#444444',
-      '#333333',
-      '#222222',
-      '#111111',
-    ]);
-    act(() => result.current.pushRecent('#999999'));
-    expect(result.current.recents).toEqual([
-      '#999999',
-      '#888888',
-      '#777777',
-      '#666666',
-      '#555555',
-      '#444444',
-      '#333333',
-      '#222222',
-    ]);
-    expect(result.current.recents).toHaveLength(8);
+    const fifteen = Array.from({ length: 15 }, (_, i) => {
+      const n = i + 1;
+      const pair = n.toString(16).padStart(2, '0');
+      return `#${pair}${pair}${pair}` as const;
+    });
+    for (const c of fifteen) {
+      act(() => result.current.pushRecent(c));
+    }
+    expect(result.current.recents).toHaveLength(15);
+    expect(result.current.recents[0]).toBe('#0f0f0f');
+    expect(result.current.recents[14]).toBe('#010101');
+
+    act(() => result.current.pushRecent('#101010'));
+    expect(result.current.recents).toHaveLength(15);
+    expect(result.current.recents[0]).toBe('#101010');
+    expect(result.current.recents).not.toContain('#010101');
   });
 
   it('pushing an existing color is a no-op and does NOT reorder', () => {
@@ -108,9 +94,9 @@ describe('useRecentColors', () => {
     localStorage.setItem(KEY, JSON.stringify(['#111111', '#222222', '#333333', '#444444', '#555555', '#666666']));
     const { result } = renderHook(() => useRecentColors());
     act(() => result.current.mergeRecentColors(['#777777', '#666666', '#888888', '#999999']));
-    // Existing order preserved; duplicates dropped; newcomers appended; cap at 8.
+    // Existing order preserved; duplicates dropped; newcomers appended; under cap 15.
     expect(result.current.recents).toEqual([
-      '#111111', '#222222', '#333333', '#444444', '#555555', '#666666', '#777777', '#888888',
+      '#111111', '#222222', '#333333', '#444444', '#555555', '#666666', '#777777', '#888888', '#999999',
     ]);
   });
 

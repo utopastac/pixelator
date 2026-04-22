@@ -24,6 +24,25 @@
     /* Match FloatingPanel mobile: ignore inherited drawings-panel inset. */
     --floating-offset: 0;
     --chrome-inset: 0;
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    transform: none;
+    border-radius: 0;
+    bottom: calc(
+      env(safe-area-inset-bottom, 0px) + var(--mobile-editor-bottom-chrome-height, 112px)
+    );
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding-inline: max(var(--space-xs), env(safe-area-inset-left, 0px))
+      max(var(--space-xs), env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+
+    & > .stack.row:last-child {
+      flex-shrink: 0;
+    }
   }
 }
 
@@ -34,8 +53,54 @@
   flex-shrink: 0;
 }
 
+.panel.mobile .divider {
+  width: 1px;
+  height: auto;
+  min-height: 1.75rem;
+  align-self: stretch;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+}
+
+.row {
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.recentsScroll {
+  /* Flex so the inner row can be taller than the swatches alone (room for
+   *  selected `outline` on ColorSwatch) without clipping against overflow. */
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 0;
+  /* Outline is 2px + 1px offset — pad the scrollport so selection rings are
+   *  not cropped at the scroll edges (overflow clips to the padding box). */
+  padding: max(5px, var(--space-xs));
+  box-sizing: border-box;
+  min-height: calc(var(--icon-button-size-xs) + 10px);
+  overflow-x: auto;
+  overflow-y: clip;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--border-subtle);
+    border-radius: 9999px;
+  }
+
+  & .stack.row {
+    width: max-content;
+  }
 }

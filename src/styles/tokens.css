@@ -314,12 +314,12 @@ html[data-mobile='true'] {
 
   /* Toolbar mobile scale — mirror `TOOLBAR_MOBILE_SCALE` in
      `src/primitives/ToolbarButton/toolbarButtonTokens.ts`. */
-  --toolbar-button-size-sm: calc(var(--icon-button-size-xs) * 1.2);
+  --toolbar-button-size-sm: 40px;
   --toolbar-button-size-md: calc(var(--icon-button-size-md) * 1.2);
   --toolbar-button-padding-sm: 3px;
   --toolbar-button-padding-md: 5px;
   --toolbar-button-icon-sm: calc(16px * 1.2);
-  --toolbar-button-icon-md: calc(18px * 1.2);
+  --toolbar-button-icon-md: calc(48px);
 
   /* Matches first `FloatingPanel` in `EditorBars` mobile layout: `sm` padding
    *  (4+4) + panel border (1+1) + row height. That row is all `size="sm"`
@@ -328,6 +328,10 @@ html[data-mobile='true'] {
   --mobile-editor-top-chrome-height: calc(
     8px + 1px + var(--toolbar-button-size-sm)
   );
+
+  /* Height of EditorBars bottom stack (two sm rows + borders). Recent colours
+   *  strip sits flush on top — `bottom` uses this value with no extra gutter. */
+  --mobile-editor-bottom-chrome-height: 94px;
 
   /* Swatches colour popover: full-width column for SV grid + fluid swatches. */
   --swatches-popover-max-width: min(360px, calc(100vw - 24px));
