@@ -99,6 +99,7 @@ function buildArgs(
       commit: mocks.commit,
       dispatch: mocks.dispatch,
       emit: mocks.emit,
+      flushPendingPixelsSync: vi.fn(),
     },
     width: 4,
     height: 4,

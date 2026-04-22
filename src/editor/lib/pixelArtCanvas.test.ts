@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import {
   drawCommitted,
   drawLayer,
+  patchOpaqueCells,
   drawPreview,
   drawSelectionOverlay,
   drawAnchorDots,
@@ -293,6 +294,23 @@ describe('drawLayer', () => {
     drawLayer(canvas, pixels, 4);
 
     expect(calls).toEqual([[0, 2, 3, 1]]);
+  });
+});
+
+describe('patchOpaqueCells', () => {
+  it('updates only listed cells and clears when colour is empty', () => {
+    const canvas = makeCanvas(4, 4);
+    const pixels = makePixels(4, 4, [[0, 0, '#ff0000']]);
+    drawLayer(canvas, pixels, 4);
+    vi.mocked(ctxMock.fillRect).mockClear();
+    vi.mocked(ctxMock.clearRect).mockClear();
+
+    pixels[0] = '';
+    pixels[5] = '#00ff00';
+    patchOpaqueCells(canvas, pixels, 4, [0, 5]);
+
+    expect(ctxMock.clearRect).toHaveBeenCalledWith(0, 0, 1, 1);
+    expect(ctxMock.fillRect).toHaveBeenCalledWith(1, 1, 1, 1);
   });
 });
 

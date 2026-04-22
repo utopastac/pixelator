@@ -9,6 +9,19 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useLongPress, LONG_PRESS_MS } from './useLongPress';
 
+/** jsdom may omit `PointerEvent`; the hook listens for native `pointerup` on `window`. */
+if (typeof globalThis.PointerEvent === 'undefined') {
+  globalThis.PointerEvent = class PolyPointerEvent extends MouseEvent {
+    pointerId: number;
+    isPrimary: boolean;
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, init);
+      this.pointerId = init.pointerId ?? 0;
+      this.isPrimary = init.isPrimary ?? true;
+    }
+  } as unknown as typeof PointerEvent;
+}
+
 // ---------------------------------------------------------------------------
 // Timer setup / teardown
 // ---------------------------------------------------------------------------
@@ -53,7 +66,17 @@ describe('useLongPress — returned keys', () => {
 // Short press (pointer)
 // ---------------------------------------------------------------------------
 
-const primaryPointer = { isPrimary: true, pointerId: 1 } as unknown as ReactPointerEvent<HTMLButtonElement>;
+const primaryPointer = {
+  isPrimary: true,
+  pointerId: 1,
+  pointerType: 'mouse',
+} as unknown as ReactPointerEvent<HTMLButtonElement>;
+
+const touchPointer = {
+  isPrimary: true,
+  pointerId: 1,
+  pointerType: 'touch',
+} as unknown as ReactPointerEvent<HTMLButtonElement>;
 
 describe('useLongPress — short press (pointer)', () => {
   it('fires onShortPress when pointerup arrives before LONG_PRESS_MS', () => {
@@ -141,16 +164,36 @@ describe('useLongPress — long press (pointer)', () => {
 // ---------------------------------------------------------------------------
 
 describe('useLongPress — pointer leave', () => {
-  it('cancels a pending long press without firing either callback', () => {
+  it('mouse: leaving aborts the gesture (no short press after global pointerup)', () => {
     const { result, onShortPress, onLongPress } = mount();
 
     act(() => { result.current.onPointerDown(primaryPointer); });
     act(() => { vi.advanceTimersByTime(LONG_PRESS_MS / 2); });
-    act(() => { result.current.onPointerLeave(); });
-    // Advance past threshold — timer should already be cleared
+    act(() => { result.current.onPointerLeave(primaryPointer); });
+    act(() => {
+      window.dispatchEvent(
+        new PointerEvent('pointerup', { bubbles: true, pointerId: 1, isPrimary: true }),
+      );
+    });
     act(() => { vi.advanceTimersByTime(LONG_PRESS_MS); });
 
     expect(onShortPress).not.toHaveBeenCalled();
+    expect(onLongPress).not.toHaveBeenCalled();
+  });
+
+  it('touch: pointerleave clears long timer but global pointerup still short-presses', () => {
+    const { result, onShortPress, onLongPress } = mount();
+
+    act(() => { result.current.onPointerDown(touchPointer); });
+    act(() => { vi.advanceTimersByTime(LONG_PRESS_MS / 2); });
+    act(() => { result.current.onPointerLeave(touchPointer); });
+    act(() => {
+      window.dispatchEvent(
+        new PointerEvent('pointerup', { bubbles: true, pointerId: 1, isPrimary: true }),
+      );
+    });
+
+    expect(onShortPress).toHaveBeenCalledTimes(1);
     expect(onLongPress).not.toHaveBeenCalled();
   });
 });

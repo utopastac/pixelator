@@ -168,6 +168,7 @@ export default function App() {
         )}
         {panelsVisible && <DrawingsPanel
           isOpen={isDrawingsPanelOpen}
+          onDismiss={() => setIsDrawingsPanelOpen(false)}
           drawings={drawings}
           currentDrawingId={currentDrawingId}
           onSelect={selectDrawing}

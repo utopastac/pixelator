@@ -54,6 +54,17 @@
   }
 }
 
+:global(html[data-mobile='true']) {
+  & .main {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active:not(:disabled) {
+      background-color: var(--interactive-hover);
+    }
+  }
+}
+
 /* Size variants */
 .sm {
   width: var(--icon-button-size-xs);

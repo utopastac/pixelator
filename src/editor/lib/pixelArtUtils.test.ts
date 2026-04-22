@@ -14,6 +14,7 @@ import {
   constrainToSquare,
   ellipseCells,
   expandCellsWithBrush,
+  collectStrokeDirtyIndices,
   floodFill,
   floodSelect,
   getShapeCells,
@@ -370,6 +371,13 @@ describe('expandCellsWithBrush', () => {
     const result = expandCellsWithBrush([[1, 1]], 'lg', 4, 4, true);
     const keys = result.map(([x, y]) => `${x},${y}`);
     expect(keys.length).toBe(new Set(keys).size);
+  });
+});
+
+describe('collectStrokeDirtyIndices', () => {
+  it('maps sm brush centres to linear indices', () => {
+    const idx = collectStrokeDirtyIndices([[0, 0], [1, 0]], 'sm', 3, 3, false).sort((a, b) => a - b);
+    expect(idx).toEqual([0, 1]);
   });
 });
 

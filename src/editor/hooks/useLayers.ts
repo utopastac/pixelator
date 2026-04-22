@@ -26,6 +26,8 @@ export interface UseLayersReturn {
   activeLayerIndex: number;
 
   setActiveLayerPixels: (pixels: string[]) => void;
+  /** Copies `source` into the active layer's existing `pixels` buffer (same ref). */
+  copyIntoActiveLayerPixels: (source: ReadonlyArray<string>) => void;
   replaceLayers: (layers: Layer[], activeLayerId: string) => void;
 
   addLayer: (name?: string) => void;
@@ -83,6 +85,23 @@ export function useLayers(args: UseLayersArgs): UseLayersReturn {
       if (idx < 0) return prev;
       const nextLayers = prev.layers.slice();
       nextLayers[idx] = { ...nextLayers[idx], pixels };
+      return { layers: nextLayers, activeLayerId: prev.activeLayerId };
+    });
+  }, []);
+
+  const copyIntoActiveLayerPixels = useCallback((source: ReadonlyArray<string>) => {
+    setState((prev) => {
+      const idx = prev.layers.findIndex((l) => l.id === prev.activeLayerId);
+      if (idx < 0) return prev;
+      const target = prev.layers[idx].pixels;
+      if (target.length !== source.length) return prev;
+      for (let i = 0; i < source.length; i++) {
+        target[i] = source[i] as string;
+      }
+      // Only replace the active slot — spreading every layer each RAF forced all
+      // layer thumbnails and dependents to treat the stack as fully changed.
+      const nextLayers = prev.layers.slice();
+      nextLayers[idx] = { ...nextLayers[idx] };
       return { layers: nextLayers, activeLayerId: prev.activeLayerId };
     });
   }, []);
@@ -214,6 +233,7 @@ export function useLayers(args: UseLayersArgs): UseLayersReturn {
     activeLayer,
     activeLayerIndex,
     setActiveLayerPixels,
+    copyIntoActiveLayerPixels,
     replaceLayers,
     addLayer,
     duplicateLayer,

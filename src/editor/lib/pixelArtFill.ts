@@ -121,3 +121,51 @@ export function maskToSelection(
   }
   return result;
 }
+
+/**
+ * Same rules as `maskToSelection`, but mutates `next` in place (cells that must
+ * stay unchanged are copied from `base`).
+ */
+export function maskToSelectionInPlace(
+  next: string[],
+  base: string[],
+  gridWidth: number,
+  selection: PixelArtSelection | null,
+  keepInside: boolean,
+): void {
+  if (!selection) return;
+
+  if (selection.shape === 'cells') {
+    for (let i = 0; i < next.length; i++) {
+      const inside = selection.cells.has(i);
+      if (inside !== keepInside) next[i] = base[i];
+    }
+    return;
+  }
+
+  const minX = Math.min(selection.x1, selection.x2);
+  const maxX = Math.max(selection.x1, selection.x2);
+  const minY = Math.min(selection.y1, selection.y2);
+  const maxY = Math.max(selection.y1, selection.y2);
+
+  for (let i = 0; i < next.length; i++) {
+    const c = i % gridWidth;
+    const r = Math.floor(i / gridWidth);
+    const inBounds = c >= minX && c <= maxX && r >= minY && r <= maxY;
+    let inside: boolean;
+    if (!inBounds) {
+      inside = false;
+    } else if (selection.shape === 'rect') {
+      inside = true;
+    } else {
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      const rx = (maxX - minX) / 2 + 0.5;
+      const ry = (maxY - minY) / 2 + 0.5;
+      const dx = c - cx;
+      const dy = r - cy;
+      inside = rx <= 0 || ry <= 0 ? true : (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1;
+    }
+    if (inside !== keepInside) next[i] = base[i];
+  }
+}

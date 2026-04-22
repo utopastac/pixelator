@@ -13,12 +13,14 @@ import {
   getShapeCells,
   isShapeTool,
   maskToSelection,
+  maskToSelectionInPlace,
+  collectStrokeDirtyIndices,
   type PixelArtFillMode,
   type PixelArtBrushSize,
   type PixelArtSelection,
 } from '../lib/pixelArtUtils';
 import { withSymmetry, type SymmetryMode } from '../lib/symmetry';
-import { applyAlphaLock } from '../lib/alphaLock';
+import { applyAlphaLock, applyAlphaLockInPlace } from '../lib/alphaLock';
 import { drawPreview } from '../lib/pixelArtCanvas';
 import type { ActivePixels } from './usePixelArtHistory';
 import type { SelectionDragContext } from './usePixelArtSelection';
@@ -27,6 +29,20 @@ import type { PolygonSelectContext } from './usePolygonSelectTool';
 import type { PixelArtTool } from '../PixelArtEditor';
 import type { Layer } from '@/lib/storage';
 import { flattenLayers } from '../lib/composite';
+
+function recordRasterStrokePatch(
+  accRef: React.MutableRefObject<Set<number>> | null | undefined,
+  centerCells: ReadonlyArray<[number, number]>,
+  brushSize: PixelArtBrushSize,
+  w: number,
+  h: number,
+  wrap: boolean,
+) {
+  if (!accRef) return;
+  for (const i of collectStrokeDirtyIndices(centerCells, brushSize, w, h, wrap)) {
+    accRef.current.add(i);
+  }
+}
 
 export interface FillModes {
   rect: PixelArtFillMode;
@@ -82,6 +98,9 @@ export interface UsePixelArtPointerHandlersParams {
 
   // Alpha lock
   alphaLock: boolean;
+
+  /** Accumulates linear cell indices for incremental active-layer raster updates. */
+  activeLayerRasterPatchAccRef?: React.MutableRefObject<Set<number>> | null;
 }
 
 export interface UsePixelArtPointerHandlersResult {
@@ -122,6 +141,7 @@ export function usePixelArtPointerHandlers({
   symmetryMode,
   wrapMode,
   alphaLock,
+  activeLayerRasterPatchAccRef,
 }: UsePixelArtPointerHandlersParams): UsePixelArtPointerHandlersResult {
   const isDragging = useRef(false);
   const dragStart = useRef<[number, number] | null>(null);
@@ -135,6 +155,8 @@ export function usePixelArtPointerHandlers({
    *  can lag behind `dispatch` during rapid moves; the brush must build on this
    *  instead of `activePixels.pixels` so segments are not dropped. */
   const brushStrokePixelsRef = useRef<string[] | null>(null);
+  /** True after the first paint/eraser pointermove that dispatches mid-stroke. */
+  const paintStrokeMovedRef = useRef(false);
   const { rect: rectFillMode, circle: circleFillMode, triangle: triangleFillMode, star: starFillMode, arrow: arrowFillMode } = fillModes;
 
   const {
@@ -420,6 +442,7 @@ export function usePixelArtPointerHandlers({
       isDragging.current = true;
 
       if (activeTool === 'paint') {
+        paintStrokeMovedRef.current = false;
         selectionDragContext.strokeInsideSelection.current = selectionContainsCell(col, row);
         lastPaintCell.current = [col, row];
         const positions = withSymmetry([[col, row]], width, height, symmetryMode);
@@ -431,8 +454,9 @@ export function usePixelArtPointerHandlers({
         const next = maskToSelection(alphaLocked, activePixels.pixels, width, selection, selectionDragContext.strokeInsideSelection.current);
         activePixels.commit(next);
         activePixels.emit(next);
-        brushStrokePixelsRef.current = next;
+        brushStrokePixelsRef.current = [...next];
       } else if (activeTool === 'eraser') {
+        paintStrokeMovedRef.current = false;
         selectionDragContext.strokeInsideSelection.current = selectionContainsCell(col, row);
         lastPaintCell.current = [col, row];
         const eraserPositions = withSymmetry([[col, row]], width, height, symmetryMode);
@@ -443,7 +467,7 @@ export function usePixelArtPointerHandlers({
         const next = maskToSelection(eraseNext, activePixels.pixels, width, selection, selectionDragContext.strokeInsideSelection.current);
         activePixels.commit(next);
         activePixels.emit(next);
-        brushStrokePixelsRef.current = next;
+        brushStrokePixelsRef.current = [...next];
       } else if (activeTool === 'fill') {
         if (selection) {
           if (selectionContainsCell(col, row)) {
@@ -566,6 +590,7 @@ export function usePixelArtPointerHandlers({
       if (!isDragging.current) return;
 
       if (activeTool === 'paint') {
+        paintStrokeMovedRef.current = true;
         // Interpolate between the last painted cell and the current one so that
         // fast pointer movement doesn't leave gaps in the stroke.
         const prev = lastPaintCell.current ?? [col, row];
@@ -576,16 +601,44 @@ export function usePixelArtPointerHandlers({
           : strokeCells;
         const dragPositions = withSymmetry(wrappedStrokeCells, width, height, symmetryMode);
         const strokeBase = brushStrokePixelsRef.current ?? activePixels.pixels;
-        const dragPaintNext = [...strokeBase];
-        for (const [mc, mr] of dragPositions) {
-          applyBrushInPlace(dragPaintNext, mc, mr, activeColor, brushSize, width, height, wrapMode);
+        const inside = selectionDragContext.strokeInsideSelection.current;
+
+        if (!selection && !alphaLock) {
+          const buf = brushStrokePixelsRef.current;
+          if (!buf) return;
+          for (const [mc, mr] of dragPositions) {
+            applyBrushInPlace(buf, mc, mr, activeColor, brushSize, width, height, wrapMode);
+          }
+          recordRasterStrokePatch(activeLayerRasterPatchAccRef, dragPositions, brushSize, width, height, wrapMode);
+          activePixels.dispatch(buf);
+        } else if (!selection && alphaLock) {
+          const buf = brushStrokePixelsRef.current;
+          if (!buf) return;
+          const alphaSnap = buf.slice();
+          for (const [mc, mr] of dragPositions) {
+            applyBrushInPlace(buf, mc, mr, activeColor, brushSize, width, height, wrapMode);
+          }
+          applyAlphaLockInPlace(buf, alphaSnap, true);
+          recordRasterStrokePatch(activeLayerRasterPatchAccRef, dragPositions, brushSize, width, height, wrapMode);
+          activePixels.dispatch(buf);
+        } else {
+          const dragPaintNext = [...strokeBase];
+          for (const [mc, mr] of dragPositions) {
+            applyBrushInPlace(dragPaintNext, mc, mr, activeColor, brushSize, width, height, wrapMode);
+          }
+          if (selection && !alphaLock) {
+            maskToSelectionInPlace(dragPaintNext, strokeBase, width, selection, inside);
+            brushStrokePixelsRef.current = dragPaintNext;
+            activePixels.dispatch(dragPaintNext, true);
+          } else {
+            const alphaLocked = applyAlphaLock(dragPaintNext, strokeBase, alphaLock);
+            const next = maskToSelection(alphaLocked, strokeBase, width, selection, inside);
+            brushStrokePixelsRef.current = next;
+            activePixels.dispatch(next, true);
+          }
         }
-        const alphaLocked = applyAlphaLock(dragPaintNext, strokeBase, alphaLock);
-        const next = maskToSelection(alphaLocked, strokeBase, width, selection, selectionDragContext.strokeInsideSelection.current);
-        brushStrokePixelsRef.current = next;
-        activePixels.dispatch(next);
-        activePixels.emit(next);
       } else if (activeTool === 'eraser') {
+        paintStrokeMovedRef.current = true;
         // Interpolate between the last erased cell and the current one.
         const eraserPrev = lastPaintCell.current ?? [col, row];
         const eraserStrokeCells = bresenhamLine(eraserPrev[0], eraserPrev[1], col, row);
@@ -595,14 +648,25 @@ export function usePixelArtPointerHandlers({
           : eraserStrokeCells;
         const dragEraserPositions = withSymmetry(wrappedEraserStrokeCells, width, height, symmetryMode);
         const eraserStrokeBase = brushStrokePixelsRef.current ?? activePixels.pixels;
-        const dragEraseNext = [...eraserStrokeBase];
-        for (const [mc, mr] of dragEraserPositions) {
-          applyBrushInPlace(dragEraseNext, mc, mr, '', brushSize, width, height, wrapMode);
+        const inside = selectionDragContext.strokeInsideSelection.current;
+
+        if (!selection) {
+          const buf = brushStrokePixelsRef.current;
+          if (!buf) return;
+          for (const [mc, mr] of dragEraserPositions) {
+            applyBrushInPlace(buf, mc, mr, '', brushSize, width, height, wrapMode);
+          }
+          recordRasterStrokePatch(activeLayerRasterPatchAccRef, dragEraserPositions, brushSize, width, height, wrapMode);
+          activePixels.dispatch(buf);
+        } else {
+          const dragEraseNext = [...eraserStrokeBase];
+          for (const [mc, mr] of dragEraserPositions) {
+            applyBrushInPlace(dragEraseNext, mc, mr, '', brushSize, width, height, wrapMode);
+          }
+          maskToSelectionInPlace(dragEraseNext, eraserStrokeBase, width, selection, inside);
+          brushStrokePixelsRef.current = dragEraseNext;
+          activePixels.dispatch(dragEraseNext, true);
         }
-        const next = maskToSelection(dragEraseNext, eraserStrokeBase, width, selection, selectionDragContext.strokeInsideSelection.current);
-        brushStrokePixelsRef.current = next;
-        activePixels.dispatch(next);
-        activePixels.emit(next);
       } else if (isShapeTool(activeTool) && dragStart.current && previewCanvasRef.current) {
         lastHoverCell.current = [col, row];
         renderShiftAwarePreview(col, row, e.shiftKey);
@@ -613,7 +677,7 @@ export function usePixelArtPointerHandlers({
       brushSize, activeColor, width, height, getCellFromEvent,
       selection, setSelection, activePixels, selectionDragContext, penContext, polygonSelectContext,
       previewCanvasRef, renderShiftAwarePreview, symmetryMode, wrapMode, alphaLock, selectionContainsCell, moveOnMove,
-      paintLiftedToPreview,
+      paintLiftedToPreview, activeLayerRasterPatchAccRef,
     ],
   );
 
@@ -699,6 +763,14 @@ export function usePixelArtPointerHandlers({
         return;
       }
 
+      if (activeTool === 'paint' || activeTool === 'eraser') {
+        const strokeFinal = brushStrokePixelsRef.current;
+        activePixels.flushPendingPixelsSync();
+        if (paintStrokeMovedRef.current && strokeFinal) {
+          activePixels.emit(strokeFinal);
+        }
+      }
+
       isDragging.current = false;
       lastPaintCell.current = null;
       brushStrokePixelsRef.current = null;
@@ -762,6 +834,13 @@ export function usePixelArtPointerHandlers({
     }
     if (activeTool === 'marquee' && marqueeShape === 'polygon') {
       polygonSelectContext.cancel();
+    }
+    if ((activeTool === 'paint' || activeTool === 'eraser') && isDragging.current) {
+      const strokeFinal = brushStrokePixelsRef.current;
+      activePixels.flushPendingPixelsSync();
+      if (paintStrokeMovedRef.current && strokeFinal) {
+        activePixels.emit(strokeFinal);
+      }
     }
     isDragging.current = false;
     lastPaintCell.current = null;

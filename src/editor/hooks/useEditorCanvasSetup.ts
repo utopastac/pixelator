@@ -1,7 +1,7 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useLayoutEffect } from 'react';
 import type React from 'react';
 import type { Layer } from '@/lib/storage';
-import { drawLayer } from '../lib/pixelArtCanvas';
+import { drawLayer, patchOpaqueCells } from '../lib/pixelArtCanvas';
 import { compositeLayers } from '../lib/composite';
 
 interface UseEditorCanvasSetupProps {
@@ -14,6 +14,8 @@ interface UseEditorCanvasSetupProps {
   layerTransformIsPending: boolean;
   activeLayerId: string;
   onAfterComposite?: () => void;
+  /** Stroke cells to patch on the active layer offscreen (same `pixels` ref as last draw). */
+  activeLayerRasterPatchAccRef?: React.MutableRefObject<Set<number>> | null;
 }
 
 /**
@@ -23,9 +25,9 @@ interface UseEditorCanvasSetupProps {
  * effect that evicts the entire offscreen map on unmount.
  *
  * Rasterisation is **dirty-tracked** by `layer.pixels` reference equality (and
- * by grid width/height): unchanged layers skip `drawLayer` because resizing an
- * offscreen canvas clears its bitmap and history mutations replace the active
- * layer's `pixels` array when content changes.
+ * by grid width/height): unchanged layers skip `drawLayer`. While painting, the
+ * active layer buffer may be updated in place with accumulated stroke indices
+ * in `activeLayerRasterPatchAccRef` so only touched cells are re-rasterised.
  */
 export function useEditorCanvasSetup({
   committedCanvasRef,
@@ -37,6 +39,7 @@ export function useEditorCanvasSetup({
   layerTransformIsPending,
   activeLayerId,
   onAfterComposite,
+  activeLayerRasterPatchAccRef,
 }: UseEditorCanvasSetupProps): void {
   // Resize all canvases when dimensions change. Canvases are sized 1:1 with
   // the logical grid — one raster pixel = one logical pixel — and visual
@@ -90,7 +93,7 @@ export function useEditorCanvasSetup({
   // than dispatching empty pixels) preserves the active layer's real pixel
   // state, so `commitPixels` at commit time captures the correct pre-transform
   // snapshot as the undo target.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!committedCanvasRef.current) return;
     const map = syncOffscreens();
     const sizeKey = `${width}x${height}`;
@@ -106,8 +109,22 @@ export function useEditorCanvasSetup({
       const off = map.get(layer.id);
       if (!off) continue;
       const prevPixels = lastDrawnPixelsRef.current.get(layer.id);
-      const mustRaster = sizeChanged || prevPixels !== layer.pixels;
-      if (mustRaster) {
+      const needsFullRaster = sizeChanged || prevPixels !== layer.pixels || prevPixels === undefined;
+
+      const acc = activeLayerRasterPatchAccRef;
+      if (layer.id === activeLayerId && acc && acc.current.size) {
+        if (!needsFullRaster && prevPixels === layer.pixels) {
+          const batch = Array.from(acc.current);
+          acc.current.clear();
+          if (batch.length > 0) {
+            patchOpaqueCells(off, layer.pixels, width, batch);
+          }
+          continue;
+        }
+        acc.current.clear();
+      }
+
+      if (needsFullRaster) {
         drawLayer(off, layer.pixels, width);
         lastDrawnPixelsRef.current.set(layer.id, layer.pixels);
       }
@@ -115,7 +132,18 @@ export function useEditorCanvasSetup({
     const skipLayerId = layerTransformIsPending ? activeLayerId : undefined;
     compositeLayers(committedCanvasRef.current, layers, map, width, height, { skipLayerId });
     onAfterComposite?.();
-  }, [committedCanvasRef, layers, width, height, canvasMounted, syncOffscreens, layerTransformIsPending, activeLayerId, onAfterComposite]);
+  }, [
+    committedCanvasRef,
+    layers,
+    width,
+    height,
+    canvasMounted,
+    syncOffscreens,
+    layerTransformIsPending,
+    activeLayerId,
+    onAfterComposite,
+    activeLayerRasterPatchAccRef,
+  ]);
 
   // Evict the entire offscreen map on unmount.
   useEffect(() => {

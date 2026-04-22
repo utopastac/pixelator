@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   EyeIcon,
   EyeOffIcon,
@@ -55,6 +55,7 @@ const LayerRow: React.FC<LayerRowProps> = ({
 }) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const menuAnchorRef = useRef<HTMLDivElement>(null);
+  const thumbnailLayers = useMemo(() => [layer], [layer]);
 
   const handleGripPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isEditingName) return;
@@ -123,7 +124,7 @@ const LayerRow: React.FC<LayerRowProps> = ({
           visibility — the eye toggles playback on the canvas, not whether
           the thumbnail shows. */}
       <Thumbnail
-        layers={[layer]}
+        layers={thumbnailLayers}
         canvasWidth={width}
         canvasHeight={height}
         respectVisibility={false}

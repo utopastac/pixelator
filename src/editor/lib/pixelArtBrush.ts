@@ -101,3 +101,30 @@ export function expandCellsWithBrush(
   }
   return result;
 }
+
+/**
+ * Linear cell indices touched by expanding `centerCells` with `brushSize`,
+ * deduped. Used to patch layer offscreens during strokes while the layer's
+ * `pixels` buffer is updated in place from the stroke buffer.
+ */
+export function collectStrokeDirtyIndices(
+  centerCells: ReadonlyArray<[number, number]>,
+  brushSize: PixelArtBrushSize,
+  gridWidth: number,
+  gridHeight: number,
+  wrap = false,
+): number[] {
+  if (centerCells.length === 0) return [];
+  const expanded = expandCellsWithBrush(
+    [...centerCells] as [number, number][],
+    brushSize,
+    gridWidth,
+    gridHeight,
+    wrap,
+  );
+  const seen = new Set<number>();
+  for (const [c, r] of expanded) {
+    if (c >= 0 && c < gridWidth && r >= 0 && r < gridHeight) seen.add(r * gridWidth + c);
+  }
+  return Array.from(seen);
+}

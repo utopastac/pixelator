@@ -31,7 +31,7 @@ function makeActivePixels(initial: string[]): {
   const dispatch = vi.fn();
   const emit = vi.fn();
   return {
-    active: { pixels: initial, commit, dispatch, emit },
+    active: { pixels: initial, commit, dispatch, emit, flushPendingPixelsSync: vi.fn() },
     commit,
     dispatch,
     emit,

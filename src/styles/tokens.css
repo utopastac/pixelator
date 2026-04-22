@@ -180,6 +180,9 @@
      tier up. Ordering follows existing intent: popovers and menus render
      above modals so popovers-inside-dialogs work. */
   --z-sheet: 500;
+  /* Drawings gallery mobile: scrim dims all `--z-sheet` chrome; sheet sits above scrim. */
+  --z-drawings-mobile-scrim: 600;
+  --z-drawings-mobile-sheet: 610;
   --z-modal: 1000;
   --z-tooltip: 2000;
   --z-popover: 3000;

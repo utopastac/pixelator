@@ -89,6 +89,8 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const { zoom, panX, panY, fit, setZoom, zoomAtPoint, panBy, isAutoFit, isPanning, setIsPanning } = viewport;
   const viewportPropsForToolbar = { zoom, setZoom, fit, isAutoFit };
   const panDragRef = useRef<{ lastX: number; lastY: number } | null>(null);
+  /** Stroke cells accumulated for partial active-layer offscreen updates while painting. */
+  const activeLayerRasterPatchAccRef = useRef(new Set<number>());
   const [isActivelyPanning, setIsActivelyPanning] = useState(false);
 
   // ── Modal state ──────────────────────────────────────────────────────────────
@@ -148,6 +150,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     undo,
     redo,
     emitChange,
+    flushPendingPixelsSync: flushPendingPixelsSyncFromHistory,
     addLayer,
     addLayerWithPixels,
     pasteAsNewLayer,
@@ -213,13 +216,17 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
         if (!allowCommitOrSignal()) return;
         commitPixelsWithColor(px, beforePixels);
       },
-      dispatch: (px: string[]) => {
+      dispatch: (px: string[], cloneToLayer?: boolean) => {
         if (activeLayerBlocked) return;
-        dispatchPixels(px);
+        dispatchPixels(px, cloneToLayer);
       },
       emit: emitChange,
+      flushPendingPixelsSync: () => {
+        if (activeLayerBlocked) return;
+        flushPendingPixelsSyncFromHistory();
+      },
     }),
-    [pixels, commitPixelsWithColor, dispatchPixels, emitChange, allowCommitOrSignal, activeLayerBlocked],
+    [pixels, commitPixelsWithColor, dispatchPixels, emitChange, flushPendingPixelsSyncFromHistory, allowCommitOrSignal, activeLayerBlocked],
   );
 
   // ── Transform tools ──────────────────────────────────────────────────────────
@@ -279,6 +286,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
       symmetryMode,
       wrapMode,
       alphaLock,
+      activeLayerRasterPatchAccRef,
     });
 
   // ── Editor commands ──────────────────────────────────────────────────────────
@@ -359,6 +367,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     layerTransformIsPending: layerTransform.isPending,
     activeLayerId,
     onAfterComposite: paintTiles,
+    activeLayerRasterPatchAccRef,
   });
 
   const moveTransform = useMoveTransformTool({

@@ -84,3 +84,14 @@
     line-height: 0;
   }
 }
+
+:global(html[data-mobile='true']) {
+  & .toolbarButton {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active:not(:disabled) {
+      background-color: var(--interactive-hover);
+    }
+  }
+}

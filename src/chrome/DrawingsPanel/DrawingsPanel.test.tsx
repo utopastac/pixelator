@@ -7,6 +7,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { AppMobileContext } from '@/AppMobileContext';
 import DrawingsPanel from './DrawingsPanel';
 import type { Drawing } from '@/lib/storage';
 
@@ -82,6 +83,48 @@ describe('DrawingsPanel — rendering', () => {
 
     rerender(<DrawingsPanel {...makeProps({ isOpen: false })} />);
     expect(screen.getByRole('complementary', { hidden: true })).toHaveAttribute('aria-hidden', 'true');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Mobile modal scrim
+// ---------------------------------------------------------------------------
+
+function renderMobileOpen(props: Partial<Props> = {}) {
+  return render(
+    <AppMobileContext.Provider value={{ isMobile: true, setMobile: vi.fn() }}>
+      <DrawingsPanel {...makeProps({ isOpen: true, onDismiss: vi.fn(), ...props })} />
+    </AppMobileContext.Provider>,
+  );
+}
+
+describe('DrawingsPanel — mobile dismiss scrim', () => {
+  it('renders a full-screen scrim when open on mobile and onDismiss is set', () => {
+    renderMobileOpen();
+    expect(screen.getByRole('button', { name: 'Close drawings panel' })).toBeInTheDocument();
+  });
+
+  it('calls onDismiss when the scrim is clicked', async () => {
+    const onDismiss = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <AppMobileContext.Provider value={{ isMobile: true, setMobile: vi.fn() }}>
+        <DrawingsPanel {...makeProps({ isOpen: true, onDismiss })} />
+      </AppMobileContext.Provider>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Close drawings panel' }));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render the scrim without mobile layout', () => {
+    const onDismiss = vi.fn();
+    render(<DrawingsPanel {...makeProps({ isOpen: true, onDismiss })} />);
+    expect(screen.queryByRole('button', { name: 'Close drawings panel' })).not.toBeInTheDocument();
+  });
+
+  it('does not render the scrim when the panel is closed', () => {
+    renderMobileOpen({ isOpen: false });
+    expect(screen.queryByRole('button', { name: 'Close drawings panel' })).not.toBeInTheDocument();
   });
 });
 

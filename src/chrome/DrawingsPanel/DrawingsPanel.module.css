@@ -28,6 +28,27 @@
   pointer-events: none;
 }
 
+/* Full viewport scrim under the sheet; `onDismiss` only renders this on mobile when open. */
+.mobileBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawings-mobile-scrim);
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: var(--overlay-scrim);
+  appearance: none;
+}
+
+:global(html[data-mobile='true']) {
+  & .panel {
+    top: 0;
+    bottom: 0;
+    z-index: var(--z-drawings-mobile-sheet);
+  }
+}
+
 .header {
   display: flex;
   align-items: center;

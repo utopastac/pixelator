@@ -60,7 +60,8 @@ function setup(
   const commit = vi.fn();
   const dispatch = vi.fn();
   const emit = vi.fn();
-  const activePixels: ActivePixels = { pixels: initial, commit, dispatch, emit };
+  const flushPendingPixelsSync = vi.fn();
+  const activePixels: ActivePixels = { pixels: initial, commit, dispatch, emit, flushPendingPixelsSync };
 
   const selectionDragContext: SelectionDragContext = {
     dragMode: { current: null },
@@ -144,6 +145,7 @@ function setup(
     commit,
     dispatch,
     emit,
+    flushPendingPixelsSync,
     setActiveTool,
     setActiveColor,
     setIndependentHue,
@@ -235,7 +237,7 @@ describe('usePixelArtPointerHandlers', () => {
   });
 
   it('paint pointerdown commits a single cell and emits', () => {
-    const { hook, commit, emit } = setup({ activeTool: 'paint', activeColor: '#112233' });
+    const { hook, commit, emit, flushPendingPixelsSync } = setup({ activeTool: 'paint', activeColor: '#112233' });
     hook.result.current.handleMouseDown(mouseEvent(2.5, 1.5)); // cell (2, 1)
     expect(commit).toHaveBeenCalledTimes(1);
     expect(emit).toHaveBeenCalledTimes(1);
@@ -243,6 +245,9 @@ describe('usePixelArtPointerHandlers', () => {
     expect(next[1 * 4 + 2]).toBe('#112233');
     // All other cells unchanged.
     expect(next.filter((p) => p === '').length).toBe(15);
+    hook.result.current.handleMouseUp(mouseEvent(2.5, 1.5));
+    expect(emit).toHaveBeenCalledTimes(1);
+    expect(flushPendingPixelsSync).toHaveBeenCalledTimes(1);
   });
 
   it('eraser pointerdown clears the cell', () => {
@@ -580,15 +585,18 @@ describe('undo-safe move commits', () => {
 
 describe('paint and eraser drag strokes', () => {
   it('paint mousemove dispatches (not commits) each cell under the cursor', () => {
-    const { hook, commit, dispatch } = setup({ activeTool: 'paint', activeColor: '#ff0000' });
+    const { hook, commit, dispatch, emit, flushPendingPixelsSync } = setup({ activeTool: 'paint', activeColor: '#ff0000' });
 
     hook.result.current.handleMouseDown(mouseEvent(0.5, 0.5)); // commits (0,0)
     hook.result.current.handleMouseMove({ clientX: 1.5, clientY: 0.5, shiftKey: false });
     hook.result.current.handleMouseMove({ clientX: 2.5, clientY: 0.5, shiftKey: false });
+    hook.result.current.handleMouseUp(mouseEvent(2.5, 0.5));
 
     // One commit from mousedown; two dispatches from the two moves.
     expect(commit).toHaveBeenCalledTimes(1);
     expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(flushPendingPixelsSync).toHaveBeenCalledTimes(1);
+    expect(emit).toHaveBeenCalledTimes(2);
 
     // Each dispatch carries the full stroke so far (mousedown + prior moves),
     // even though `activePixels.pixels` in this mock never updates.
@@ -601,8 +609,8 @@ describe('paint and eraser drag strokes', () => {
     expect(second[2]).toBe('#ff0000');
   });
 
-  it('paint mouseup does not emit a second commit (one history entry per stroke)', () => {
-    const { hook, commit } = setup({ activeTool: 'paint', activeColor: '#ff0000' });
+  it('paint stroke: one commit from mousedown; mouseup flushes and emits when dragged', () => {
+    const { hook, commit, emit, flushPendingPixelsSync } = setup({ activeTool: 'paint', activeColor: '#ff0000' });
 
     hook.result.current.handleMouseDown(mouseEvent(0.5, 0.5));
     hook.result.current.handleMouseMove({ clientX: 1.5, clientY: 0.5, shiftKey: false });
@@ -611,6 +619,8 @@ describe('paint and eraser drag strokes', () => {
     // Still exactly one commit (from mousedown) — mouseup does not re-commit
     // for the paint tool, keeping undo history to one entry per stroke.
     expect(commit).toHaveBeenCalledTimes(1);
+    expect(flushPendingPixelsSync).toHaveBeenCalledTimes(1);
+    expect(emit).toHaveBeenCalledTimes(2);
   });
 
   it('eraser mousemove dispatches erased pixels (not commits)', () => {

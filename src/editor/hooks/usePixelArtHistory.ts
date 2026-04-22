@@ -6,10 +6,11 @@
  * part of the snapshot — selection is not undoable.
  *
  * The hook returns an `ActivePixels`-shaped bundle (`pixels`, `commit`,
- * `dispatch`, `emit`) so every existing tool hook can continue using the
+ * `dispatch`, `emit`, `flushPendingPixelsSync`) so every existing tool hook can continue using the
  * same seam. `pixels` is the active layer's pixels, `commit`/`dispatch`
  * write to the active layer, and `emit` fires the user's `onChange` with
- * the updated `Layer[]`.
+ * the updated `Layer[]`. `flushPendingPixelsSync` applies any RAF-coalesced
+ * `dispatch` immediately (used at stroke end so layers and autosave agree).
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -41,7 +42,7 @@ export interface UsePixelArtHistoryParams {
 }
 
 /**
- * Bundle of the four pixel-mutation concerns every tool hook needs. Shape is
+ * Bundle of the pixel-mutation concerns every tool hook needs. Shape is
  * preserved from the pre-layers API so consumers (usePenTool,
  * usePixelArtPointerHandlers, useCanvasKeyboardShortcuts) don't need edits.
  *
@@ -56,12 +57,17 @@ export interface UsePixelArtHistoryParams {
  * `commit` in the same synchronous batch — without the override the snapshot
  * would capture the dispatched temporary state rather than the true pre-move
  * pixels, causing undo to restore an empty/cleared layer.
+ *
+ * `flushPendingPixelsSync` writes any pending `dispatch` to layer state
+ * immediately (in-place copy by default; `dispatch(..., true)` clones).
  */
 export interface ActivePixels {
   pixels: string[];
   commit: (next: string[], beforePixels?: string[]) => void;
-  dispatch: (next: string[]) => void;
+  /** When `cloneToLayer` is true, replaces the active layer pixel buffer (e.g. selection-mask strokes). */
+  dispatch: (next: string[], cloneToLayer?: boolean) => void;
   emit: (next: string[]) => void;
+  flushPendingPixelsSync: () => void;
 }
 
 export interface UsePixelArtHistoryResult {
@@ -73,7 +79,7 @@ export interface UsePixelArtHistoryResult {
   canUndo: boolean;
   canRedo: boolean;
 
-  dispatchPixels: (px: string[]) => void;
+  dispatchPixels: (px: string[], cloneToLayer?: boolean) => void;
   commitPixels: (px: string[], beforePixels?: string[]) => void;
   /** Atomically replace the entire layer stack AND the editor dimensions as a
    *  single undoable step. Fires `onSizeChange` and `onChange` so autosave
@@ -82,6 +88,8 @@ export interface UsePixelArtHistoryResult {
   undo: () => void;
   redo: () => void;
   emitChange: (nextPixels: string[]) => void;
+  /** Apply any pending RAF-coalesced `dispatchPixels` to layer state now. */
+  flushPendingPixelsSync: () => void;
 
   // useLayers CRUD passthroughs, for Phase 3 UI.
   addLayer: (name?: string) => void;
@@ -115,7 +123,8 @@ export interface UsePixelArtHistoryResult {
 
 function cloneLayers(layers: Layer[]): Layer[] {
   // Shallow-per-layer is enough because pixels are replaced wholesale on
-  // commit — we never mutate the pixel array in place.
+  // commit. Mid-drag `copyIntoActiveLayerPixels` mutates the live buffer in
+  // place, but undo snapshots always capture discrete `pixels` references.
   return layers.map((l) => ({ ...l }));
 }
 
@@ -149,7 +158,7 @@ export function usePixelArtHistory(
   const layers = layersApi.layers;
   const activeLayerId = layersApi.activeLayerId;
 
-  const pendingDispatchRef = useRef<string[] | null>(null);
+  const pendingDispatchRef = useRef<{ pixels: string[]; cloneToLayer: boolean } | null>(null);
   const dispatchRafRef = useRef<number | null>(null);
 
   const cancelDispatchRaf = useCallback(() => {
@@ -164,25 +173,39 @@ export function usePixelArtHistory(
     pendingDispatchRef.current = null;
   }, [cancelDispatchRaf]);
 
-  const flushDispatchPixelsToLayers = useCallback(() => {
-    dispatchRafRef.current = null;
-    const px = pendingDispatchRef.current;
+  /** Apply pending pixels to the active layer, then clear the pending slot. */
+  const applyPendingPixelsToLayers = useCallback(() => {
+    const job = pendingDispatchRef.current;
     pendingDispatchRef.current = null;
-    if (px !== null) {
-      layersApi.setActiveLayerPixels(px);
+    if (job !== null) {
+      if (job.cloneToLayer) {
+        layersApi.setActiveLayerPixels([...job.pixels]);
+      } else {
+        layersApi.copyIntoActiveLayerPixels(job.pixels);
+      }
     }
   }, [layersApi]);
 
+  const flushDispatchPixelsToLayers = useCallback(() => {
+    dispatchRafRef.current = null;
+    applyPendingPixelsToLayers();
+  }, [applyPendingPixelsToLayers]);
+
+  const flushPendingPixelsSync = useCallback(() => {
+    cancelDispatchRaf();
+    applyPendingPixelsToLayers();
+  }, [cancelDispatchRaf, applyPendingPixelsToLayers]);
+
   const takePendingDispatchOrNull = useCallback((): string[] | null => {
     cancelDispatchRaf();
-    const p = pendingDispatchRef.current;
+    const job = pendingDispatchRef.current;
     pendingDispatchRef.current = null;
-    return p;
+    return job?.pixels ?? null;
   }, [cancelDispatchRaf]);
 
   const dispatchPixels = useCallback(
-    (px: string[]) => {
-      pendingDispatchRef.current = px;
+    (px: string[], cloneToLayer = false) => {
+      pendingDispatchRef.current = { pixels: px, cloneToLayer };
       if (dispatchRafRef.current === null) {
         dispatchRafRef.current = requestAnimationFrame(() => {
           flushDispatchPixelsToLayers();
@@ -198,8 +221,8 @@ export function usePixelArtHistory(
 
       // Snapshot current layers (pre-mutation), push onto past, clear future,
       // then apply the new pixels. `layersApi.layers` is the state as of this
-      // render — a shallow clone is sufficient because we never mutate pixel
-      // arrays in place.
+      // render — a shallow clone is sufficient; live `pixels` may be mutated
+      // in place during RAF dispatch, but snapshots always copy `pending`.
       //
       // When `beforePixels` is provided, substitute the active layer's pixels
       // in the snapshot. This handles the case where a tool dispatched a
@@ -219,7 +242,7 @@ export function usePixelArtHistory(
         const cloned = cloneLayers(layersApi.layers);
         const idx = cloned.findIndex((l) => l.id === layersApi.activeLayerId);
         if (idx >= 0 && pending !== null) {
-          cloned[idx] = { ...cloned[idx], pixels: pending };
+          cloned[idx] = { ...cloned[idx], pixels: [...pending] };
         }
         snapshotLayers = cloned;
       }
@@ -553,6 +576,7 @@ export function usePixelArtHistory(
     undo,
     redo,
     emitChange,
+    flushPendingPixelsSync,
     addLayer,
     addLayerWithPixels,
     pasteAsNewLayer,

@@ -149,4 +149,13 @@ describe('useLayers', () => {
     // missing from the new stack.
     expect(result.current.activeLayerId).toBe('z');
   });
+
+  it('copyIntoActiveLayerPixels mutates the existing buffer in place', () => {
+    const { result } = setup();
+    const beforeRef = result.current.layers[1].pixels;
+    const source = ['#aa', '#bb', '#cc', '#dd'];
+    act(() => result.current.copyIntoActiveLayerPixels(source));
+    expect(result.current.layers[1].pixels).toBe(beforeRef);
+    expect(result.current.layers[1].pixels).toEqual(source);
+  });
 });

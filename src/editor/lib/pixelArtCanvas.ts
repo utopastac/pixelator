@@ -99,6 +99,34 @@ export function drawLayer(
 }
 
 /**
+ * Updates only the listed linear indices on an existing layer raster (the
+ * canvas must already match `pixels` everywhere else). Empty strings clear
+ * to transparent; opaque colours use `fillRect`.
+ */
+export function patchOpaqueCells(
+  canvas: HTMLCanvasElement,
+  pixels: ReadonlyArray<string>,
+  logicalWidth: number,
+  cellIndices: ReadonlyArray<number>,
+): void {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const max = pixels.length;
+  for (const i of cellIndices) {
+    if (i < 0 || i >= max) continue;
+    const col = i % logicalWidth;
+    const row = Math.floor(i / logicalWidth);
+    const color = pixels[i];
+    if (!color) {
+      ctx.clearRect(col, row, 1, 1);
+    } else {
+      ctx.fillStyle = color;
+      ctx.fillRect(col, row, 1, 1);
+    }
+  }
+}
+
+/**
  * Draws a semi-transparent preview of cells that would be painted if the user
  * commits the current gesture (e.g. a shape being dragged out). Rendered at
  * `globalAlpha` 0.7 so the committed layer beneath remains visible.

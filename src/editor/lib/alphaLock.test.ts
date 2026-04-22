@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyAlphaLock } from './alphaLock';
+import { applyAlphaLock, applyAlphaLockInPlace } from './alphaLock';
 
 describe('applyAlphaLock', () => {
   it('disabled: returns newPixels reference unchanged', () => {
@@ -51,5 +51,23 @@ describe('applyAlphaLock', () => {
     applyAlphaLock(newPixels, current, true);
     expect(newPixels).toEqual(newCopy);
     expect(current).toEqual(currCopy);
+  });
+});
+
+describe('applyAlphaLockInPlace', () => {
+  it('matches applyAlphaLock when enabled', () => {
+    const newPixels = ['#ff0000', '#ff0000', '#ff0000'];
+    const current = ['#aaaaaa', '', '#bbbbbb'];
+    const expected = applyAlphaLock([...newPixels], current, true);
+    const buf = [...newPixels];
+    applyAlphaLockInPlace(buf, current, true);
+    expect(buf).toEqual(expected);
+  });
+
+  it('no-ops when disabled', () => {
+    const buf = ['#ff0000', ''];
+    const current = ['', '#abc'];
+    applyAlphaLockInPlace(buf, current, false);
+    expect(buf).toEqual(['#ff0000', '']);
   });
 });

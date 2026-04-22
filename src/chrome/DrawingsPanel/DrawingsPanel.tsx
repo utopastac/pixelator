@@ -13,6 +13,7 @@ import ContextMenu, { type ContextMenuItem } from '@/overlays/ContextMenu';
 import ConfirmDialog from '@/primitives/ConfirmDialog';
 import PngScalePicker from '@/chrome/PngScalePicker';
 import type { Drawing } from '@/lib/storage';
+import { useAppMobileOptional } from '@/AppMobileContext';
 import DrawingRow from './DrawingRow';
 import DrawingGroup from './DrawingGroup';
 import styles from './DrawingsPanel.module.css';
@@ -21,6 +22,8 @@ interface Props {
   /** Controls the slide-in animation; the panel always renders so it can
    *  animate out, only the `.panelClosed` class flips. */
   isOpen: boolean;
+  /** Mobile: tapping the dimmed scrim calls this (e.g. close the panel). */
+  onDismiss?: () => void;
   drawings: Drawing[];
   currentDrawingId: string | null;
   onSelect: (id: string) => void;
@@ -113,10 +116,11 @@ function saveCollapsed(collapsed: Set<string>): void {
 // ---------------------------------------------------------------------------
 
 /**
- * Left-side drawings gallery. Docks into the app body as a sibling of the
- * editor area — opening or closing it pushes / shrinks the canvas viewport
- * rather than overlapping. Duplicate/delete/export live in a per-row
- * overflow menu (also opens on right-click).
+ * Left-side drawings gallery. Overlays the editor inside `.main` (canvas
+ * stays full-width underneath). On mobile, a full-viewport scrim sits under
+ * the sheet; tap it to run `onDismiss`. The sheet uses the top of the
+ * viewport on mobile (`html[data-mobile]`). Duplicate/delete/export live in
+ * a per-row overflow menu (also opens on right-click).
  */
 export default function DrawingsPanel({
   isOpen,
@@ -135,7 +139,10 @@ export default function DrawingsPanel({
   canExportCurrent = false,
   onImportClick,
   onResetApp,
+  onDismiss,
 }: Props) {
+  const isMobile = useAppMobileOptional()?.isMobile ?? false;
+  const showMobileBackdrop = isMobile && isOpen && onDismiss != null;
   const hasPanelMenu = Boolean(onExportAll || onExportCurrent || onImportClick || onResetApp);
   const [menuState, setMenuState] = useState<MenuState | null>(null);
   // Panel-level "more" menu. Separate state from the per-row menu so both can
@@ -230,6 +237,14 @@ export default function DrawingsPanel({
 
   return (
     <>
+      {showMobileBackdrop && (
+        <button
+          type="button"
+          className={styles.mobileBackdrop}
+          aria-label="Close drawings panel"
+          onClick={onDismiss}
+        />
+      )}
       <aside
         className={`${styles.panel} ${isOpen ? '' : styles.panelClosed}`}
         aria-label="Drawings"

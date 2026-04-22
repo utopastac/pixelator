@@ -56,6 +56,19 @@ describe('usePixelArtHistory', () => {
     expect(result.current.canRedo).toBe(true);
   });
 
+  it('flushPendingPixelsSync applies a pending dispatch without waiting for RAF', () => {
+    const { result } = setup();
+    const px = ['#aaa', '#bbb', '', ''];
+    act(() => {
+      result.current.dispatchPixels(px);
+      result.current.flushPendingPixelsSync();
+    });
+    expect(result.current.pixels).toEqual(px);
+    expect(result.current.pixels).not.toBe(px);
+    act(() => result.current.flushPendingPixelsSync());
+    expect(result.current.pixels).toEqual(px);
+  });
+
   it('emit after dispatch in the same turn still applies pixels (regression: emit must not discard pending RAF)', async () => {
     const { result, onChange } = setup();
     const px = ['#999', '', '', ''];

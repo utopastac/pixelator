@@ -24,6 +24,7 @@ function makeActivePixels(pixels: string[]): ActivePixels & {
     commit: vi.fn(),
     dispatch: vi.fn(),
     emit: vi.fn(),
+    flushPendingPixelsSync: vi.fn(),
   };
 }
 
