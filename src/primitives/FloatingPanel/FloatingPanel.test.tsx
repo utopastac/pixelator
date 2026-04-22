@@ -39,6 +39,11 @@ describe('FloatingPanel', () => {
     expect(container.firstChild).toHaveClass(styles.sm);
   });
 
+  it('applies mobile hook class when mobile is true', () => {
+    const { container } = render(<FloatingPanel mobile>x</FloatingPanel>);
+    expect(container.firstChild).toHaveClass(styles.mobile);
+  });
+
   it('forwards role, aria-label, className, and style', () => {
     render(
       <FloatingPanel

@@ -10,6 +10,10 @@
   width: 272px;
   max-height: calc(100vh - 32px);
   overflow: hidden;
+
+  &.mobile {
+    /* Hook for narrow-viewport layers chrome — enabled via `mobile` prop. */
+  }
 }
 
 /* Drag handle on the left edge for resizing panel width. */

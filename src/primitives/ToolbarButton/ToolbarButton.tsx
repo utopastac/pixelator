@@ -15,6 +15,8 @@ interface ToolbarButtonProps {
   selected?: boolean;
   /** Required — icon-only buttons have no visible text label. */
   'aria-label': string;
+  /** For disclosure toggles (e.g. drawings panel). */
+  'aria-expanded'?: boolean;
   title?: string;
   tooltip?: TooltipConfig;
   className?: string;
@@ -38,6 +40,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   inUse,
   selected,
   'aria-label': ariaLabel,
+  'aria-expanded': ariaExpanded,
   title,
   tooltip,
   className = '',
@@ -60,6 +63,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
+      aria-expanded={ariaExpanded}
       aria-pressed={isToggle ? pressed : undefined}
       title={title}
       {...dataAttrs}

@@ -158,7 +158,7 @@ describe('EditorBars — tools toolbar', () => {
 describe('EditorBars — desktop help cluster', () => {
   it('renders drawings toggle in top-left chrome when wired', () => {
     renderToolsOnly();
-    expect(screen.getByLabelText('Drawings')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Drawings' })).toBeInTheDocument();
     expect(screen.getByTestId('open-drawings')).toBeInTheDocument();
   });
 
@@ -187,7 +187,7 @@ describe('EditorBars — desktop help cluster', () => {
       chrome: defaultChrome(),
     };
     render(<EditorBars {...props} />);
-    expect(screen.getByLabelText('Drawings')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Drawings' })).toBeInTheDocument();
     expect(screen.getByTestId('open-drawings')).toBeInTheDocument();
   });
 

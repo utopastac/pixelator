@@ -14,6 +14,8 @@ import userEvent from '@testing-library/user-event';
 import LayersPanel from './LayersPanel';
 import type { LayersPanelProps } from './LayersPanel';
 import type { Layer } from '@/lib/storage';
+import layersStyles from './LayersPanel.module.css';
+import floatingStyles from '@/primitives/FloatingPanel/FloatingPanel.module.css';
 
 // ContextMenu and Popover rely on ResizeObserver — shim it.
 class MockResizeObserver {
@@ -73,6 +75,13 @@ function makeProps(overrides: Partial<LayersPanelProps> = {}): LayersPanelProps 
 // ---------------------------------------------------------------------------
 
 describe('LayersPanel — layer list', () => {
+  it('applies mobile hook classes on the panel root when mobile is true', () => {
+    render(<LayersPanel {...makeProps({ mobile: true })} />);
+    const root = screen.getByLabelText('Layers');
+    expect(root).toHaveClass(layersStyles.mobile);
+    expect(root).toHaveClass(floatingStyles.mobile);
+  });
+
   it('renders a row for each layer by name', () => {
     render(<LayersPanel {...makeProps()} />);
     expect(screen.getByRole('button', { name: 'Layer Background' })).toBeInTheDocument();

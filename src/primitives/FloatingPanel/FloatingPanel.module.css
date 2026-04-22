@@ -8,6 +8,13 @@
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-md);
   max-width: calc(100vw - 32px);
+
+  &.mobile {
+    /* Flush to viewport edges — position utilities read these + `max-width`. */
+    --floating-offset: 0;
+    --chrome-inset: 0;
+    max-width: 100vw;
+  }
 }
 
 /* Direction variants — row is the horizontal pill default; column stacks

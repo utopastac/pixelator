@@ -104,24 +104,15 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
     onBrushButtonPress,
   });
 
-  const showDesktopHelp = !isMobile && Boolean(c.togglePanels || c.keyboardShortcuts || c.themeToggle);
-
-  const desktopHelpPanel = showDesktopHelp ? (
-    <FloatingPanel position="bottom-left" size="sm" direction="column" aria-label="Help">
+  const desktopHelpPanel = (
+    <FloatingPanel position="bottom-left" size="sm" direction="column" mobile={isMobile} aria-label="Help">
       <div className={styles.helpStack}>
         {c.togglePanels}
         {c.keyboardShortcuts}
         {c.themeToggle}
       </div>
     </FloatingPanel>
-  ) : null;
-
-  const drawingsChromePanel =
-    panelsVisible && c.openDrawings ? (
-      <FloatingPanel position="top-left" size="sm" direction="column" aria-label="Drawings">
-        {c.openDrawings}
-      </FloatingPanel>
-    ) : null;
+  );
 
   if (!panelsVisible && isMobile) {
     return null;
@@ -134,11 +125,22 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
   if (isMobile) {
     return (
       <>
-        {drawingsChromePanel}
+        <FloatingPanel position="top-center" size="sm" mobile={isMobile} aria-label="Drawing title">
+          <div className={styles.barRow}>
+            <ToolGroupCluster>
+              {c.openDrawings}
+              {c.canvasSize}
+            </ToolGroupCluster>
+            <ToolGroupCluster>
+              {c.zoom}
+            </ToolGroupCluster>
+          </div>
+        </FloatingPanel>
         <FloatingPanel
           position="bottom-center"
           direction="column"
           size="sm"
+          mobile={isMobile}
           className={styles.mobileStack}
           aria-label="Editor"
         >
@@ -173,8 +175,10 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
 
   return (
     <>
-      {drawingsChromePanel}
-      <FloatingPanel role="toolbar" aria-label="Pixel art tools">
+      <FloatingPanel position="top-left" size="sm" direction="column" mobile={isMobile}>
+        {c.openDrawings}
+      </FloatingPanel>
+      <FloatingPanel role="toolbar" mobile={isMobile} aria-label="Pixel art tools">
         <div className={styles.toolsRow}>
           <ToolGroupCluster>
             {c.moveTool}
@@ -195,7 +199,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           </ToolGroupCluster>
         </div>
       </FloatingPanel>
-      <FloatingPanel position="top-center" size="sm" aria-label="Drawing title">
+      <FloatingPanel position="top-center" size="sm" mobile={isMobile} aria-label="Drawing title">
         <div className={styles.barRow}>
           <ToolGroupCluster>
             {c.drawingTitle}
@@ -203,7 +207,9 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           </ToolGroupCluster>
           <ToolGroupCluster>
             {c.zoom}
-            {c.gridOverlay}
+          </ToolGroupCluster>
+          {c.gridOverlay}
+          <ToolGroupCluster>
             {c.tiling}
             {c.layersPanelToggle}
           </ToolGroupCluster>

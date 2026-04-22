@@ -63,6 +63,8 @@ export interface LayersPanelProps {
   onDownloadPixelator?: () => void;
   currentWidth?: number;
   currentHeight?: number;
+  /** When true, adds a mobile hook class on the panel root for CSS overrides. */
+  mobile?: boolean;
 }
 
 interface MenuState {
@@ -98,6 +100,7 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
   onDownloadPixelator,
   currentWidth,
   currentHeight,
+  mobile = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const downloadAnchorRef = useRef<HTMLDivElement>(null);
@@ -243,7 +246,8 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
     <>
       <FloatingPanel
         position="top-right"
-        className={`${styles.panel}${isResizing ? ` ${styles.panelResizing}` : ''}`}
+        mobile={mobile}
+        className={`${styles.panel}${isResizing ? ` ${styles.panelResizing}` : ''}${mobile ? ` ${styles.mobile}` : ''}`}
         style={{ width: panelWidth }}
         aria-label="Layers"
       >

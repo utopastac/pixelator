@@ -6,8 +6,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import RecentColorsPanel from './RecentColorsPanel';
+import styles from './RecentColorsPanel.module.css';
 
 describe('RecentColorsPanel', () => {
+  it('applies mobile hook class when mobile is true', () => {
+    render(<RecentColorsPanel recents={[]} activeColor="#ff0000" onPick={() => {}} mobile />);
+    expect(screen.getByLabelText('Recent colors')).toHaveClass(styles.mobile);
+  });
+
   it('always renders black and white pinned swatches even when recents is empty', () => {
     render(<RecentColorsPanel recents={[]} activeColor="#ff0000" onPick={() => {}} />);
     expect(screen.getByRole('button', { name: 'Black' })).toBeInTheDocument();

@@ -28,6 +28,8 @@ export interface FloatingPanelProps {
   style?: React.CSSProperties;
   role?: string;
   'aria-label'?: string;
+  /** When true, adds `styles.mobile` on the root for layout-specific overrides. */
+  mobile?: boolean;
 }
 
 const POSITION_CLASS: Record<FloatingPanelPosition, string> = {
@@ -65,10 +67,22 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
   style,
   role,
   'aria-label': ariaLabel,
+  mobile = false,
 }) => {
+  const rootClass = [
+    styles.panel,
+    mobile && styles.mobile,
+    POSITION_CLASS[position],
+    SIZE_CLASS[size],
+    DIRECTION_CLASS[direction],
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div
-      className={`${styles.panel} ${POSITION_CLASS[position]} ${SIZE_CLASS[size]} ${DIRECTION_CLASS[direction]} ${className}`}
+      className={rootClass}
       style={style}
       role={role}
       aria-label={ariaLabel}

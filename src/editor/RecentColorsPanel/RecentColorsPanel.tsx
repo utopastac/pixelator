@@ -6,6 +6,8 @@ export interface RecentColorsPanelProps {
   recents: string[];
   activeColor: string;
   onPick: (color: string) => void;
+  /** When true, adds a mobile hook class on the root for CSS overrides. */
+  mobile?: boolean;
 }
 
 const PINNED = ['#000000', '#ffffff'];
@@ -21,12 +23,15 @@ const RecentColorsPanel: React.FC<RecentColorsPanelProps> = ({
   recents,
   activeColor,
   onPick,
+  mobile = false,
 }) => {
   const active = activeColor.toLowerCase();
   const displayed = recents.filter((c) => !PINNED.includes(c.toLowerCase()));
 
+  const rootClass = [styles.panel, mobile && styles.mobile].filter(Boolean).join(' ');
+
   return (
-    <div className={styles.panel} aria-label="Recent colors">
+    <div className={rootClass} aria-label="Recent colors">
       {displayed.length > 0 && (
         <>
           <div className={styles.stack}>

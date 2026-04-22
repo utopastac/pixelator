@@ -52,6 +52,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     onDownloadPixelator,
     paletteId,
     onPaletteChange,
+    isMobile = false,
   } = props;
 
   const disabled = false;
@@ -606,6 +607,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     onDownloadPixelator,
     currentWidth: currentWidthForToolbar,
     currentHeight: currentHeightForToolbar,
+    mobile: isMobile,
   };
 
   const onResetConfirm = useCallback(() => {
@@ -624,6 +626,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     recents,
     activeColor,
     onPick: setActiveColor,
+    mobile: isMobile,
   };
 
   const editorChromeData: EditorChromeData = {

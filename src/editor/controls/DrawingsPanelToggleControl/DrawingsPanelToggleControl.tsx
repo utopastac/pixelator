@@ -11,15 +11,16 @@ export default function DrawingsPanelToggleControl({
   drawingsPanelOpen,
   onToggleDrawingsPanel,
 }: DrawingsPanelToggleControlProps) {
-  const label = drawingsPanelOpen ? 'Close drawings' : 'Open drawings';
+  const tip = drawingsPanelOpen ? 'Close drawings' : 'Open drawings';
   return (
     <div className={styles.root}>
       <ToolbarButton
         icon={drawingsPanelOpen ? CloseIcon : MenuIcon}
         size="sm"
         onClick={onToggleDrawingsPanel}
-        aria-label={label}
-        tooltip={{ content: label, placement: 'right' }}
+        aria-label="Drawings"
+        aria-expanded={drawingsPanelOpen}
+        tooltip={{ content: tip, placement: 'right' }}
         data-testid="open-drawings"
       />
     </div>
