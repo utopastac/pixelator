@@ -1,15 +1,18 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import FloatingPanel from '@/primitives/FloatingPanel';
-import EditableText from '@/primitives/EditableText';
-import ToolbarButton from '@/primitives/ToolbarButton';
-import Popover from '@/overlays/Popover';
-import { BackIcon, ForwardIcon, TilingIcon, WrapIcon, SymmetryVerticalIcon, SymmetryHorizontalIcon, SymmetryBothIcon, PaintInsideIcon } from '../icons/PixelToolIcons';
-import ZoomControls from '@/editor/controls/ZoomControls/ZoomControls';
+import AlphaLockControl from '@/editor/controls/AlphaLockControl';
 import CanvasSizePicker from '@/editor/controls/CanvasSizePicker';
-import SymmetryPicker from '@/editor/controls/SymmetryPicker';
+import DrawingTitleControl from '@/editor/controls/DrawingTitleControl';
+import HistoryRedoControl from '@/editor/controls/HistoryRedoControl';
+import HistoryUndoControl from '@/editor/controls/HistoryUndoControl';
+import ToolGroupCluster from '@/editor/controls/ToolGroupCluster';
+import ToolGroupClusterDivider from '@/editor/controls/ToolGroupClusterDivider';
+import SymmetryControl from '@/editor/controls/SymmetryControl';
+import TilingPreviewControl from '@/editor/controls/TilingPreviewControl';
+import WrapModeControl from '@/editor/controls/WrapModeControl';
+import ZoomControls from '@/editor/controls/ZoomControls/ZoomControls';
 import type { SymmetryMode } from '../lib/symmetry';
 import type { UseViewportReturn } from '../hooks/useViewport';
-import styles from './TitlePanel.module.css';
 
 export interface TitlePanelProps {
   /** Editable drawing title. */
@@ -71,22 +74,14 @@ const TitlePanel: React.FC<TitlePanelProps> = ({
   onRedo,
 }) => {
   const showSizePicker = Array.isArray(sizes) && sizes.length > 0;
-  const symmetryAnchorRef = useRef<HTMLDivElement>(null);
-  const [isSymmetryOpen, setIsSymmetryOpen] = useState(false);
-  const SymmetryIcon = symmetryMode === 'horizontal' ? SymmetryHorizontalIcon : symmetryMode === 'both' ? SymmetryBothIcon : SymmetryVerticalIcon;
 
   return (
     <FloatingPanel position="top-center" size="sm" aria-label="Drawing title">
-      <div className={styles.titleCluster}>
-        <EditableText
-          value={title}
-          onChange={onTitleChange}
-          size="sm"
-          ariaLabel="Drawing name"
-        />
+      <ToolGroupCluster>
+        <DrawingTitleControl title={title} onTitleChange={onTitleChange} />
         {showSizePicker && (
           <>
-            <span className={styles.titleDivider} aria-hidden="true" />
+            <ToolGroupClusterDivider />
             <CanvasSizePicker
               sizes={sizes!}
               currentWidth={currentWidth}
@@ -97,93 +92,27 @@ const TitlePanel: React.FC<TitlePanelProps> = ({
         )}
         {viewport && (
           <>
-            <span className={styles.titleDivider} aria-hidden="true" />
+            <ToolGroupClusterDivider />
             <ZoomControls viewport={viewport} />
           </>
         )}
         {setTilingEnabled != null && (
-          <>
-            <ToolbarButton
-              icon={TilingIcon}
-              size="sm"
-              onClick={() => setTilingEnabled(!tilingEnabled)}
-              selected={tilingEnabled}
-              aria-label="Tiling preview"
-              tooltip={{ content: 'Tiling preview', placement: 'bottom' }}
-            />
-          </>
+          <TilingPreviewControl tilingEnabled={tilingEnabled ?? false} setTilingEnabled={setTilingEnabled} />
         )}
         {setSymmetryMode != null && (
           <>
-            <span className={styles.titleDivider} aria-hidden="true" />
-            <div ref={symmetryAnchorRef}>
-              <ToolbarButton
-                icon={SymmetryIcon}
-                size="sm"
-                onClick={() => setIsSymmetryOpen((prev) => !prev)}
-                selected={symmetryMode !== 'none'}
-                aria-label="Symmetry"
-                aria-haspopup="menu"
-                aria-expanded={isSymmetryOpen}
-                tooltip={{ content: 'Mirroring', placement: 'bottom' }}
-              />
-            </div>
-            <Popover
-              isOpen={isSymmetryOpen}
-              onClose={() => setIsSymmetryOpen(false)}
-              anchorRef={symmetryAnchorRef}
-              role="menu"
-              aria-label="Symmetry mode"
-            >
-              <SymmetryPicker
-                symmetryMode={symmetryMode ?? 'none'}
-                onPick={(mode) => { setSymmetryMode(mode); setIsSymmetryOpen(false); }}
-              />
-            </Popover>
+            <ToolGroupClusterDivider />
+            <SymmetryControl symmetryMode={symmetryMode ?? 'none'} setSymmetryMode={setSymmetryMode} />
           </>
         )}
-        {setWrapMode != null && (
-          <>
-            <ToolbarButton
-              icon={WrapIcon}
-              size="sm"
-              onClick={() => setWrapMode(!wrapMode)}
-              selected={wrapMode}
-              aria-label="Wrap mode"
-              tooltip={{ content: 'Wrap', placement: 'bottom' }}
-            />
-          </>
-        )}
+        {setWrapMode != null && <WrapModeControl wrapMode={wrapMode ?? false} setWrapMode={setWrapMode} />}
         {setAlphaLock != null && (
-          <>
-            <ToolbarButton
-              icon={PaintInsideIcon}
-              size="sm"
-              onClick={() => setAlphaLock(!alphaLock)}
-              selected={alphaLock}
-              aria-label="Alpha lock"
-              tooltip={{ content: 'Paint inside', placement: 'bottom' }}
-            />
-          </>
+          <AlphaLockControl alphaLock={alphaLock ?? false} setAlphaLock={setAlphaLock} />
         )}
-        <span className={styles.titleDivider} aria-hidden="true" />
-        <ToolbarButton
-          icon={BackIcon}
-          size="sm"
-          onClick={onUndo}
-          disabled={!canUndo}
-          aria-label="Undo"
-          tooltip={{ content: 'Undo (Cmd+Z)', placement: 'bottom' }}
-        />
-        <ToolbarButton
-          icon={ForwardIcon}
-          size="sm"
-          onClick={onRedo}
-          disabled={!canRedo}
-          aria-label="Redo"
-          tooltip={{ content: 'Redo (Cmd+Shift+Z)', placement: 'bottom' }}
-        />
-      </div>
+        <ToolGroupClusterDivider />
+        <HistoryUndoControl canUndo={canUndo} onUndo={onUndo} />
+        <HistoryRedoControl canRedo={canRedo} onRedo={onRedo} />
+      </ToolGroupCluster>
     </FloatingPanel>
   );
 };

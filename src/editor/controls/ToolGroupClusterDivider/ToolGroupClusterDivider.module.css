@@ -1,16 +1,8 @@
-/* Center floating-panel layout: editable title + divider + zoom controls. */
-.titleCluster {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-}
-
-/* Full-height equivalent of `.toolDivider` for the top-center title pill.
+/* Full-height equivalent of `.toolDivider` for a small floating pill.
    Same `align-self: stretch` + negative-block-margin trick so the line runs
    edge to edge of the FloatingPanel (sm + md size variants both use 4px
    vertical padding, which matches var(--space-xs)). */
-.titleDivider {
+.divider {
   display: inline-block;
   width: 1px;
   align-self: stretch;
