@@ -191,6 +191,26 @@ describe('drawCommitted', () => {
     drawCommitted(canvas, pixels, 4);
     expect(calls).toContainEqual([3, 3, 1, 1]);
   });
+
+  it('merges adjacent same-colour cells in a row into one horizontal fillRect', () => {
+    const canvas = makeCanvas(4, 4);
+    const pixels = makePixels(4, 4, [
+      [0, 0, '#ff0000'],
+      [1, 0, '#ff0000'],
+      [2, 0, '#ff0000'],
+    ]);
+
+    const calls: Array<[number, number, number, number]> = [];
+    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
+      calls.push([x, y, w, h]);
+    });
+
+    drawCommitted(canvas, pixels, 4);
+
+    expect(calls[0]).toEqual([0, 0, 4, 4]);
+    expect(calls).toContainEqual([0, 0, 3, 1]);
+    expect(calls.length).toBe(2);
+  });
 });
 
 // ── drawLayer ─────────────────────────────────────────────────────────────────
@@ -255,6 +275,24 @@ describe('drawLayer', () => {
 
     expect(ctxMock.clearRect).toHaveBeenCalledOnce();
     expect(ctxMock.fillRect).not.toHaveBeenCalled();
+  });
+
+  it('merges adjacent same-colour cells in a row into one horizontal fillRect', () => {
+    const canvas = makeCanvas(4, 4);
+    const pixels = makePixels(4, 4, [
+      [0, 2, '#0000ff'],
+      [1, 2, '#0000ff'],
+      [2, 2, '#0000ff'],
+    ]);
+
+    const calls: Array<[number, number, number, number]> = [];
+    vi.spyOn(ctxMock, 'fillRect').mockImplementation((x, y, w, h) => {
+      calls.push([x, y, w, h]);
+    });
+
+    drawLayer(canvas, pixels, 4);
+
+    expect(calls).toEqual([[0, 2, 3, 1]]);
   });
 });
 

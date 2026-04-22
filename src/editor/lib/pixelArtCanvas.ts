@@ -13,6 +13,44 @@
 import { type PixelArtSelection } from './pixelArtUtils';
 
 /**
+ * Paints opaque cells as horizontal runs (`fillRect(col, row, width, 1)`),
+ * one colour per run. Dramatically fewer draw calls than per-pixel fills on
+ * large grids (e.g. 256×256) while preserving identical pixels.
+ */
+function paintOpaquePixelRuns(
+  ctx: CanvasRenderingContext2D,
+  pixels: string[],
+  logicalWidth: number,
+  nRows: number,
+): void {
+  const maxCells = pixels.length;
+  for (let row = 0; row < nRows; row++) {
+    const rowStart = row * logicalWidth;
+    if (rowStart >= maxCells) break;
+    let col = 0;
+    while (col < logicalWidth) {
+      const i = rowStart + col;
+      if (i >= maxCells) break;
+      const color = pixels[i];
+      if (!color) {
+        col++;
+        continue;
+      }
+      let run = 1;
+      while (col + run < logicalWidth) {
+        const j = rowStart + col + run;
+        if (j >= maxCells) break;
+        if (pixels[j] !== color) break;
+        run++;
+      }
+      ctx.fillStyle = color;
+      ctx.fillRect(col, row, run, 1);
+      col += run;
+    }
+  }
+}
+
+/**
  * Redraws the committed pixel state onto the canvas, including the background
  * and all painted cells. The grid is intentionally not drawn at unit scale —
  * it would be 1px wide, i.e. invisible after upscaling via CSS. A future phase
@@ -34,15 +72,7 @@ export function drawCommitted(
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Draw filled cells — each logical pixel is exactly 1 raster pixel now.
-  for (let i = 0; i < pixels.length; i++) {
-    const color = pixels[i];
-    if (!color) continue;
-    const col = i % logicalWidth;
-    const row = Math.floor(i / logicalWidth);
-    ctx.fillStyle = color;
-    ctx.fillRect(col, row, 1, 1);
-  }
+  paintOpaquePixelRuns(ctx, pixels, logicalWidth, canvas.height);
 }
 
 /**
@@ -65,14 +95,7 @@ export function drawLayer(
   if (!ctx) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let i = 0; i < pixels.length; i++) {
-    const color = pixels[i];
-    if (!color) continue;
-    const col = i % logicalWidth;
-    const row = Math.floor(i / logicalWidth);
-    ctx.fillStyle = color;
-    ctx.fillRect(col, row, 1, 1);
-  }
+  paintOpaquePixelRuns(ctx, pixels, logicalWidth, canvas.height);
 }
 
 /**
