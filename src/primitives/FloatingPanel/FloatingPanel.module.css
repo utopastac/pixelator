@@ -14,6 +14,22 @@
     --floating-offset: 0;
     --chrome-inset: 0;
     max-width: 100vw;
+
+   &.bottomCenter {
+      width: 100vw;
+      left: 0;
+      right: 0;
+      transform: none;
+    }
+
+    &.topCenter {
+      width: 100vw;
+      left: 0;
+      right: 0;
+      transform: none;
+    }
+    
+    
   }
 }
 

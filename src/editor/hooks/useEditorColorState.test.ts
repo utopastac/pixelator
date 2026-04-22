@@ -69,6 +69,16 @@ describe('defaults', () => {
     const { result } = setup();
     expect(Array.isArray(result.current.customColors)).toBe(true);
   });
+
+  it('hides layers panel in session store on first seed when isMobile', () => {
+    setup({ isMobile: true });
+    expect(useEditorSessionStore.getState().layersPanelVisible).toBe(false);
+  });
+
+  it('shows layers panel in session store on first seed when not mobile', () => {
+    setup({ isMobile: false });
+    expect(useEditorSessionStore.getState().layersPanelVisible).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------

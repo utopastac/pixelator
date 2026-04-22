@@ -133,6 +133,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
             </ToolGroupCluster>
             <ToolGroupCluster>
               {c.zoom}
+              {c.layersPanelToggle}
             </ToolGroupCluster>
           </div>
         </FloatingPanel>
@@ -149,7 +150,6 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
               {c.fill}
               {c.eyedropper}
               {c.swatches}
-              {c.layersPanelToggle}
             </ToolGroupCluster>
           </div>
           <div role="toolbar" aria-label="Pixel art tools">

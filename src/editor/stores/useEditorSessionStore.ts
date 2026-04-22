@@ -52,7 +52,7 @@ export interface EditorSessionStore {
   setGridOverlayVisible: (visible: boolean | ((prev: boolean) => boolean)) => void;
   setLayersPanelVisible: (visible: boolean | ((prev: boolean) => boolean)) => void;
   setCancelPenPath: (fn: () => void) => void;
-  resetSession: (initialColor: string) => void;
+  resetSession: (initialColor: string, options?: { layersPanelVisible?: boolean }) => void;
 }
 
 export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
@@ -142,7 +142,7 @@ export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
     })),
   setCancelPenPath: (fn) => set({ cancelPenPath: fn }),
 
-  resetSession: (initialColor) =>
+  resetSession: (initialColor, options) =>
     set((s) => ({
       activeTool: 'paint',
       brushSize: 'sm',
@@ -160,7 +160,7 @@ export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
       wrapMode: false,
       alphaLock: false,
       gridOverlayVisible: true,
-      layersPanelVisible: true,
+      layersPanelVisible: options?.layersPanelVisible ?? true,
       cancelPenPath: s.cancelPenPath,
     })),
 }));

@@ -172,7 +172,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     pushCustomColor,
     marqueeShape,
     commitPixelsWithColor,
-  } = useEditorColorState({ palette, commitPixels });
+  } = useEditorColorState({ palette, commitPixels, isMobile });
 
   const activeLayer = useMemo(
     () => layers.find((l) => l.id === activeLayerId) ?? null,

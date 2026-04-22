@@ -11,6 +11,8 @@ interface UseEditorColorStateProps {
   /** Callback fired once per stroke commit with the committed colour.
    *  When provided, recent-colour tracking is driven by this callback. */
   onColorCommit?: (color: string) => void;
+  /** When true, session reset keeps the layers panel collapsed by default. */
+  isMobile?: boolean;
 }
 
 interface UseEditorColorStateReturn {
@@ -53,6 +55,7 @@ export function useEditorColorState({
   palette,
   commitPixels,
   onColorCommit,
+  isMobile = false,
 }: UseEditorColorStateProps): UseEditorColorStateReturn {
   const { recents, pushRecent } = useRecentColors();
   const { customColors, pushCustomColor, removeCustomColor } = useCustomColors();
@@ -60,7 +63,10 @@ export function useEditorColorState({
   const sessionSeededRef = useRef(false);
   if (!sessionSeededRef.current) {
     sessionSeededRef.current = true;
-    useEditorSessionStore.getState().resetSession(recents[0] ?? palette[0] ?? '#000000');
+    const seed = recents[0] ?? palette[0] ?? '#000000';
+    useEditorSessionStore.getState().resetSession(seed, {
+      layersPanelVisible: !isMobile,
+    });
   }
 
   const activeTool = useEditorSessionStore((s) => s.activeTool);
