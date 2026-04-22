@@ -60,9 +60,7 @@
   background: var(--border-highlight, var(--border-strong));
 }
 
-/* Top bar: utilities (zoom/undo/redo/download, portaled in from the toolbar)
-   on the LEFT, add-layer button on the RIGHT. No separate "Layers" title
-   header anymore — this row is the only chrome. */
+/* Top bar: download, import (optional), add layer, expand/collapse. */
 .utilitiesBar {
   display: flex;
   align-items: center;
@@ -305,11 +303,6 @@
 
 .chevronExpanded :global(svg) {
   transform: rotate(180deg);
-}
-
-.downloadAnchor {
-  display: flex;
-  align-items: center;
 }
 
 /* Transient toast shown when image import fails. Absolutely positioned at the

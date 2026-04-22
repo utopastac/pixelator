@@ -30,6 +30,7 @@ function makeProps(overrides: Partial<EditorCanvasProps> = {}): EditorCanvasProp
     panDragRef: { current: null },
     setIsActivelyPanning: noop,
     panBy: noop,
+    zoomAtPoint: vi.fn(),
     disabled: false,
     activeTool: 'paint',
     selection: null,
@@ -274,4 +275,16 @@ describe('EditorCanvas — cursor state', () => {
     );
     expect(getContainer()).toHaveStyle({ cursor: 'not-allowed' });
   });
+});
+
+// ---------------------------------------------------------------------------
+// Mobile viewport gestures
+// ---------------------------------------------------------------------------
+
+describe('EditorCanvas — mobile touch', () => {
+  it('sets data-mobile on the container when isMobile', () => {
+    render(<EditorCanvas {...makeProps({ isMobile: true })} />);
+    expect(screen.getByTestId('editor-canvas')).toHaveAttribute('data-mobile', 'true');
+  });
+
 });

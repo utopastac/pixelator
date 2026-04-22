@@ -26,7 +26,12 @@ import { useEditorContextMenu } from './useEditorContextMenu';
 import { createDefaultLayer } from '@/lib/storage';
 import type { PixelArtEditorProps } from '../PixelArtEditor';
 import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
-import type { EditorChromeData, EditorControlsWiring } from '@/editor/EditorControls';
+import {
+  createLayersPanelControlNodes,
+  type EditorChromeData,
+  type EditorControlsWiring,
+  type EditorDownloadWiring,
+} from '@/editor/EditorControls';
 
 const ZOOM_SENSITIVITY = 0.01;
 
@@ -89,6 +94,25 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   // ── Modal state ──────────────────────────────────────────────────────────────
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [layerImageImportError, setLayerImageImportError] = useState<string | null>(null);
+  const layerImageImportErrorTimerRef = useRef<number | null>(null);
+
+  const showLayerImportFileReadError = useCallback((message: string) => {
+    if (layerImageImportErrorTimerRef.current !== null) {
+      window.clearTimeout(layerImageImportErrorTimerRef.current);
+    }
+    setLayerImageImportError(message);
+    layerImageImportErrorTimerRef.current = window.setTimeout(() => {
+      setLayerImageImportError(null);
+      layerImageImportErrorTimerRef.current = null;
+    }, 2500);
+  }, []);
+
+  useEffect(() => () => {
+    if (layerImageImportErrorTimerRef.current !== null) {
+      window.clearTimeout(layerImageImportErrorTimerRef.current);
+    }
+  }, []);
 
   // ── Drawing mode state (Zustand session store) ───────────────────────────────
   const symmetryMode = useEditorSessionStore((s) => s.symmetryMode);
@@ -445,7 +469,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     onPaste: handlePaste,
   });
 
-  useSpacebarPan(setIsPanning, disabled);
+  useSpacebarPan(setIsPanning, disabled || isMobile);
 
   useCanvasWheelZoom({
     containerRef,
@@ -555,6 +579,8 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     panDragRef,
     setIsActivelyPanning,
     panBy,
+    zoomAtPoint,
+    isMobile,
     disabled,
     activeTool,
     selection,
@@ -580,13 +606,45 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     importToast,
   };
 
+  const downloadWiring: EditorDownloadWiring = {
+    onDownloadSvg: downloadSvg,
+    onDownloadPng: downloadPng,
+    onDownloadLayersSvg: downloadLayersSvg,
+    onDownloadPixelator,
+    exportWidth: currentWidthForToolbar,
+    exportHeight: currentHeightForToolbar,
+  };
+
+  const layersPanelControlNodes = useMemo(
+    () =>
+      createLayersPanelControlNodes({
+        ...downloadWiring,
+        onAddLayer: addLayer,
+        onImportLayerImage: addLayerWithPixels,
+        importCanvasWidth: width,
+        importCanvasHeight: height,
+        onImportFileReadError: showLayerImportFileReadError,
+      }),
+    [
+      downloadSvg,
+      downloadPng,
+      downloadLayersSvg,
+      onDownloadPixelator,
+      currentWidthForToolbar,
+      currentHeightForToolbar,
+      addLayer,
+      addLayerWithPixels,
+      width,
+      height,
+      showLayerImportFileReadError,
+    ],
+  );
+
   const layersPanelProps = {
     layers,
     activeLayerId,
     width,
     height,
-    onAddLayer: addLayer,
-    onImportLayerImage: addLayerWithPixels,
     onDuplicateLayer: duplicateLayer,
     onDuplicateLayerTo: duplicateLayerTo,
     onClearLayer: clearLayer,
@@ -601,13 +659,9 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     onMergeDown: mergeDown,
     onExportLayerSvg: exportLayerSvg,
     onSetActive: setActiveLayerId,
-    onDownloadSvg: downloadSvg,
-    onDownloadPng: downloadPng,
-    onDownloadLayersSvg: downloadLayersSvg,
-    onDownloadPixelator,
-    currentWidth: currentWidthForToolbar,
-    currentHeight: currentHeightForToolbar,
     mobile: isMobile,
+    ...layersPanelControlNodes,
+    layerImageImportError,
   };
 
   const onResetConfirm = useCallback(() => {
@@ -631,6 +685,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
 
   const editorChromeData: EditorChromeData = {
     ...(hasTitle && titleChromeWiring != null ? { ...toolsRowProps, ...titleChromeWiring } : { ...toolsRowProps }),
+    ...downloadWiring,
     panelsVisible: panelsVisibleProp,
     onTogglePanels,
     drawingsPanelOpen,

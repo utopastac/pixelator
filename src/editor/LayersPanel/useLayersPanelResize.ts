@@ -25,11 +25,13 @@ interface UseLayersPanelResizeResult {
   beginResize: (e: React.PointerEvent) => void;
 }
 
-export function useLayersPanelResize(): UseLayersPanelResizeResult {
+export function useLayersPanelResize(options: { enabled?: boolean } = {}): UseLayersPanelResizeResult {
+  const { enabled = true } = options;
   const [width, setWidth] = useState<number>(loadWidth);
   const [isDragging, setIsDragging] = useState(false);
 
   const beginResize = (e: React.PointerEvent) => {
+    if (!enabled) return;
     e.preventDefault();
     const startX = e.clientX;
     const startWidth = width;
@@ -62,5 +64,9 @@ export function useLayersPanelResize(): UseLayersPanelResizeResult {
     window.addEventListener('pointerup', onUp);
   };
 
-  return { width, isDragging, beginResize };
+  return {
+    width: enabled ? width : DEFAULT_WIDTH,
+    isDragging: enabled && isDragging,
+    beginResize,
+  };
 }

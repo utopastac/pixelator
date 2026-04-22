@@ -1,42 +1,34 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { DownloadIcon as LucideDownloadIcon } from 'lucide-react';
 import {
-  DownloadIcon,
   EraserIcon,
   DuplicateIcon,
   TrashIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  PlusIcon,
   RotateCWIcon,
   RotateCCWIcon,
-  ImageIcon,
   MergeDownIcon,
   ChevronSmIcon,
 } from '../icons/PixelToolIcons';
-import { importImageAsPixels, layerNameFromFile } from '@/lib/imageImport';
+import type { EditorLayersPanelControlNodes } from '@/editor/EditorControls';
 import Toast from '@/primitives/Toast';
 import FloatingPanel from '@/primitives/FloatingPanel';
 import ToolbarButton from '@/primitives/ToolbarButton';
-import Popover from '@/overlays/Popover';
 import ContextMenu, { type ContextMenuItem } from '@/overlays/ContextMenu';
-import DownloadMenu from '../DownloadMenu';
 import type { Layer } from '@/lib/storage';
 import LayerRow from './LayerRow';
 import { useLayerDrag } from './useLayerDrag';
 import { useLayersPanelResize } from './useLayersPanelResize';
 import styles from './LayersPanel.module.css';
 
-export interface LayersPanelProps {
+type LayersPanelBaseProps = {
   layers: Layer[];
   activeLayerId: string;
   width: number;
   height: number;
-  onAddLayer: () => void;
-  /** Insert a downsampled image as a new layer. LayersPanel owns the file
-   *  picker + decode; caller receives the pixel array + suggested name.
-   *  Single undo step. */
-  onImportLayerImage?: (pixels: string[], name?: string) => void;
+  /** Shown when `ImportLayerImageControl` reports a read error (wiring from `usePixelArtEditorState`). */
+  layerImageImportError: string | null;
   onDuplicateLayer: (id: string) => void;
   onDuplicateLayerTo: (id: string, toIndex: number) => void;
   onClearLayer: (id: string) => void;
@@ -57,15 +49,11 @@ export interface LayersPanelProps {
   onMergeDown: (id: string) => void;
   onExportLayerSvg: (id: string) => void;
   onSetActive: (id: string) => void;
-  onDownloadSvg: () => void;
-  onDownloadPng: (scale: number) => void;
-  onDownloadLayersSvg: () => void;
-  onDownloadPixelator?: () => void;
-  currentWidth?: number;
-  currentHeight?: number;
   /** When true, adds a mobile hook class on the panel root for CSS overrides. */
   mobile?: boolean;
-}
+};
+
+export type LayersPanelProps = LayersPanelBaseProps & EditorLayersPanelControlNodes;
 
 interface MenuState {
   layerId: string;
@@ -77,8 +65,10 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
   activeLayerId,
   width,
   height,
-  onAddLayer,
-  onImportLayerImage,
+  layerImageImportError,
+  layersPanelDownload,
+  addLayer,
+  importLayer,
   onDuplicateLayer,
   onClearLayer,
   onRotateLayer,
@@ -94,29 +84,16 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
   onSetActive,
   // onDuplicateLayerTo is used by the drag handler below via closure.
   onDuplicateLayerTo,
-  onDownloadSvg,
-  onDownloadPng,
-  onDownloadLayersSvg,
-  onDownloadPixelator,
-  currentWidth,
-  currentHeight,
   mobile = false,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const downloadAnchorRef = useRef<HTMLDivElement>(null);
   const [menuState, setMenuState] = useState<MenuState | null>(null);
-  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem('pixelator:layersCollapsed') === 'true'
   );
-  const [importToast, setImportToast] = useState<string | null>(null);
-  const importToastTimerRef = useRef<number | null>(null);
 
-  useEffect(() => () => {
-    if (importToastTimerRef.current !== null) window.clearTimeout(importToastTimerRef.current);
-  }, []);
-
-  const { width: panelWidth, isDragging: isResizing, beginResize } = useLayersPanelResize();
+  const { width: panelWidth, isDragging: isResizing, beginResize } = useLayersPanelResize({
+    enabled: !mobile,
+  });
 
   const { listRef, dragState, beginDrag } = useLayerDrag({
     layers,
@@ -131,26 +108,6 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
       localStorage.setItem('pixelator:layersCollapsed', String(next));
       return next;
     });
-  };
-
-  const handleImportChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    // Reset the input's value unconditionally so picking the same file twice
-    // in a row still fires `change`. Do it early — any await below could
-    // complete after the user has moved on.
-    e.target.value = '';
-    if (!file || !onImportLayerImage) return;
-    try {
-      const pixels = await importImageAsPixels(file, width, height);
-      onImportLayerImage(pixels, layerNameFromFile(file));
-    } catch (err) {
-      if (importToastTimerRef.current !== null) window.clearTimeout(importToastTimerRef.current);
-      setImportToast('Could not read that file');
-      importToastTimerRef.current = window.setTimeout(() => {
-        setImportToast(null);
-        importToastTimerRef.current = null;
-      }, 2500);
-    }
   };
 
   const displayOrder = layers.map((layer, idx) => ({ layer, idx }));
@@ -251,79 +208,28 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
         style={{ width: panelWidth }}
         aria-label="Layers"
       >
-        <div
-          className={styles.resizeHandle}
-          onPointerDown={beginResize}
-          aria-hidden="true"
-          data-testid="layers-panel-resize"
-        />
-        {importToast !== null && (
+        {!mobile && (
+          <div
+            className={styles.resizeHandle}
+            onPointerDown={beginResize}
+            aria-hidden="true"
+            data-testid="layers-panel-resize"
+          />
+        )}
+        {layerImageImportError !== null && (
           <div className={styles.importToast}>
-            <Toast message={importToast} />
+            <Toast message={layerImageImportError} />
           </div>
         )}
         <div
           className={styles.utilitiesBar}
-          aria-label="Editor utilities"
+          aria-label="Layer actions"
         >
           <div className={styles.utilitiesSlot}>
-            <div ref={downloadAnchorRef} className={styles.downloadAnchor}>
-              <ToolbarButton
-                icon={DownloadIcon}
-                size="sm"
-                selected={isDownloadMenuOpen}
-                onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
-                aria-label="Download"
-                aria-haspopup="menu"
-                aria-expanded={isDownloadMenuOpen}
-                tooltip={{ content: 'Download', placement: 'bottom' }}
-                data-testid="download-menu"
-              />
-              <Popover
-                isOpen={isDownloadMenuOpen}
-                onClose={() => setIsDownloadMenuOpen(false)}
-                anchorRef={downloadAnchorRef}
-                offsetX={-5}
-                role="menu"
-                aria-label="Download format"
-              >
-                <DownloadMenu
-                  onDownloadSvg={onDownloadSvg}
-                  onDownloadPng={onDownloadPng}
-                  onDownloadLayersSvg={onDownloadLayersSvg}
-                  onDownloadPixelator={onDownloadPixelator}
-                  width={currentWidth}
-                  height={currentHeight}
-                  onClose={() => setIsDownloadMenuOpen(false)}
-                />
-              </Popover>
-            </div>
+            {layersPanelDownload}
           </div>
-          {onImportLayerImage && (
-            <>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={handleImportChange}
-              />
-              <ToolbarButton
-                icon={ImageIcon}
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                aria-label="Import image as layer"
-                tooltip={{ content: 'Import image', placement: 'bottom' }}
-              />
-            </>
-          )}
-          <ToolbarButton
-            icon={PlusIcon}
-            size="sm"
-            onClick={() => onAddLayer()}
-            aria-label="Add layer"
-            tooltip={{ content: 'Add layer', placement: 'bottom' }}
-          />
+          {importLayer}
+          {addLayer}
           <ToolbarButton
             icon={ChevronSmIcon}
             size="sm"

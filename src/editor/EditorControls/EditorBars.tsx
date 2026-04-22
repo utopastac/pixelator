@@ -133,6 +133,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
             </ToolGroupCluster>
             <ToolGroupCluster>
               {c.zoom}
+              {c.download}
               {c.layersPanelToggle}
             </ToolGroupCluster>
           </div>
@@ -221,6 +222,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           <ToolGroupCluster trailingDivider={false}>
             {c.historyUndo}
             {c.historyRedo}
+            {c.download}
           </ToolGroupCluster>
         </div>
       </FloatingPanel>

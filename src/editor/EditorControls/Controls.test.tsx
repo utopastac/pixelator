@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { createEditorControls, type EditorChromeInput } from './Controls';
+import { createEditorControls, createLayersPanelControlNodes, type EditorChromeInput } from './Controls';
 
 function toolPopoverStub(): Pick<
   EditorChromeInput,
@@ -84,5 +84,52 @@ describe('createEditorControls', () => {
       ...toolPopoverStub(),
     });
     expect(c.canvasSize).toBeTruthy();
+  });
+
+  it('returns null download when download handlers are omitted', () => {
+    const c = createEditorControls({
+      palette: ['#000'],
+      customColors: [],
+      ...titleBase,
+      ...toolPopoverStub(),
+    });
+    expect(c.download).toBeNull();
+  });
+
+  it('returns download control when download handlers are wired', () => {
+    const c = createEditorControls({
+      palette: ['#000'],
+      customColors: [],
+      ...titleBase,
+      onDownloadSvg: vi.fn(),
+      onDownloadPng: vi.fn(),
+      onDownloadLayersSvg: vi.fn(),
+      ...toolPopoverStub(),
+    });
+    expect(c.download).toBeTruthy();
+  });
+});
+
+describe('createLayersPanelControlNodes', () => {
+  const base = {
+    onDownloadSvg: vi.fn(),
+    onDownloadPng: vi.fn(),
+    onDownloadLayersSvg: vi.fn(),
+    onAddLayer: vi.fn(),
+    importCanvasWidth: 16,
+    importCanvasHeight: 16,
+    onImportFileReadError: vi.fn(),
+  };
+
+  it('returns download, add, and import nodes when onImportLayerImage is set', () => {
+    const n = createLayersPanelControlNodes({ ...base, onImportLayerImage: vi.fn() });
+    expect(n.layersPanelDownload).toBeTruthy();
+    expect(n.addLayer).toBeTruthy();
+    expect(n.importLayer).toBeTruthy();
+  });
+
+  it('returns a null import node when onImportLayerImage is absent', () => {
+    const n = createLayersPanelControlNodes({ ...base });
+    expect(n.importLayer).toBeNull();
   });
 });

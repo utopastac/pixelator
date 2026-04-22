@@ -1,9 +1,12 @@
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
+import AddLayerControl from '@/editor/controls/AddLayerControl';
 import AlphaLockControl from '@/editor/controls/AlphaLockControl';
 import BrushSizeControl from '@/editor/controls/BrushSizeControl';
 import CanvasSizePicker from '@/editor/controls/CanvasSizePicker';
 import DrawingTitleControl from '@/editor/controls/DrawingTitleControl';
+import DownloadControl from '@/editor/controls/DownloadControl';
 import DrawingsPanelToggleControl from '@/editor/controls/DrawingsPanelToggleControl';
+import ImportLayerImageControl from '@/editor/controls/ImportLayerImageControl';
 import EraserToolControl from '@/editor/controls/EraserToolControl';
 import EyedropperToolControl from '@/editor/controls/EyedropperToolControl';
 import FillToolControl from '@/editor/controls/FillToolControl';
@@ -66,6 +69,75 @@ export interface EditorControlsWiring {
   onRedo: () => void;
 }
 
+/** Download menu (SVG / PNG / layers / optional Pixelator file). */
+export interface EditorDownloadWiring {
+  onDownloadSvg: () => void;
+  onDownloadPng: (scale: number) => void;
+  onDownloadLayersSvg: () => void;
+  onDownloadPixelator?: () => void;
+  /** For PNG scale chip labels; optional when the canvas size picker is off. */
+  exportWidth?: number;
+  exportHeight?: number;
+}
+
+/** Wires the layers panel chrome row: download, optional import, add (collapse stays in the panel). */
+export type EditorLayersPanelControlInput = EditorDownloadWiring & {
+  onAddLayer: () => void;
+  onImportLayerImage?: (pixels: string[], name?: string) => void;
+  importCanvasWidth: number;
+  importCanvasHeight: number;
+  onImportFileReadError: (message: string) => void;
+};
+
+export type EditorLayersPanelControlNodes = {
+  /** Same menu as the main toolbar, second instance for the card header. */
+  layersPanelDownload: ReactNode | null;
+  addLayer: ReactNode;
+  importLayer: ReactNode | null;
+};
+
+function makeDownloadControl(
+  w: EditorDownloadWiring,
+  /** @default "download-menu" (main toolbar) */
+  menuTestId: string = 'download-menu',
+): ReactNode {
+  return (
+    <DownloadControl
+      onDownloadSvg={w.onDownloadSvg}
+      onDownloadPng={w.onDownloadPng}
+      onDownloadLayersSvg={w.onDownloadLayersSvg}
+      onDownloadPixelator={w.onDownloadPixelator}
+      width={w.exportWidth}
+      height={w.exportHeight}
+      menuTestId={menuTestId}
+    />
+  );
+}
+
+const LAYERS_PANEL_DOWNLOAD_TESTID = 'layers-panel-download';
+
+/**
+ * Pre-wired download + add + import nodes for the layers card utilities row.
+ * Call from the editor state hook; pass the result (plus a collapse control) into `LayersPanel`.
+ */
+export function createLayersPanelControlNodes(p: EditorLayersPanelControlInput): EditorLayersPanelControlNodes {
+  const showDownload =
+    p.onDownloadSvg != null && p.onDownloadPng != null && p.onDownloadLayersSvg != null;
+  return {
+    layersPanelDownload: showDownload ? makeDownloadControl(p, LAYERS_PANEL_DOWNLOAD_TESTID) : null,
+    addLayer: <AddLayerControl onAddLayer={p.onAddLayer} />,
+    importLayer:
+      p.onImportLayerImage != null ? (
+        <ImportLayerImageControl
+          canvasWidth={p.importCanvasWidth}
+          canvasHeight={p.importCanvasHeight}
+          onImportLayerImage={p.onImportLayerImage}
+          onImportFileReadError={p.onImportFileReadError}
+        />
+      ) : null,
+  };
+}
+
 /** App-level chrome wired through the editor (help cluster, drawings toggle, …). */
 export interface EditorHelpControlsWiring {
   /** Current panel visibility — drives hide/show icon. */
@@ -82,7 +154,8 @@ export interface EditorHelpControlsWiring {
 /** Data from the editor hook (palette + optional title cluster). No tool-popover state. */
 export type EditorChromeData = EditorToolsPaletteProps &
   Partial<EditorControlsWiring> &
-  Partial<EditorHelpControlsWiring>;
+  Partial<EditorHelpControlsWiring> &
+  Partial<EditorDownloadWiring>;
 
 /** Popover / anchor state owned by `EditorBars`, passed through to each tool node. */
 export interface EditorToolPopoverInput {
@@ -133,6 +206,7 @@ export type EditorControlNodes = {
   keyboardShortcuts: ReactNode | null;
   themeToggle: ReactNode | null;
   openDrawings: ReactNode | null;
+  download: ReactNode | null;
 };
 
 /**
@@ -243,6 +317,19 @@ export function createEditorControls(p: EditorChromeInput): EditorControlNodes {
       />
     ) : null;
 
+  const showDownload =
+    p.onDownloadSvg != null && p.onDownloadPng != null && p.onDownloadLayersSvg != null;
+  const download = showDownload
+    ? makeDownloadControl({
+        onDownloadSvg: p.onDownloadSvg!,
+        onDownloadPng: p.onDownloadPng!,
+        onDownloadLayersSvg: p.onDownloadLayersSvg!,
+        onDownloadPixelator: p.onDownloadPixelator,
+        exportWidth: p.exportWidth,
+        exportHeight: p.exportHeight,
+      })
+    : null;
+
   return {
     ...titleBlock,
     moveTool: <MoveToolControl onClosePopovers={p.closeAllToolPopovers} />,
@@ -284,5 +371,6 @@ export function createEditorControls(p: EditorChromeInput): EditorControlNodes {
     keyboardShortcuts,
     themeToggle,
     openDrawings,
+    download,
   };
 }

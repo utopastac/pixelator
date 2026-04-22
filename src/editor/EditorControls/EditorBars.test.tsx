@@ -32,6 +32,9 @@ function defaultChrome(overrides: Partial<EditorChromeData> = {}): EditorChromeD
   return {
     palette: ['#000000', '#ffffff'],
     customColors: [],
+    onDownloadSvg: vi.fn(),
+    onDownloadPng: vi.fn(),
+    onDownloadLayersSvg: vi.fn(),
     panelsVisible: true,
     onTogglePanels: vi.fn(),
     onOpenShortcuts: vi.fn(),
@@ -323,6 +326,11 @@ describe('EditorBars — title chrome', () => {
     expect(screen.getByRole('button', { name: 'Redo' })).toBeInTheDocument();
   });
 
+  it('renders the Download control', () => {
+    renderWithTitleChrome();
+    expect(screen.getByTestId('download-menu')).toBeInTheDocument();
+  });
+
   it('Undo button is disabled when canUndo is false', () => {
     renderWithTitleChrome({ canUndo: false });
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled();
@@ -496,5 +504,10 @@ describe('EditorBars — mobile layout', () => {
     renderWithTitleChrome({ title: 'M' }, { isMobile: true });
     expect(screen.getByRole('region', { name: 'Drawing title' })).toBeInTheDocument();
     expect(screen.getByRole('toolbar', { name: 'Pixel art tools' })).toBeInTheDocument();
+  });
+
+  it('renders the Download control in the top bar', () => {
+    renderWithTitleChrome({ title: 'M' }, { isMobile: true });
+    expect(screen.getByTestId('download-menu')).toBeInTheDocument();
   });
 });

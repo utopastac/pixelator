@@ -10,6 +10,11 @@
   min-height: 0;
   line-height: 0;
   background-color: var(--surface-extra-subtle);
+
+  &[data-mobile='true'] {
+    touch-action: none;
+    overscroll-behavior: none;
+  }
 }
 
 /* Grid drawn imperatively by useGridCanvasDraw / drawGridOverlay in screen

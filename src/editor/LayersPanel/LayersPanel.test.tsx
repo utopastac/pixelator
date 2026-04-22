@@ -16,6 +16,7 @@ import type { LayersPanelProps } from './LayersPanel';
 import type { Layer } from '@/lib/storage';
 import layersStyles from './LayersPanel.module.css';
 import floatingStyles from '@/primitives/FloatingPanel/FloatingPanel.module.css';
+import { createLayersPanelControlNodes } from '@/editor/EditorControls';
 
 // ContextMenu and Popover rely on ResizeObserver — shim it.
 class MockResizeObserver {
@@ -48,7 +49,7 @@ function makeProps(overrides: Partial<LayersPanelProps> = {}): LayersPanelProps 
     activeLayerId: 'b',
     width: 16,
     height: 16,
-    onAddLayer: vi.fn(),
+    layerImageImportError: null,
     onDuplicateLayer: vi.fn(),
     onDuplicateLayerTo: vi.fn(),
     onClearLayer: vi.fn(),
@@ -63,9 +64,16 @@ function makeProps(overrides: Partial<LayersPanelProps> = {}): LayersPanelProps 
     onMergeDown: vi.fn(),
     onExportLayerSvg: vi.fn(),
     onSetActive: vi.fn(),
-    onDownloadSvg: vi.fn(),
-    onDownloadPng: vi.fn(),
-    onDownloadLayersSvg: vi.fn(),
+    ...createLayersPanelControlNodes({
+      onDownloadSvg: vi.fn(),
+      onDownloadPng: vi.fn(),
+      onDownloadLayersSvg: vi.fn(),
+      onAddLayer: vi.fn(),
+      onImportLayerImage: vi.fn(),
+      importCanvasWidth: 16,
+      importCanvasHeight: 16,
+      onImportFileReadError: vi.fn(),
+    }),
     ...overrides,
   };
 }
@@ -82,6 +90,16 @@ describe('LayersPanel — layer list', () => {
     expect(root).toHaveClass(floatingStyles.mobile);
   });
 
+  it('does not render the panel width resize handle on mobile', () => {
+    render(<LayersPanel {...makeProps({ mobile: true })} />);
+    expect(screen.queryByTestId('layers-panel-resize')).not.toBeInTheDocument();
+  });
+
+  it('renders the panel width resize handle on desktop', () => {
+    render(<LayersPanel {...makeProps()} />);
+    expect(screen.getByTestId('layers-panel-resize')).toBeInTheDocument();
+  });
+
   it('renders a row for each layer by name', () => {
     render(<LayersPanel {...makeProps()} />);
     expect(screen.getByRole('button', { name: 'Layer Background' })).toBeInTheDocument();
@@ -91,6 +109,37 @@ describe('LayersPanel — layer list', () => {
   it('renders the list as a list element', () => {
     render(<LayersPanel {...makeProps()} />);
     expect(screen.getByRole('list')).toBeInTheDocument();
+  });
+
+  it('renders the download control in the panel', () => {
+    render(<LayersPanel {...makeProps()} />);
+    expect(screen.getByTestId('layers-panel-download')).toBeInTheDocument();
+  });
+
+  it('renders import image when the control factory includes onImportLayerImage', () => {
+    render(<LayersPanel {...makeProps()} />);
+    expect(screen.getByTestId('import-layer-image')).toBeInTheDocument();
+  });
+
+  it('does not render import when the control factory is built without onImportLayerImage', () => {
+    const nodes = createLayersPanelControlNodes({
+      onDownloadSvg: vi.fn(),
+      onDownloadPng: vi.fn(),
+      onDownloadLayersSvg: vi.fn(),
+      onAddLayer: vi.fn(),
+      importCanvasWidth: 16,
+      importCanvasHeight: 16,
+      onImportFileReadError: vi.fn(),
+    });
+    expect(nodes.importLayer).toBeNull();
+    render(
+      <LayersPanel
+        {...makeProps({
+          ...nodes,
+        })}
+      />,
+    );
+    expect(screen.queryByTestId('import-layer-image')).not.toBeInTheDocument();
   });
 });
 
@@ -134,7 +183,22 @@ describe('LayersPanel — add layer', () => {
   it('clicking the Add layer button calls onAddLayer', async () => {
     const user = userEvent.setup();
     const onAddLayer = vi.fn();
-    render(<LayersPanel {...makeProps({ onAddLayer })} />);
+    render(
+      <LayersPanel
+        {...makeProps({
+          ...createLayersPanelControlNodes({
+            onDownloadSvg: vi.fn(),
+            onDownloadPng: vi.fn(),
+            onDownloadLayersSvg: vi.fn(),
+            onAddLayer,
+            onImportLayerImage: vi.fn(),
+            importCanvasWidth: 16,
+            importCanvasHeight: 16,
+            onImportFileReadError: vi.fn(),
+          }),
+        })}
+      />,
+    );
     await user.click(screen.getByRole('button', { name: 'Add layer' }));
     expect(onAddLayer).toHaveBeenCalledTimes(1);
   });
