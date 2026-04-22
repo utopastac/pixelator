@@ -115,7 +115,6 @@ const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({
           className={styles.sizeReadoutButton}
           data-testid="canvas-size-picker"
         >
-          <Icons.Grid size={14} />
           <span>{currentWidth}×{currentHeight}</span>
         </ReadoutButton>
       </Tooltip>

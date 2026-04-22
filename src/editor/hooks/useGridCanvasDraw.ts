@@ -4,6 +4,8 @@ import { drawGridOverlay } from '../lib/pixelArtCanvas';
 export interface UseGridCanvasDrawArgs {
   gridCanvasRef: RefObject<HTMLCanvasElement | null>;
   containerRef: RefObject<HTMLDivElement | null>;
+  /** When false, the grid canvas is cleared regardless of zoom. */
+  visible: boolean;
   zoom: number;
   panX: number;
   panY: number;
@@ -15,7 +17,14 @@ function resizeAndPaint(
   canvas: HTMLCanvasElement,
   cw: number,
   ch: number,
-  params: { zoom: number; panX: number; panY: number; width: number; height: number },
+  params: {
+    visible: boolean;
+    zoom: number;
+    panX: number;
+    panY: number;
+    width: number;
+    height: number;
+  },
 ): void {
   const w = Math.max(1, Math.floor(cw));
   const h = Math.max(1, Math.floor(ch));
@@ -23,11 +32,12 @@ function resizeAndPaint(
     canvas.width = w;
     canvas.height = h;
   }
-  if (params.zoom < 4) {
+  if (!params.visible || params.zoom < 4) {
     canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
     return;
   }
-  drawGridOverlay(canvas, params);
+  const { zoom, panX, panY, width, height } = params;
+  drawGridOverlay(canvas, { zoom, panX, panY, width, height });
 }
 
 /**
@@ -43,14 +53,15 @@ function resizeAndPaint(
 export function useGridCanvasDraw({
   gridCanvasRef,
   containerRef,
+  visible,
   zoom,
   panX,
   panY,
   width,
   height,
 }: UseGridCanvasDrawArgs): void {
-  const paramsRef = useRef({ zoom, panX, panY, width, height });
-  paramsRef.current = { zoom, panX, panY, width, height };
+  const paramsRef = useRef({ visible, zoom, panX, panY, width, height });
+  paramsRef.current = { visible, zoom, panX, panY, width, height };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -78,5 +89,5 @@ export function useGridCanvasDraw({
     if (!container || !canvas) return;
     const rect = container.getBoundingClientRect();
     resizeAndPaint(canvas, rect.width, rect.height, paramsRef.current);
-  }, [gridCanvasRef, zoom, panX, panY, width, height]);
+  }, [gridCanvasRef, visible, zoom, panX, panY, width, height]);
 }

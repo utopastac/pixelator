@@ -92,6 +92,8 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const setWrapMode = useEditorSessionStore((s) => s.setWrapMode);
   const alphaLock = useEditorSessionStore((s) => s.alphaLock);
   const setAlphaLock = useEditorSessionStore((s) => s.setAlphaLock);
+  const gridOverlayVisible = useEditorSessionStore((s) => s.gridOverlayVisible);
+  const setGridOverlayVisible = useEditorSessionStore((s) => s.setGridOverlayVisible);
 
   // ── History (mount-only seed) ────────────────────────────────────────────────
   const initialSeed = useMemo(() => {
@@ -370,6 +372,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   useGridCanvasDraw({
     gridCanvasRef,
     containerRef,
+    visible: gridOverlayVisible,
     zoom,
     panX,
     panY,
@@ -524,6 +527,8 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     setSymmetryMode,
     alphaLock,
     setAlphaLock,
+    gridOverlayVisible,
+    setGridOverlayVisible,
     canUndo,
     canRedo,
     onUndo: undo,

@@ -3,6 +3,7 @@ import FloatingPanel from '@/primitives/FloatingPanel';
 import AlphaLockControl from '@/editor/controls/AlphaLockControl';
 import CanvasSizePicker from '@/editor/controls/CanvasSizePicker';
 import DrawingTitleControl from '@/editor/controls/DrawingTitleControl';
+import GridOverlayControl from '@/editor/controls/GridOverlayControl';
 import HistoryRedoControl from '@/editor/controls/HistoryRedoControl';
 import HistoryUndoControl from '@/editor/controls/HistoryUndoControl';
 import ToolGroupCluster from '@/editor/controls/ToolGroupCluster';
@@ -41,6 +42,9 @@ export interface TitlePanelProps {
   alphaLock?: boolean;
   setAlphaLock?: (v: boolean) => void;
 
+  gridOverlayVisible?: boolean;
+  setGridOverlayVisible?: (v: boolean) => void;
+
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
@@ -68,6 +72,8 @@ const TitlePanel: React.FC<TitlePanelProps> = ({
   setSymmetryMode,
   alphaLock,
   setAlphaLock,
+  gridOverlayVisible,
+  setGridOverlayVisible,
   canUndo,
   canRedo,
   onUndo,
@@ -95,6 +101,12 @@ const TitlePanel: React.FC<TitlePanelProps> = ({
             <ToolGroupClusterDivider />
             <ZoomControls viewport={viewport} />
           </>
+        )}
+        {setGridOverlayVisible != null && (
+          <GridOverlayControl
+            gridOverlayVisible={gridOverlayVisible ?? true}
+            setGridOverlayVisible={setGridOverlayVisible}
+          />
         )}
         {setTilingEnabled != null && (
           <TilingPreviewControl tilingEnabled={tilingEnabled ?? false} setTilingEnabled={setTilingEnabled} />

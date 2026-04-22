@@ -78,7 +78,7 @@
 /* Widens the size readout to fit the leading grid icon alongside "W×H". */
 .sizeReadoutButton {
   width: auto;
-  min-width: 64px;
+  min-width: 48px;
   gap: var(--space-xs);
   padding: 0 var(--space-xs);
 }

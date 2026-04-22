@@ -7,6 +7,7 @@ export { default as DrawingTitleControl } from './DrawingTitleControl';
 export { default as EyedropperToolControl } from './EyedropperToolControl';
 export { default as EraserToolControl } from './EraserToolControl';
 export { default as FillToolControl } from './FillToolControl';
+export { default as GridOverlayControl } from './GridOverlayControl';
 export { default as HistoryRedoControl } from './HistoryRedoControl';
 export { default as HistoryUndoControl } from './HistoryUndoControl';
 export { default as LineToolControl } from './LineToolControl';

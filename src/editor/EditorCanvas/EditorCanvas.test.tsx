@@ -97,7 +97,8 @@ describe('EditorCanvas — rendering basics', () => {
 
 describe('EditorCanvas — grid overlay', () => {
   // The grid is now a <canvas> managed imperatively by useGridCanvasDraw.
-  // It is always mounted; the hook clears it when zoom < 4 and draws when >= 4.
+  // It is always mounted; the hook clears it when zoom < 4, when the user
+  // hides the grid overlay, or draws when visible and zoom >= 4.
   // DOM tests verify the canvas is always present regardless of zoom.
 
   it('the grid canvas element is always present in the DOM', () => {

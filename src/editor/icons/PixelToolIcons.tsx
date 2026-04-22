@@ -80,6 +80,7 @@ function resolveIcon(key: string): React.ComponentType<PixelIconProps> {
 export const PencilIcon = resolveIcon('Pencil');
 export const EraserIcon = resolveIcon('Eraser');
 export const FillIcon = resolveIcon('Fill');
+export const GridIcon = resolveIcon('Grid');
 export const EyedropperIcon = resolveIcon('EyeDropper');
 export const PenIcon = resolveIcon('Pen');
 export const LineIcon = resolveIcon('Line');

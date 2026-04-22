@@ -198,3 +198,35 @@ describe('tiling toggle', () => {
     expect(setTilingEnabled).toHaveBeenCalledWith(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Grid overlay toggle
+// ---------------------------------------------------------------------------
+
+describe('grid overlay toggle', () => {
+  it('does not render grid button without setGridOverlayVisible', () => {
+    render(<TitlePanel {...makeProps()} />);
+    expect(screen.queryByRole('button', { name: 'Grid overlay' })).not.toBeInTheDocument();
+  });
+
+  it('renders grid button when setGridOverlayVisible is provided', () => {
+    render(<TitlePanel {...makeProps({ gridOverlayVisible: true, setGridOverlayVisible: vi.fn() })} />);
+    expect(screen.getByRole('button', { name: 'Grid overlay' })).toBeInTheDocument();
+  });
+
+  it('clicking grid when on calls setGridOverlayVisible(false)', async () => {
+    const user = userEvent.setup();
+    const setGridOverlayVisible = vi.fn();
+    render(<TitlePanel {...makeProps({ gridOverlayVisible: true, setGridOverlayVisible })} />);
+    await user.click(screen.getByRole('button', { name: 'Grid overlay' }));
+    expect(setGridOverlayVisible).toHaveBeenCalledWith(false);
+  });
+
+  it('clicking grid when off calls setGridOverlayVisible(true)', async () => {
+    const user = userEvent.setup();
+    const setGridOverlayVisible = vi.fn();
+    render(<TitlePanel {...makeProps({ gridOverlayVisible: false, setGridOverlayVisible })} />);
+    await user.click(screen.getByRole('button', { name: 'Grid overlay' }));
+    expect(setGridOverlayVisible).toHaveBeenCalledWith(true);
+  });
+});

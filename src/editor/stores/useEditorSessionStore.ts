@@ -29,6 +29,8 @@ export interface EditorSessionStore {
   tilingEnabled: boolean;
   wrapMode: boolean;
   alphaLock: boolean;
+  /** When true, cell grid is drawn at zoom ≥ 4× (subject to zoom threshold). */
+  gridOverlayVisible: boolean;
   cancelPenPath: () => void;
   setActiveTool: (tool: PixelArtTool | ((prev: PixelArtTool) => PixelArtTool)) => void;
   setBrushSize: (size: PixelArtBrushSize | ((prev: PixelArtBrushSize) => PixelArtBrushSize)) => void;
@@ -45,6 +47,7 @@ export interface EditorSessionStore {
   setTilingEnabled: (enabled: boolean | ((prev: boolean) => boolean)) => void;
   setWrapMode: (enabled: boolean | ((prev: boolean) => boolean)) => void;
   setAlphaLock: (enabled: boolean | ((prev: boolean) => boolean)) => void;
+  setGridOverlayVisible: (visible: boolean | ((prev: boolean) => boolean)) => void;
   setCancelPenPath: (fn: () => void) => void;
   resetSession: (initialColor: string) => void;
 }
@@ -65,6 +68,7 @@ export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
   tilingEnabled: false,
   wrapMode: false,
   alphaLock: false,
+  gridOverlayVisible: true,
   cancelPenPath: noop,
 
   setActiveTool: (tool) =>
@@ -118,6 +122,13 @@ export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
     set((s) => ({
       alphaLock: typeof alphaLock === 'function' ? (alphaLock as (p: boolean) => boolean)(s.alphaLock) : alphaLock,
     })),
+  setGridOverlayVisible: (gridOverlayVisible) =>
+    set((s) => ({
+      gridOverlayVisible:
+        typeof gridOverlayVisible === 'function'
+          ? (gridOverlayVisible as (p: boolean) => boolean)(s.gridOverlayVisible)
+          : gridOverlayVisible,
+    })),
   setCancelPenPath: (fn) => set({ cancelPenPath: fn }),
 
   resetSession: (initialColor) =>
@@ -137,6 +148,7 @@ export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
       tilingEnabled: false,
       wrapMode: false,
       alphaLock: false,
+      gridOverlayVisible: true,
       cancelPenPath: s.cancelPenPath,
     })),
 }));
