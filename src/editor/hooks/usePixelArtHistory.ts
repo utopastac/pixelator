@@ -12,7 +12,7 @@
  * the updated `Layer[]`.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Layer } from '@/lib/storage';
 import { createEmptyPixels, newId } from '@/lib/storage';
 import { useLayers } from './useLayers';
@@ -124,8 +124,8 @@ function cloneLayers(layers: Layer[]): Layer[] {
  * past/future snapshot stack (capped at `HISTORY_LIMIT`). Every structural
  * layer operation (`addLayer`, `deleteLayer`, `renameLayer`, etc.) routes
  * through `applyLayers` so each change is undoable and fires `onChange` for
- * autosave. `dispatchPixels` writes mid-drag without a snapshot;
- * `commitPixels` pushes a history entry.
+ * autosave. `dispatchPixels` writes mid-drag without a snapshot (coalesced to
+ * one `requestAnimationFrame` per frame). `commitPixels` pushes a history entry.
  */
 export function usePixelArtHistory(
   params: UsePixelArtHistoryParams,
@@ -149,15 +149,53 @@ export function usePixelArtHistory(
   const layers = layersApi.layers;
   const activeLayerId = layersApi.activeLayerId;
 
+  const pendingDispatchRef = useRef<string[] | null>(null);
+  const dispatchRafRef = useRef<number | null>(null);
+
+  const cancelDispatchRaf = useCallback(() => {
+    if (dispatchRafRef.current !== null) {
+      cancelAnimationFrame(dispatchRafRef.current);
+      dispatchRafRef.current = null;
+    }
+  }, []);
+
+  const discardPendingDispatch = useCallback(() => {
+    cancelDispatchRaf();
+    pendingDispatchRef.current = null;
+  }, [cancelDispatchRaf]);
+
+  const flushDispatchPixelsToLayers = useCallback(() => {
+    dispatchRafRef.current = null;
+    const px = pendingDispatchRef.current;
+    pendingDispatchRef.current = null;
+    if (px !== null) {
+      layersApi.setActiveLayerPixels(px);
+    }
+  }, [layersApi]);
+
+  const takePendingDispatchOrNull = useCallback((): string[] | null => {
+    cancelDispatchRaf();
+    const p = pendingDispatchRef.current;
+    pendingDispatchRef.current = null;
+    return p;
+  }, [cancelDispatchRaf]);
+
   const dispatchPixels = useCallback(
     (px: string[]) => {
-      layersApi.setActiveLayerPixels(px);
+      pendingDispatchRef.current = px;
+      if (dispatchRafRef.current === null) {
+        dispatchRafRef.current = requestAnimationFrame(() => {
+          flushDispatchPixelsToLayers();
+        });
+      }
     },
-    [layersApi],
+    [flushDispatchPixelsToLayers],
   );
 
   const commitPixels = useCallback(
     (px: string[], beforePixels?: string[]) => {
+      const pending = takePendingDispatchOrNull();
+
       // Snapshot current layers (pre-mutation), push onto past, clear future,
       // then apply the new pixels. `layersApi.layers` is the state as of this
       // render — a shallow clone is sufficient because we never mutate pixel
@@ -168,6 +206,9 @@ export function usePixelArtHistory(
       // temporary "cleared" state during a drag: by the time commit is called,
       // `layersApi.layers` reflects that temporary state rather than the
       // original pixels, so the snapshot would be wrong without the override.
+      //
+      // When RAF-coalesced dispatches are pending, merge `pending` into the
+      // active layer in the snapshot clone (React state may not have flushed yet).
       let snapshotLayers: Layer[];
       if (beforePixels !== undefined) {
         const cloned = cloneLayers(layersApi.layers);
@@ -175,18 +216,24 @@ export function usePixelArtHistory(
         if (idx >= 0) cloned[idx] = { ...cloned[idx], pixels: beforePixels };
         snapshotLayers = cloned;
       } else {
-        snapshotLayers = cloneLayers(layersApi.layers);
+        const cloned = cloneLayers(layersApi.layers);
+        const idx = cloned.findIndex((l) => l.id === layersApi.activeLayerId);
+        if (idx >= 0 && pending !== null) {
+          cloned[idx] = { ...cloned[idx], pixels: pending };
+        }
+        snapshotLayers = cloned;
       }
       const snapshot: LayerSnapshot = { layers: snapshotLayers, width, height };
       setPast((prev) => [...prev, snapshot].slice(-HISTORY_LIMIT));
       setFuture([]);
       layersApi.setActiveLayerPixels(px);
     },
-    [layersApi, width, height],
+    [layersApi, width, height, takePendingDispatchOrNull],
   );
 
   const clearLayer = useCallback(
     (id: string) => {
+      discardPendingDispatch();
       // Snapshot current layers, then replace the target layer's pixels with
       // an empty array. Undoable like any other commit.
       const snapshot: LayerSnapshot = { layers: cloneLayers(layersApi.layers), width, height };
@@ -198,11 +245,12 @@ export function usePixelArtHistory(
       layersApi.replaceLayers(nextLayers, layersApi.activeLayerId);
       if (onChange) onChange(nextLayers);
     },
-    [layersApi, width, height, onChange],
+    [layersApi, width, height, onChange, discardPendingDispatch],
   );
 
   const rotateLayer = useCallback(
     (id: string, dir: 'cw' | 'ccw') => {
+      discardPendingDispatch();
       const target = layersApi.layers.find((l) => l.id === id);
       if (!target) return;
       const snapshot: LayerSnapshot = { layers: cloneLayers(layersApi.layers), width, height };
@@ -215,11 +263,12 @@ export function usePixelArtHistory(
       layersApi.replaceLayers(nextLayers, layersApi.activeLayerId);
       if (onChange) onChange(nextLayers);
     },
-    [layersApi, width, height, onChange],
+    [layersApi, width, height, onChange, discardPendingDispatch],
   );
 
   const commitResize = useCallback(
     (nextLayers: Layer[], nextWidth: number, nextHeight: number) => {
+      discardPendingDispatch();
       // Snapshot the pre-resize layers AND dimensions so undo can restore both.
       const snapshot: LayerSnapshot = { layers: cloneLayers(layersApi.layers), width, height };
       setPast((prev) => [...prev, snapshot].slice(-HISTORY_LIMIT));
@@ -230,12 +279,13 @@ export function usePixelArtHistory(
       }
       if (onChange) onChange(nextLayers);
     },
-    [layersApi, width, height, onSizeChange, onChange],
+    [layersApi, width, height, onSizeChange, onChange, discardPendingDispatch],
   );
 
   const emitChange = useCallback(
     (nextPixels: string[]) => {
       if (!onChange) return;
+      discardPendingDispatch();
       // Build the post-mutation layer stack synchronously so autosave sees
       // the up-to-date shape regardless of React batching. `layersApi.layers`
       // is the pre-mutation value at this render; the active layer's pixels
@@ -249,11 +299,12 @@ export function usePixelArtHistory(
       next[idx] = { ...next[idx], pixels: nextPixels };
       onChange(next);
     },
-    [onChange, layersApi],
+    [onChange, layersApi, discardPendingDispatch],
   );
 
   const undo = useCallback(() => {
     if (past.length === 0) return;
+    discardPendingDispatch();
     const target = past[past.length - 1];
     const currentSnapshot: LayerSnapshot = { layers: cloneLayers(layersApi.layers), width, height };
     setPast(past.slice(0, -1));
@@ -263,10 +314,11 @@ export function usePixelArtHistory(
       onSizeChange?.(target.width, target.height);
     }
     if (onChange) onChange(target.layers);
-  }, [past, future, layersApi, width, height, onSizeChange, onChange]);
+  }, [past, future, layersApi, width, height, onSizeChange, onChange, discardPendingDispatch]);
 
   const redo = useCallback(() => {
     if (future.length === 0) return;
+    discardPendingDispatch();
     const target = future[0];
     const currentSnapshot: LayerSnapshot = { layers: cloneLayers(layersApi.layers), width, height };
     setPast([...past, currentSnapshot].slice(-HISTORY_LIMIT));
@@ -276,7 +328,7 @@ export function usePixelArtHistory(
       onSizeChange?.(target.width, target.height);
     }
     if (onChange) onChange(target.layers);
-  }, [past, future, layersApi, width, height, onSizeChange, onChange]);
+  }, [past, future, layersApi, width, height, onSizeChange, onChange, discardPendingDispatch]);
 
   // ── Layer CRUD: snapshot for undo, apply via replaceLayers, fire onChange ──
   // Each helper reads the current `layersApi.layers` at call time, computes
@@ -287,13 +339,14 @@ export function usePixelArtHistory(
 
   const applyLayers = useCallback(
     (nextLayers: Layer[], nextActiveId: string) => {
+      discardPendingDispatch();
       const snapshot: LayerSnapshot = { layers: cloneLayers(layersApi.layers), width, height };
       setPast((prev) => [...prev, snapshot].slice(-HISTORY_LIMIT));
       setFuture([]);
       layersApi.replaceLayers(nextLayers, nextActiveId);
       if (onChange) onChange(nextLayers);
     },
-    [layersApi, width, height, onChange],
+    [layersApi, width, height, onChange, discardPendingDispatch],
   );
 
   const addLayer = useCallback(
@@ -477,6 +530,13 @@ export function usePixelArtHistory(
       applyLayers(nextLayers, layersApi.activeLayerId);
     },
     [applyLayers, layersApi.layers, layersApi.activeLayerId],
+  );
+
+  useEffect(
+    () => () => {
+      discardPendingDispatch();
+    },
+    [discardPendingDispatch],
   );
 
   return {

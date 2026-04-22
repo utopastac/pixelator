@@ -5,7 +5,7 @@
  * renderHook + act.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { HISTORY_LIMIT, usePixelArtHistory } from './usePixelArtHistory';
 import { usePixelArtSelection } from './usePixelArtSelection';
 import type { Layer } from '@/lib/storage';
@@ -56,12 +56,16 @@ describe('usePixelArtHistory', () => {
     expect(result.current.canRedo).toBe(true);
   });
 
-  it('dispatchPixels writes without snapshotting (undo does not see intermediate frames)', () => {
+  it('dispatchPixels writes without snapshotting (undo does not see intermediate frames)', async () => {
     const { result } = setup();
-    act(() => result.current.dispatchPixels(['#111', '', '', '']));
-    act(() => result.current.dispatchPixels(['#222', '', '', '']));
-    act(() => result.current.dispatchPixels(['#333', '', '', '']));
-    expect(result.current.pixels).toEqual(['#333', '', '', '']);
+    act(() => {
+      result.current.dispatchPixels(['#111', '', '', '']);
+      result.current.dispatchPixels(['#222', '', '', '']);
+      result.current.dispatchPixels(['#333', '', '', '']);
+    });
+    await waitFor(() => {
+      expect(result.current.pixels).toEqual(['#333', '', '', '']);
+    });
     // No snapshots pushed.
     expect(result.current.canUndo).toBe(false);
 
