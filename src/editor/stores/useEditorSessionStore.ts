@@ -31,6 +31,8 @@ export interface EditorSessionStore {
   alphaLock: boolean;
   /** When true, cell grid is drawn at zoom ≥ 4× (subject to zoom threshold). */
   gridOverlayVisible: boolean;
+  /** When true, the floating layers stack is mounted (still requires global `panelsVisible`). */
+  layersPanelVisible: boolean;
   cancelPenPath: () => void;
   setActiveTool: (tool: PixelArtTool | ((prev: PixelArtTool) => PixelArtTool)) => void;
   setBrushSize: (size: PixelArtBrushSize | ((prev: PixelArtBrushSize) => PixelArtBrushSize)) => void;
@@ -48,6 +50,7 @@ export interface EditorSessionStore {
   setWrapMode: (enabled: boolean | ((prev: boolean) => boolean)) => void;
   setAlphaLock: (enabled: boolean | ((prev: boolean) => boolean)) => void;
   setGridOverlayVisible: (visible: boolean | ((prev: boolean) => boolean)) => void;
+  setLayersPanelVisible: (visible: boolean | ((prev: boolean) => boolean)) => void;
   setCancelPenPath: (fn: () => void) => void;
   resetSession: (initialColor: string) => void;
 }
@@ -69,6 +72,7 @@ export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
   wrapMode: false,
   alphaLock: false,
   gridOverlayVisible: true,
+  layersPanelVisible: true,
   cancelPenPath: noop,
 
   setActiveTool: (tool) =>
@@ -129,6 +133,13 @@ export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
           ? (gridOverlayVisible as (p: boolean) => boolean)(s.gridOverlayVisible)
           : gridOverlayVisible,
     })),
+  setLayersPanelVisible: (layersPanelVisible) =>
+    set((s) => ({
+      layersPanelVisible:
+        typeof layersPanelVisible === 'function'
+          ? (layersPanelVisible as (p: boolean) => boolean)(s.layersPanelVisible)
+          : layersPanelVisible,
+    })),
   setCancelPenPath: (fn) => set({ cancelPenPath: fn }),
 
   resetSession: (initialColor) =>
@@ -149,6 +160,7 @@ export const useEditorSessionStore = create<EditorSessionStore>((set) => ({
       wrapMode: false,
       alphaLock: false,
       gridOverlayVisible: true,
+      layersPanelVisible: true,
       cancelPenPath: s.cancelPenPath,
     })),
 }));

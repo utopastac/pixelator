@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyBrush,
+  applyBrushInPlace,
   arrowCells,
   bresenhamLine,
   constrainLineTo45,
@@ -314,6 +315,13 @@ describe('applyBrush', () => {
     expect(next[6]).toBe('#ff0000'); // row=2, col=0
     expect(next[7]).toBe('#ff0000'); // row=2, col=1
     expect(next[8]).toBe('#ff0000'); // row=2, col=2
+  });
+
+  it('applyBrushInPlace mutates the buffer to match applyBrush', () => {
+    const a = new Array<string>(9).fill('');
+    const b = new Array<string>(9).fill('');
+    applyBrushInPlace(a, 1, 1, '#abc', 'sm', 3, 3);
+    expect(a).toEqual(applyBrush(b, 1, 1, '#abc', 'sm', 3, 3));
   });
 });
 

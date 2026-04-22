@@ -590,11 +590,15 @@ describe('paint and eraser drag strokes', () => {
     expect(commit).toHaveBeenCalledTimes(1);
     expect(dispatch).toHaveBeenCalledTimes(2);
 
-    // Each dispatch paints the cell under the cursor (reads from initial, so
-    // only the current cell is set — accumulation is the job of history, not
-    // this mock).
-    expect((dispatch.mock.calls[0][0] as string[])[1]).toBe('#ff0000'); // (1,0)
-    expect((dispatch.mock.calls[1][0] as string[])[2]).toBe('#ff0000'); // (2,0)
+    // Each dispatch carries the full stroke so far (mousedown + prior moves),
+    // even though `activePixels.pixels` in this mock never updates.
+    const first = dispatch.mock.calls[0][0] as string[];
+    expect(first[0]).toBe('#ff0000');
+    expect(first[1]).toBe('#ff0000');
+    const second = dispatch.mock.calls[1][0] as string[];
+    expect(second[0]).toBe('#ff0000');
+    expect(second[1]).toBe('#ff0000');
+    expect(second[2]).toBe('#ff0000');
   });
 
   it('paint mouseup does not emit a second commit (one history entry per stroke)', () => {

@@ -8,6 +8,7 @@ import EditorBars from '@/editor/EditorControls/EditorBars';
 import LayersPanel from './LayersPanel/LayersPanel';
 import EditorCanvas from './EditorCanvas/EditorCanvas';
 import { usePixelArtEditorState } from './hooks/usePixelArtEditorState';
+import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
 import type { Layer } from '@/lib/storage';
 import type { Theme } from '@/hooks/useTheme';
 
@@ -83,6 +84,7 @@ const PixelArtEditor: React.FC<PixelArtEditorProps> = (props) => {
   } = usePixelArtEditorState(props);
 
   const { panelsVisible = true, isMobile = false } = props;
+  const layersPanelVisible = useEditorSessionStore((s) => s.layersPanelVisible);
 
   return (
     <div
@@ -96,7 +98,7 @@ const PixelArtEditor: React.FC<PixelArtEditorProps> = (props) => {
 
       <ContextMenu {...contextMenuProps} />
 
-      {panelsVisible && <LayersPanel {...layersPanelProps} />}
+      {panelsVisible && layersPanelVisible && <LayersPanel {...layersPanelProps} />}
 
       {panelsVisible && <RecentColorsPanel {...recentColorsPanelProps} />}
 

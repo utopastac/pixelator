@@ -26,6 +26,33 @@ export const BRUSH_OFFSETS: Record<PixelArtBrushSize, Array<[number, number]>> =
  * brush centred on (col, row). Cells outside the grid bounds are silently skipped,
  * unless `wrap` is true in which case they wrap around using modulo arithmetic.
  */
+/**
+ * Mutates `pixels` in place (same rules as `applyBrush`). Used by tools that
+ * stamp many cells per pointermove so we avoid copying the full grid per cell.
+ */
+export function applyBrushInPlace(
+  pixels: string[],
+  col: number,
+  row: number,
+  color: string,
+  brushSize: PixelArtBrushSize,
+  gridWidth: number,
+  gridHeight: number,
+  wrap = false,
+): void {
+  for (const [dc, dr] of BRUSH_OFFSETS[brushSize]) {
+    const rawC = col + dc;
+    const rawR = row + dr;
+    if (wrap) {
+      const c = ((rawC % gridWidth) + gridWidth) % gridWidth;
+      const r = ((rawR % gridHeight) + gridHeight) % gridHeight;
+      pixels[r * gridWidth + c] = color;
+    } else if (rawC >= 0 && rawC < gridWidth && rawR >= 0 && rawR < gridHeight) {
+      pixels[rawR * gridWidth + rawC] = color;
+    }
+  }
+}
+
 export function applyBrush(
   pixels: string[],
   col: number,
@@ -37,19 +64,7 @@ export function applyBrush(
   wrap = false,
 ): string[] {
   const next = [...pixels];
-  for (const [dc, dr] of BRUSH_OFFSETS[brushSize]) {
-    const rawC = col + dc;
-    const rawR = row + dr;
-    if (wrap) {
-      const c = ((rawC % gridWidth) + gridWidth) % gridWidth;
-      const r = ((rawR % gridHeight) + gridHeight) % gridHeight;
-      next[r * gridWidth + c] = color;
-    } else {
-      if (rawC >= 0 && rawC < gridWidth && rawR >= 0 && rawR < gridHeight) {
-        next[rawR * gridWidth + rawC] = color;
-      }
-    }
-  }
+  applyBrushInPlace(next, col, row, color, brushSize, gridWidth, gridHeight, wrap);
   return next;
 }
 

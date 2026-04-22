@@ -11,6 +11,7 @@ export { default as GridOverlayControl } from './GridOverlayControl';
 export { default as HistoryRedoControl } from './HistoryRedoControl';
 export { default as HistoryUndoControl } from './HistoryUndoControl';
 export { default as KeyboardShortcutsControl } from './KeyboardShortcutsControl';
+export { default as LayersPanelToggleControl } from './LayersPanelToggleControl';
 export { default as LineToolControl } from './LineToolControl';
 export { default as MarqueeControl } from './MarqueeControl';
 export { default as MarqueePicker } from './MarqueePicker';

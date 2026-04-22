@@ -3,7 +3,7 @@
  * Kept as a barrel so existing imports (`from '../lib/pixelArtUtils'`) continue
  * to resolve without change.
  *
- *   pixelArtBrush.ts    — brush sizes, applyBrush, expandCellsWithBrush
+ *   pixelArtBrush.ts    — brush sizes, applyBrush, applyBrushInPlace, expandCellsWithBrush
  *   pixelArtFormat.ts   — HEX_REGEX, DEFAULT_PALETTE, GRID_COLOR,
  *                         resizeLayerCentered, parseSvgToPixels, pixelsToSvg
  *   pixelArtGeometry.ts — bresenhamLine, rectCells, ellipseCells,

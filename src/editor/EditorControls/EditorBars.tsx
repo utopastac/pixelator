@@ -143,11 +143,12 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           aria-label="Editor"
         >
           <div className={styles.mobileTitleStrip} role="region" aria-label="Drawing title">
-          <ToolGroupCluster trailingDivider={false}>
-            {c.fill}
-            {c.eyedropper}
-            {c.swatches}
-          </ToolGroupCluster>
+            <ToolGroupCluster trailingDivider={false}>
+              {c.fill}
+              {c.eyedropper}
+              {c.swatches}
+              {c.layersPanelToggle}
+            </ToolGroupCluster>
           </div>
           <div role="toolbar" aria-label="Pixel art tools">
             <div className={styles.toolsRow}>
@@ -204,6 +205,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
             {c.zoom}
             {c.gridOverlay}
             {c.tiling}
+            {c.layersPanelToggle}
           </ToolGroupCluster>
           <ToolGroupCluster>
             {c.symmetry}

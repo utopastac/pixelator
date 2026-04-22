@@ -11,6 +11,7 @@ import GridOverlayControl from '@/editor/controls/GridOverlayControl';
 import HistoryRedoControl from '@/editor/controls/HistoryRedoControl';
 import HistoryUndoControl from '@/editor/controls/HistoryUndoControl';
 import KeyboardShortcutsControl from '@/editor/controls/KeyboardShortcutsControl';
+import LayersPanelToggleControl from '@/editor/controls/LayersPanelToggleControl';
 import LineToolControl from '@/editor/controls/LineToolControl';
 import MarqueeControl from '@/editor/controls/MarqueeControl';
 import MoveToolControl from '@/editor/controls/MoveToolControl';
@@ -127,6 +128,7 @@ export type EditorControlNodes = {
   fill: ReactNode;
   eyedropper: ReactNode;
   swatches: ReactNode;
+  layersPanelToggle: ReactNode;
   togglePanels: ReactNode | null;
   keyboardShortcuts: ReactNode | null;
   themeToggle: ReactNode | null;
@@ -218,6 +220,8 @@ export function createEditorControls(p: EditorChromeInput): EditorControlNodes {
     />
   );
 
+  const layersPanelToggle = <LayersPanelToggleControl />;
+
   const togglePanels =
     typeof p.panelsVisible === 'boolean' && p.onTogglePanels != null ? (
       <PanelsVisibilityControl panelsVisible={p.panelsVisible} onTogglePanels={p.onTogglePanels} />
@@ -275,6 +279,7 @@ export function createEditorControls(p: EditorChromeInput): EditorControlNodes {
     fill,
     eyedropper,
     swatches,
+    layersPanelToggle,
     togglePanels,
     keyboardShortcuts,
     themeToggle,
