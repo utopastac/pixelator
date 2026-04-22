@@ -60,7 +60,14 @@ const ToolButton = forwardRef<HTMLDivElement, ToolButtonProps>(({
         aria-label={ariaLabel}
         aria-haspopup={ariaHaspopup}
         aria-expanded={ariaExpanded}
-        {...(chevron ? longPress : { onClick: onPress })}
+        {...(chevron
+          ? {
+              ...longPress,
+              onContextMenu: (e: React.MouseEvent) => {
+                e.preventDefault();
+              },
+            }
+          : { onClick: onPress })}
       >
         <Icon size={iconSize} aria-hidden />
       </button>

@@ -10,19 +10,24 @@ import React from 'react';
 export const LONG_PRESS_MS = 400;
 
 /**
- * Returns mouse and touch event handlers to spread onto a trigger element.
+ * Returns pointer event handlers to spread onto a trigger element.
  * Holding the element for at least `LONG_PRESS_MS` fires `onLongPress`;
  * releasing before that fires `onShortPress`.
  *
- * Moving the pointer off the element (`onMouseLeave`) cancels a pending long
- * press without triggering either callback.
+ * Only the **primary** pointer starts a gesture (ignores multi-touch
+ * secondary pointers). Moving off the element (`pointerleave`) or a system
+ * cancel (`pointercancel`) ends a pending long-press without firing either
+ * callback.
+ *
+ * Pointer events subsume mouse and touch, so this path works on mobile
+ * browsers that prioritise the pointer event model over legacy touch events.
  *
  * @param onShortPress - Callback invoked when the user releases before the
  *   long-press threshold.
  * @param onLongPress - Callback invoked when the user holds for at least
  *   `LONG_PRESS_MS` milliseconds.
- * @returns An object with `onMouseDown`, `onMouseUp`, `onMouseLeave`,
- *   `onTouchStart`, and `onTouchEnd` handlers to spread onto the element.
+ * @returns Handlers: `onPointerDown`, `onPointerUp`, `onPointerLeave`,
+ *   `onPointerCancel`.
  */
 export function useLongPress(
   onShortPress: () => void,
@@ -30,10 +35,17 @@ export function useLongPress(
 ) {
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const firedLong = React.useRef(false);
+  /** Swallows the synthetic `click` that follows pointer/touch activation. */
+  const suppressNextClickRef = React.useRef(false);
 
-  const start = React.useCallback(() => {
+  const start = React.useCallback((e: React.PointerEvent) => {
+    if (!e.isPrimary) return;
     firedLong.current = false;
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+    }
     timerRef.current = setTimeout(() => {
+      timerRef.current = null;
       firedLong.current = true;
       onLongPress();
     }, LONG_PRESS_MS);
@@ -46,18 +58,37 @@ export function useLongPress(
     }
   }, []);
 
-  const end = React.useCallback(() => {
-    cancel();
-    if (!firedLong.current) {
-      onShortPress();
+  const end = React.useCallback(
+    (e: React.PointerEvent) => {
+      if (!e.isPrimary) return;
+      cancel();
+      suppressNextClickRef.current = true;
+      if (!firedLong.current) {
+        onShortPress();
+      }
+    },
+    [cancel, onShortPress],
+  );
+
+  const onClick = React.useCallback(() => {
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false;
+      return;
     }
-  }, [cancel, onShortPress]);
+    onShortPress();
+  }, [onShortPress]);
+
+  React.useEffect(() => () => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+    }
+  }, []);
 
   return {
-    onMouseDown: start,
-    onMouseUp: end,
-    onMouseLeave: cancel,
-    onTouchStart: start,
-    onTouchEnd: end,
+    onPointerDown: start,
+    onPointerUp: end,
+    onPointerLeave: cancel,
+    onPointerCancel: cancel,
+    onClick,
   };
 }

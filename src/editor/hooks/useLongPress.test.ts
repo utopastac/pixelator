@@ -4,6 +4,7 @@
  * Uses vi.useFakeTimers() to control the internal setTimeout precisely.
  * `renderHook` from @testing-library/react drives the hook lifecycle.
  */
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useLongPress, LONG_PRESS_MS } from './useLongPress';
@@ -40,25 +41,27 @@ function mount() {
 describe('useLongPress — returned keys', () => {
   it('returns the five expected event-handler keys', () => {
     const { result } = mount();
-    expect(result.current).toHaveProperty('onMouseDown');
-    expect(result.current).toHaveProperty('onMouseUp');
-    expect(result.current).toHaveProperty('onMouseLeave');
-    expect(result.current).toHaveProperty('onTouchStart');
-    expect(result.current).toHaveProperty('onTouchEnd');
+    expect(result.current).toHaveProperty('onPointerDown');
+    expect(result.current).toHaveProperty('onPointerUp');
+    expect(result.current).toHaveProperty('onPointerLeave');
+    expect(result.current).toHaveProperty('onPointerCancel');
+    expect(result.current).toHaveProperty('onClick');
   });
 });
 
 // ---------------------------------------------------------------------------
-// Short press (mouse)
+// Short press (pointer)
 // ---------------------------------------------------------------------------
 
-describe('useLongPress — short press (mouse)', () => {
-  it('fires onShortPress when mouseup arrives before LONG_PRESS_MS', () => {
+const primaryPointer = { isPrimary: true, pointerId: 1 } as unknown as ReactPointerEvent<HTMLButtonElement>;
+
+describe('useLongPress — short press (pointer)', () => {
+  it('fires onShortPress when pointerup arrives before LONG_PRESS_MS', () => {
     const { result, onShortPress, onLongPress } = mount();
 
-    act(() => { result.current.onMouseDown(); });
+    act(() => { result.current.onPointerDown(primaryPointer); });
     act(() => { vi.advanceTimersByTime(LONG_PRESS_MS - 1); });
-    act(() => { result.current.onMouseUp(); });
+    act(() => { result.current.onPointerUp(primaryPointer); });
 
     expect(onShortPress).toHaveBeenCalledTimes(1);
     expect(onLongPress).not.toHaveBeenCalled();
@@ -67,36 +70,66 @@ describe('useLongPress — short press (mouse)', () => {
   it('does not fire onLongPress after a short press', () => {
     const { result, onLongPress } = mount();
 
-    act(() => { result.current.onMouseDown(); });
-    act(() => { result.current.onMouseUp(); });
+    act(() => { result.current.onPointerDown(primaryPointer); });
+    act(() => { result.current.onPointerUp(primaryPointer); });
     // Advance well past threshold — timer should already be cleared
     act(() => { vi.advanceTimersByTime(LONG_PRESS_MS * 2); });
 
     expect(onLongPress).not.toHaveBeenCalled();
   });
+
+  it('ignores the synthetic click after a pointer short press', () => {
+    const { result, onShortPress } = mount();
+
+    act(() => { result.current.onPointerDown(primaryPointer); });
+    act(() => { result.current.onPointerUp(primaryPointer); });
+    act(() => { result.current.onClick(); });
+
+    expect(onShortPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires onShortPress from click alone (keyboard-style activation)', () => {
+    const { result, onShortPress } = mount();
+
+    act(() => { result.current.onClick(); });
+
+    expect(onShortPress).toHaveBeenCalledTimes(1);
+  });
 });
 
 // ---------------------------------------------------------------------------
-// Long press (mouse)
+// Long press (pointer)
 // ---------------------------------------------------------------------------
 
-describe('useLongPress — long press (mouse)', () => {
+describe('useLongPress — long press (pointer)', () => {
   it('fires onLongPress when held past LONG_PRESS_MS', () => {
     const { result, onShortPress, onLongPress } = mount();
 
-    act(() => { result.current.onMouseDown(); });
+    act(() => { result.current.onPointerDown(primaryPointer); });
     act(() => { vi.advanceTimersByTime(LONG_PRESS_MS); });
 
     expect(onLongPress).toHaveBeenCalledTimes(1);
     expect(onShortPress).not.toHaveBeenCalled();
   });
 
-  it('does NOT fire onShortPress when mouseup follows a long press', () => {
+  it('does NOT fire onShortPress when pointerup follows a long press', () => {
     const { result, onShortPress, onLongPress } = mount();
 
-    act(() => { result.current.onMouseDown(); });
+    act(() => { result.current.onPointerDown(primaryPointer); });
     act(() => { vi.advanceTimersByTime(LONG_PRESS_MS); });
-    act(() => { result.current.onMouseUp(); });
+    act(() => { result.current.onPointerUp(primaryPointer); });
+
+    expect(onLongPress).toHaveBeenCalledTimes(1);
+    expect(onShortPress).not.toHaveBeenCalled();
+  });
+
+  it('ignores the synthetic click after a long press', () => {
+    const { result, onShortPress, onLongPress } = mount();
+
+    act(() => { result.current.onPointerDown(primaryPointer); });
+    act(() => { vi.advanceTimersByTime(LONG_PRESS_MS); });
+    act(() => { result.current.onPointerUp(primaryPointer); });
+    act(() => { result.current.onClick(); });
 
     expect(onLongPress).toHaveBeenCalledTimes(1);
     expect(onShortPress).not.toHaveBeenCalled();
@@ -107,13 +140,13 @@ describe('useLongPress — long press (mouse)', () => {
 // Mouse leave cancels
 // ---------------------------------------------------------------------------
 
-describe('useLongPress — mouse leave', () => {
+describe('useLongPress — pointer leave', () => {
   it('cancels a pending long press without firing either callback', () => {
     const { result, onShortPress, onLongPress } = mount();
 
-    act(() => { result.current.onMouseDown(); });
+    act(() => { result.current.onPointerDown(primaryPointer); });
     act(() => { vi.advanceTimersByTime(LONG_PRESS_MS / 2); });
-    act(() => { result.current.onMouseLeave(); });
+    act(() => { result.current.onPointerLeave(); });
     // Advance past threshold — timer should already be cleared
     act(() => { vi.advanceTimersByTime(LONG_PRESS_MS); });
 
@@ -123,45 +156,18 @@ describe('useLongPress — mouse leave', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Touch: short press
+// Non-primary pointer (multi-touch)
 // ---------------------------------------------------------------------------
 
-describe('useLongPress — short press (touch)', () => {
-  it('fires onShortPress when touchend arrives before LONG_PRESS_MS', () => {
+describe('useLongPress — non-primary pointer', () => {
+  it('ignores non-primary pointerdown', () => {
     const { result, onShortPress, onLongPress } = mount();
+    const secondary = { isPrimary: false, pointerId: 2 } as unknown as ReactPointerEvent<HTMLButtonElement>;
 
-    act(() => { result.current.onTouchStart(); });
-    act(() => { vi.advanceTimersByTime(LONG_PRESS_MS - 1); });
-    act(() => { result.current.onTouchEnd(); });
+    act(() => { result.current.onPointerDown(secondary); });
+    act(() => { vi.advanceTimersByTime(LONG_PRESS_MS); });
 
-    expect(onShortPress).toHaveBeenCalledTimes(1);
     expect(onLongPress).not.toHaveBeenCalled();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Touch: long press
-// ---------------------------------------------------------------------------
-
-describe('useLongPress — long press (touch)', () => {
-  it('fires onLongPress when held past LONG_PRESS_MS via touch', () => {
-    const { result, onShortPress, onLongPress } = mount();
-
-    act(() => { result.current.onTouchStart(); });
-    act(() => { vi.advanceTimersByTime(LONG_PRESS_MS); });
-
-    expect(onLongPress).toHaveBeenCalledTimes(1);
-    expect(onShortPress).not.toHaveBeenCalled();
-  });
-
-  it('does NOT fire onShortPress when touchend follows a long press', () => {
-    const { result, onShortPress, onLongPress } = mount();
-
-    act(() => { result.current.onTouchStart(); });
-    act(() => { vi.advanceTimersByTime(LONG_PRESS_MS); });
-    act(() => { result.current.onTouchEnd(); });
-
-    expect(onLongPress).toHaveBeenCalledTimes(1);
     expect(onShortPress).not.toHaveBeenCalled();
   });
 });
@@ -174,32 +180,32 @@ describe('useLongPress — unmount cleanup', () => {
   it('a pending timer is running before unmount', () => {
     const { result, unmount } = mount();
 
-    act(() => { result.current.onMouseDown(); });
+    act(() => { result.current.onPointerDown(primaryPointer); });
 
-    // The timer should be pending after mousedown
+    // The timer should be pending after pointerdown
     expect(vi.getTimerCount()).toBeGreaterThan(0);
 
     // Clean up
-    act(() => { result.current.onMouseUp(); }); // cancel the timer via short-press
+    act(() => { result.current.onPointerUp(primaryPointer); }); // cancel the timer via short-press
     act(() => { unmount(); });
   });
 
   it('short-press before unmount does not leave any pending timer', () => {
     const { result, unmount } = mount();
 
-    act(() => { result.current.onMouseDown(); });
-    act(() => { result.current.onMouseUp(); }); // short press clears the timer
+    act(() => { result.current.onPointerDown(primaryPointer); });
+    act(() => { result.current.onPointerUp(primaryPointer); }); // short press clears the timer
 
     expect(vi.getTimerCount()).toBe(0);
 
     act(() => { unmount(); });
   });
 
-  it('mouseLeave clears the timer before unmount', () => {
+  it('pointerLeave clears the timer before unmount', () => {
     const { result, unmount } = mount();
 
-    act(() => { result.current.onMouseDown(); });
-    act(() => { result.current.onMouseLeave(); }); // cancel clears the timer
+    act(() => { result.current.onPointerDown(primaryPointer); });
+    act(() => { result.current.onPointerLeave(); }); // cancel clears the timer
 
     expect(vi.getTimerCount()).toBe(0);
 
