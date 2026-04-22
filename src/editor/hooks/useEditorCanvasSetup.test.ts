@@ -277,6 +277,49 @@ describe('offscreen map bookkeeping', () => {
     // Only 1 layer remains → drawLayer called once
     expect(mockDrawLayer).toHaveBeenCalledTimes(1);
   });
+
+  it('only rasterises layers whose pixels array reference changed', () => {
+    const pixels1: string[] = [];
+    const pixels2: string[] = [];
+    const l1: Layer = { id: 'l1', name: 'l1', visible: true, locked: false, opacity: 1, pixels: pixels1 };
+    const l2: Layer = { id: 'l2', name: 'l2', visible: true, locked: false, opacity: 1, pixels: pixels2 };
+    const props = defaultProps({ layers: [l1, l2], activeLayerId: 'l1' });
+
+    const { rerender } = renderHook(
+      (p: Parameters<typeof useEditorCanvasSetup>[0]) => useEditorCanvasSetup(p),
+      { initialProps: props },
+    );
+
+    expect(mockDrawLayer).toHaveBeenCalledTimes(2);
+    mockDrawLayer.mockClear();
+
+    const pixels2b: string[] = ['#ff0000'];
+    const l2b: Layer = { ...l2, pixels: pixels2b };
+    act(() => rerender({ ...props, layers: [l1, l2b] }));
+
+    expect(mockDrawLayer).toHaveBeenCalledTimes(1);
+    expect(mockDrawLayer.mock.calls[0][1]).toBe(pixels2b);
+  });
+
+  it('re-rasterises every layer when width or height changes', () => {
+    const pixels1: string[] = new Array(64).fill('');
+    const pixels2: string[] = new Array(64).fill('#ff0000');
+    const l1: Layer = { id: 'l1', name: 'l1', visible: true, locked: false, opacity: 1, pixels: pixels1 };
+    const l2: Layer = { id: 'l2', name: 'l2', visible: true, locked: false, opacity: 1, pixels: pixels2 };
+    const props = defaultProps({ layers: [l1, l2], activeLayerId: 'l1', width: 8, height: 8 });
+
+    const { rerender } = renderHook(
+      (p: Parameters<typeof useEditorCanvasSetup>[0]) => useEditorCanvasSetup(p),
+      { initialProps: props },
+    );
+
+    expect(mockDrawLayer).toHaveBeenCalledTimes(2);
+    mockDrawLayer.mockClear();
+
+    act(() => rerender({ ...props, width: 16, height: 8 }));
+
+    expect(mockDrawLayer).toHaveBeenCalledTimes(2);
+  });
 });
 
 // ---------------------------------------------------------------------------

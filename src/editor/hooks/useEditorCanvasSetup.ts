@@ -21,6 +21,11 @@ interface UseEditorCanvasSetupProps {
  * Keeps one offscreen per layer, rasterises each layer's pixels onto it, and
  * blits them onto the committed canvas in bottom-to-top order. Mounts a cleanup
  * effect that evicts the entire offscreen map on unmount.
+ *
+ * Rasterisation is **dirty-tracked** by `layer.pixels` reference equality (and
+ * by grid width/height): unchanged layers skip `drawLayer` because resizing an
+ * offscreen canvas clears its bitmap and history mutations replace the active
+ * layer's `pixels` array when content changes.
  */
 export function useEditorCanvasSetup({
   committedCanvasRef,
@@ -51,6 +56,11 @@ export function useEditorCanvasSetup({
   // the rasterised pixels for one layer at grid dimensions; the composite
   // pipeline blits them in order to the committed canvas.
   const offscreensRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
+
+  /** Last `width×height` we rasterised for; any change forces all layers dirty. */
+  const lastRasterSizeKeyRef = useRef<string | null>(null);
+  /** Last `layer.pixels` array we drew per layer id — reference equality with incoming `Layer`. */
+  const lastDrawnPixelsRef = useRef<Map<string, string[]>>(new Map());
 
   // Ensure offscreens exist for every current layer, are sized to
   // `width × height`, and that orphaned entries are evicted.
@@ -83,10 +93,24 @@ export function useEditorCanvasSetup({
   useEffect(() => {
     if (!committedCanvasRef.current) return;
     const map = syncOffscreens();
+    const sizeKey = `${width}x${height}`;
+    const sizeChanged = lastRasterSizeKeyRef.current !== sizeKey;
+    if (sizeChanged) lastRasterSizeKeyRef.current = sizeKey;
+
+    const validIds = new Set(layers.map((l) => l.id));
+    for (const id of Array.from(lastDrawnPixelsRef.current.keys())) {
+      if (!validIds.has(id)) lastDrawnPixelsRef.current.delete(id);
+    }
+
     for (const layer of layers) {
       const off = map.get(layer.id);
       if (!off) continue;
-      drawLayer(off, layer.pixels, width);
+      const prevPixels = lastDrawnPixelsRef.current.get(layer.id);
+      const mustRaster = sizeChanged || prevPixels !== layer.pixels;
+      if (mustRaster) {
+        drawLayer(off, layer.pixels, width);
+        lastDrawnPixelsRef.current.set(layer.id, layer.pixels);
+      }
     }
     const skipLayerId = layerTransformIsPending ? activeLayerId : undefined;
     compositeLayers(committedCanvasRef.current, layers, map, width, height, { skipLayerId });
@@ -98,6 +122,8 @@ export function useEditorCanvasSetup({
     const map = offscreensRef.current;
     return () => {
       map.clear();
+      lastDrawnPixelsRef.current.clear();
+      lastRasterSizeKeyRef.current = null;
     };
   }, []);
 }
