@@ -1,0 +1,36 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+
+/** Viewport at or below this width is treated as mobile layout app-wide. */
+export const MOBILE_MEDIA_QUERY = '(max-width: 768px)';
+
+export type AppMobileContextValue = {
+  isMobile: boolean;
+  setMobile: (next: boolean) => void;
+};
+
+const AppMobileContext = createContext<AppMobileContextValue | null>(null);
+
+export function AppMobileProvider({ children }: { children: ReactNode }) {
+  const [isMobile, setMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
+      return;
+    }
+    const mq = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const sync = () => setMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  return <AppMobileContext.Provider value={{ isMobile, setMobile }}>{children}</AppMobileContext.Provider>;
+}
+
+export function useAppMobile(): AppMobileContextValue {
+  const v = useContext(AppMobileContext);
+  if (v == null) {
+    throw new Error('useAppMobile must be used within AppMobileProvider');
+  }
+  return v;
+}

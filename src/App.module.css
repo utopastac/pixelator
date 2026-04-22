@@ -8,10 +8,10 @@
 /* Single full-bleed editor area. The DrawingsPanel is an overlay (absolutely
    positioned within this container) so the canvas always fills the viewport
    underneath — same pattern as the LayersPanel, tools, and colours pills.
-   `--chrome-inset` controls the left offset of the hamburger and
-   RecentColorsPanel. When the panel is open, they shift right to just past
-   the panel's right edge; when closed they sit at a floating-offset inset
-   from the viewport edge. */
+   `--chrome-inset` controls the left offset of the drawings toggle
+   (EditorBars) and RecentColorsPanel. When the panel is open, they shift right
+   to just past the panel's right edge; when closed they sit at a
+   floating-offset inset from the viewport edge. */
 .main {
   --chrome-inset: var(--floating-offset);
   flex: 1;
@@ -24,23 +24,6 @@
 
 .mainPanelOpen {
   /* Panel's left gutter + panel width + a matching gutter past its right
-     edge, so the hamburger/recents read as "floating next to" the panel. */
+     edge, so the drawings toggle + recents read as "floating next to" the panel. */
   --chrome-inset: calc(var(--floating-offset) * 2 + 280px);
-}
-
-/* Top-left chrome: DrawingsPanel toggle button. Pinned so it follows the
-   viewport as the DrawingsPanel pushes `.main` horizontally. Styled to match
-   the FloatingPanel pill look used elsewhere. */
-.chrome {
-  position: absolute;
-  top: var(--floating-offset);
-  left: var(--chrome-inset);
-  z-index: var(--z-sheet);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-xs);
-  @mixin popover-panel;
-  transition: left 220ms cubic-bezier(0.2, 0, 0, 1);
 }

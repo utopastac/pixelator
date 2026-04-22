@@ -1,6 +1,8 @@
 import PixelArtEditor from '@/editor';
+import { useAppMobile } from '@/AppMobileContext';
 import { getPalette } from '@/lib/palettes';
 import type { Drawing, Layer } from '@/lib/storage';
+import type { Theme } from '@/hooks/useTheme';
 import styles from './EditorView.module.css';
 
 interface Props {
@@ -10,7 +12,10 @@ interface Props {
   onSizeChange: (width: number, height: number) => void;
   onRename: (id: string, name: string) => void;
   onPaletteChange: (id: string) => void;
-  helpUtilities?: React.ReactNode;
+  theme: Theme;
+  onThemeToggle: () => void;
+  drawingsPanelOpen: boolean;
+  onToggleDrawingsPanel: () => void;
   /** Export the current drawing as a Pixelator JSON backup — surfaces in the
    *  toolbar's Download menu. Parent owns the envelope build. */
   onDownloadPixelator?: () => void;
@@ -25,17 +30,22 @@ export default function EditorView({
   onSizeChange,
   onRename,
   onPaletteChange,
-  helpUtilities,
+  theme,
+  onThemeToggle,
+  drawingsPanelOpen,
+  onToggleDrawingsPanel,
   onDownloadPixelator,
   panelsVisible,
   onTogglePanels,
 }: Props) {
+  const { isMobile } = useAppMobile();
   const palette = getPalette(drawing.paletteId);
   return (
     <div className={styles.view}>
       <div className={styles.editor}>
         <PixelArtEditor
           key={drawing.id}
+          isMobile={isMobile}
           width={drawing.width}
           height={drawing.height}
           value={drawing.layers}
@@ -49,7 +59,10 @@ export default function EditorView({
           onSizeChange={onSizeChange}
           title={drawing.name}
           onTitleChange={(name) => onRename(drawing.id, name)}
-          helpUtilities={helpUtilities}
+          theme={theme}
+          onThemeToggle={onThemeToggle}
+          drawingsPanelOpen={drawingsPanelOpen}
+          onToggleDrawingsPanel={onToggleDrawingsPanel}
           onDownloadPixelator={onDownloadPixelator}
           panelsVisible={panelsVisible}
           onTogglePanels={onTogglePanels}

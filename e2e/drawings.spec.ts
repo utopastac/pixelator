@@ -192,7 +192,7 @@ test.describe('Pixelator drawings CRUD', () => {
     expect(errors, `console errors:\n${errors.join('\n')}`).toEqual([]);
   });
 
-  test('Drawing title can be renamed via the TitlePanel inline editor', async ({ page }) => {
+  test('Drawing title can be renamed via the EditorBars inline editor', async ({ page }) => {
     const errors = captureConsoleErrors(page);
 
     const SEED = {
@@ -228,7 +228,7 @@ test.describe('Pixelator drawings CRUD', () => {
     await page.goto('/');
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
 
-    // The TitlePanel EditableText uses ariaLabel="Drawing name" in static mode.
+    // The title chrome EditableText uses ariaLabel="Drawing name" in static mode.
     await page.getByRole('button', { name: 'Drawing name' }).dblclick();
 
     const input = page.getByRole('textbox', { name: 'Drawing name' });

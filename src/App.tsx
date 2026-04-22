@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'; // useState kept for isDrawingsPanelOpen + isResetConfirmOpen
-import { MenuIcon, CloseIcon } from '@/editor/icons/PixelToolIcons';
-import ToolbarButton from '@/primitives/ToolbarButton';
 import DrawingsPanel from '@/chrome/DrawingsPanel';
-import ThemeToggle from '@/chrome/ThemeToggle';
 import ConfirmDialog from '@/primitives/ConfirmDialog';
 import EditorView from '@/views/EditorView';
 import ErrorBoundary from '@/primitives/ErrorBoundary';
@@ -22,6 +19,7 @@ import {
   serializeEnvelope,
 } from '@/lib/backup';
 import styles from './App.module.css';
+import { AppMobileProvider } from './AppMobileContext';
 
 function downloadJson(json: string, filename: string): void {
   const blob = new Blob([json], { type: 'application/json' });
@@ -146,8 +144,9 @@ export default function App() {
   );
 
   return (
-    <div className={styles.app}>
-      <div className={`${styles.main} ${panelsVisible && isDrawingsPanelOpen ? styles.mainPanelOpen : ''}`}>
+    <AppMobileProvider>
+      <div className={styles.app}>
+        <div className={`${styles.main} ${panelsVisible && isDrawingsPanelOpen ? styles.mainPanelOpen : ''}`}>
         {currentDrawing && (
           <ErrorBoundary>
             <EditorView
@@ -157,7 +156,10 @@ export default function App() {
               onSizeChange={resizeCurrent}
               onRename={renameDrawing}
               onPaletteChange={(id) => setDrawingPaletteId(currentDrawing.id, id)}
-              helpUtilities={<ThemeToggle theme={theme} onToggle={toggleTheme} />}
+              theme={theme}
+              onThemeToggle={toggleTheme}
+              drawingsPanelOpen={isDrawingsPanelOpen}
+              onToggleDrawingsPanel={() => setIsDrawingsPanelOpen((v) => !v)}
               onDownloadPixelator={handleExportCurrent}
               panelsVisible={panelsVisible}
               onTogglePanels={() => setPanelsVisible((v) => !v)}
@@ -213,20 +215,8 @@ export default function App() {
             e.target.value = '';
           }}
         />
-        {panelsVisible && <div className={styles.chrome} aria-label="Menu">
-          <ToolbarButton
-            icon={isDrawingsPanelOpen ? CloseIcon : MenuIcon}
-            size="sm"
-            onClick={() => setIsDrawingsPanelOpen((v) => !v)}
-            aria-label={isDrawingsPanelOpen ? 'Close drawings' : 'Open drawings'}
-            tooltip={{
-              content: isDrawingsPanelOpen ? 'Close drawings' : 'Open drawings',
-              placement: 'right',
-            }}
-            data-testid="open-drawings"
-          />
-        </div>}
+        </div>
       </div>
-    </div>
+    </AppMobileProvider>
   );
 }

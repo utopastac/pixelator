@@ -1,18 +1,15 @@
 import React from 'react';
-import { KeyboardIcon, FocusBIcon, FocusBOffIcon } from './icons/PixelToolIcons';
 import ShortcutsDialog from '@/chrome/ShortcutsDialog';
 import ConfirmDialog from '@/primitives/ConfirmDialog';
 import ContextMenu from '@/overlays/ContextMenu';
-import FloatingPanel from '@/primitives/FloatingPanel';
-import ToolbarButton from '@/primitives/ToolbarButton';
 import RecentColorsPanel from './RecentColorsPanel';
 import styles from './PixelArtEditor.module.css';
-import ToolsPanel from './Toolbar/ToolsPanel';
-import TitlePanel from './TitlePanel';
+import EditorBars from '@/editor/EditorControls/EditorBars';
 import LayersPanel from './LayersPanel/LayersPanel';
 import EditorCanvas from './EditorCanvas/EditorCanvas';
 import { usePixelArtEditorState } from './hooks/usePixelArtEditorState';
 import type { Layer } from '@/lib/storage';
+import type { Theme } from '@/hooks/useTheme';
 
 export type PixelArtTool = 'paint' | 'eraser' | 'fill' | 'eyedropper' | 'line' | 'rect' | 'circle' | 'triangle' | 'star' | 'arrow' | 'pen' | 'marquee' | 'move';
 export type { PixelArtFillMode, PixelArtBrushSize } from './lib/pixelArtUtils';
@@ -46,42 +43,46 @@ export interface PixelArtEditorProps {
   title?: string;
   /** Fired when the user commits a new title. */
   onTitleChange?: (next: string) => void;
-  /** Extra chrome alongside the Keyboard-shortcuts button in the help pill. */
-  helpUtilities?: React.ReactNode;
   /** When set, a "Export Pixelator file" entry appears in the Download menu. */
   onDownloadPixelator?: () => void;
-  /** When false, all panels except the help pill are hidden (clean canvas view). */
+  /** When false, editor chrome is hidden; desktop still shows the bottom-left help cluster. */
   panelsVisible?: boolean;
-  /** Called when the user clicks the toggle in the help pill. */
+  /** Called when the user clicks the panels visibility control in that cluster. */
   onTogglePanels?: () => void;
+  /** App theme — bottom-left help cluster (desktop only). */
+  theme: Theme;
+  /** Toggle light / dark theme. */
+  onThemeToggle: () => void;
+  /** Drawings gallery open state (menu vs close icon). */
+  drawingsPanelOpen: boolean;
+  /** Toggle the drawings gallery panel. */
+  onToggleDrawingsPanel: () => void;
   /** Id of the currently-selected palette. */
   paletteId?: string;
   /** Fired when the user picks a different palette from the swatches popover. */
   onPaletteChange?: (id: string) => void;
+  /** App-driven viewport layout (`useAppMobile`); defaults false when omitted. */
+  isMobile?: boolean;
 }
 
 const PixelArtEditor: React.FC<PixelArtEditorProps> = (props) => {
   const {
     onDragOver,
     onDrop,
-    hasTitlePanel,
-    toolsPanelBaseProps,
-    titlePanelProps,
+    editorChromeData,
     containerRef,
     editorCanvasProps,
     contextMenuProps,
     layersPanelProps,
     recentColorsPanelProps,
-    helpUtilities,
     isShortcutsOpen,
-    onOpenShortcuts,
     onCloseShortcuts,
     isResetConfirmOpen,
     onResetConfirm,
     onResetCancel,
   } = usePixelArtEditorState(props);
 
-  const { panelsVisible = true, onTogglePanels } = props;
+  const { panelsVisible = true, isMobile = false } = props;
 
   return (
     <div
@@ -89,9 +90,7 @@ const PixelArtEditor: React.FC<PixelArtEditorProps> = (props) => {
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      {panelsVisible && <ToolsPanel {...toolsPanelBaseProps} />}
-
-      {panelsVisible && hasTitlePanel ? <TitlePanel {...titlePanelProps} /> : null}
+      <EditorBars isMobile={isMobile} panelsVisible={panelsVisible} chrome={editorChromeData} />
 
       <EditorCanvas ref={containerRef} {...editorCanvasProps} />
 
@@ -100,27 +99,6 @@ const PixelArtEditor: React.FC<PixelArtEditorProps> = (props) => {
       {panelsVisible && <LayersPanel {...layersPanelProps} />}
 
       {panelsVisible && <RecentColorsPanel {...recentColorsPanelProps} />}
-
-      <FloatingPanel position="bottom-left" size="sm" direction="column" aria-label="Help">
-        {onTogglePanels && (
-          <ToolbarButton
-            icon={panelsVisible ? FocusBIcon : FocusBOffIcon}
-            size="sm"
-            onClick={onTogglePanels}
-            aria-label={panelsVisible ? 'Hide panels' : 'Show panels'}
-            data-testid="toggle-panels"
-            tooltip={{ content: panelsVisible ? 'Hide panels (\\)' : 'Show panels (\\)', placement: 'right' }}
-          />
-        )}
-        <ToolbarButton
-          icon={KeyboardIcon}
-          size="sm"
-          onClick={onOpenShortcuts}
-          aria-label="Keyboard shortcuts"
-          tooltip={{ content: 'Keyboard shortcuts', placement: 'right' }}
-        />
-        {helpUtilities}
-      </FloatingPanel>
 
       <ShortcutsDialog open={isShortcutsOpen} onClose={onCloseShortcuts} />
 

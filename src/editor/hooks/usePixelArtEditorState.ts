@@ -26,6 +26,7 @@ import { useEditorContextMenu } from './useEditorContextMenu';
 import { createDefaultLayer } from '@/lib/storage';
 import type { PixelArtEditorProps } from '../PixelArtEditor';
 import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
+import type { EditorChromeData, EditorControlsWiring } from '@/editor/EditorControls';
 
 const ZOOM_SENSITIVITY = 0.01;
 
@@ -42,7 +43,12 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     onSizeChange,
     title,
     onTitleChange,
-    helpUtilities,
+    panelsVisible: panelsVisibleProp = true,
+    onTogglePanels,
+    drawingsPanelOpen,
+    onToggleDrawingsPanel,
+    theme,
+    onThemeToggle,
     onDownloadPixelator,
     paletteId,
     onPaletteChange,
@@ -499,11 +505,11 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   });
 
   // ── Derived prop bundles ─────────────────────────────────────────────────────
-  const hasTitlePanel = typeof title === 'string' && typeof onTitleChange === 'function';
+  const hasTitle = typeof title === 'string' && typeof onTitleChange === 'function';
   const currentWidthForToolbar = sizesEnabled ? managedWidth : undefined;
   const currentHeightForToolbar = sizesEnabled ? managedHeight : undefined;
 
-  const toolsPanelBaseProps = {
+  const toolsRowProps = {
     palette,
     paletteId,
     onPaletteChange,
@@ -511,29 +517,31 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     onAddCustomColor: pushCustomColor,
   };
 
-  const titlePanelProps = {
-    title: title!,
-    onTitleChange: onTitleChange!,
-    sizes,
-    currentWidth: currentWidthForToolbar,
-    currentHeight: currentHeightForToolbar,
-    onPickSize: handlePickSize,
-    viewport: viewportPropsForToolbar,
-    tilingEnabled,
-    setTilingEnabled,
-    wrapMode,
-    setWrapMode,
-    symmetryMode,
-    setSymmetryMode,
-    alphaLock,
-    setAlphaLock,
-    gridOverlayVisible,
-    setGridOverlayVisible,
-    canUndo,
-    canRedo,
-    onUndo: undo,
-    onRedo: redo,
-  };
+  const titleChromeWiring: EditorControlsWiring | null = hasTitle
+    ? {
+        title: title!,
+        onTitleChange: onTitleChange!,
+        sizes,
+        currentWidth: currentWidthForToolbar,
+        currentHeight: currentHeightForToolbar,
+        onPickSize: handlePickSize,
+        viewport: viewportPropsForToolbar,
+        tilingEnabled,
+        setTilingEnabled,
+        wrapMode,
+        setWrapMode,
+        symmetryMode,
+        setSymmetryMode,
+        alphaLock,
+        setAlphaLock,
+        gridOverlayVisible,
+        setGridOverlayVisible,
+        canUndo,
+        canRedo,
+        onUndo: undo,
+        onRedo: redo,
+      }
+    : null;
 
   const editorCanvasProps = {
     width,
@@ -600,12 +608,6 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     currentHeight: currentHeightForToolbar,
   };
 
-  const recentColorsPanelProps = {
-    recents,
-    activeColor,
-    onPick: setActiveColor,
-  };
-
   const onResetConfirm = useCallback(() => {
     const fresh = createDefaultLayer(width, height);
     commitResize([fresh], width, height);
@@ -618,14 +620,29 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const onOpenShortcuts = useCallback(() => setIsShortcutsOpen(true), []);
   const onCloseShortcuts = useCallback(() => setIsShortcutsOpen(false), []);
 
+  const recentColorsPanelProps = {
+    recents,
+    activeColor,
+    onPick: setActiveColor,
+  };
+
+  const editorChromeData: EditorChromeData = {
+    ...(hasTitle && titleChromeWiring != null ? { ...toolsRowProps, ...titleChromeWiring } : { ...toolsRowProps }),
+    panelsVisible: panelsVisibleProp,
+    onTogglePanels,
+    drawingsPanelOpen,
+    onToggleDrawingsPanel,
+    theme,
+    onThemeToggle,
+    onOpenShortcuts,
+  };
+
   return {
     // Wrapper
     onDragOver: onWrapperDragOver,
     onDrop: onWrapperDrop,
     // Panel props
-    hasTitlePanel,
-    toolsPanelBaseProps,
-    titlePanelProps,
+    editorChromeData,
     // Canvas
     containerRef,
     editorCanvasProps,
@@ -635,8 +652,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     layersPanelProps,
     // Recent colors
     recentColorsPanelProps,
-    // Help
-    helpUtilities,
+    // Shortcuts dialog
     isShortcutsOpen,
     onOpenShortcuts,
     onCloseShortcuts,

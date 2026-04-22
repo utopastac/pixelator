@@ -67,9 +67,12 @@
   transition: left 220ms cubic-bezier(0.2, 0, 0, 1);
 }
 
+/* Same `--chrome-inset` contract as `.bottomLeft` — hamburger stays past an
+   open DrawingsPanel when `.main` sets the variable (see App.module.css). */
 .topLeft {
   top: var(--floating-offset);
-  left: var(--floating-offset);
+  left: var(--chrome-inset, var(--floating-offset));
+  transition: left 220ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .rightCenter {
