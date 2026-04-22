@@ -56,6 +56,19 @@ describe('usePixelArtHistory', () => {
     expect(result.current.canRedo).toBe(true);
   });
 
+  it('emit after dispatch in the same turn still applies pixels (regression: emit must not discard pending RAF)', async () => {
+    const { result, onChange } = setup();
+    const px = ['#999', '', '', ''];
+    act(() => {
+      result.current.dispatchPixels(px);
+      result.current.emitChange(px);
+    });
+    await waitFor(() => {
+      expect(result.current.pixels).toEqual(px);
+    });
+    expect(onChange).toHaveBeenCalled();
+  });
+
   it('dispatchPixels writes without snapshotting (undo does not see intermediate frames)', async () => {
     const { result } = setup();
     act(() => {

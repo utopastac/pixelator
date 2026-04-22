@@ -285,7 +285,9 @@ export function usePixelArtHistory(
   const emitChange = useCallback(
     (nextPixels: string[]) => {
       if (!onChange) return;
-      discardPendingDispatch();
+      // Do not call `discardPendingDispatch` here: paint/eraser pointer handlers
+      // invoke `emit` immediately after `dispatch` on each move; discarding would
+      // cancel the scheduled RAF and drop the pending pixels before they flush.
       // Build the post-mutation layer stack synchronously so autosave sees
       // the up-to-date shape regardless of React batching. `layersApi.layers`
       // is the pre-mutation value at this render; the active layer's pixels
@@ -299,7 +301,7 @@ export function usePixelArtHistory(
       next[idx] = { ...next[idx], pixels: nextPixels };
       onChange(next);
     },
-    [onChange, layersApi, discardPendingDispatch],
+    [onChange, layersApi],
   );
 
   const undo = useCallback(() => {
