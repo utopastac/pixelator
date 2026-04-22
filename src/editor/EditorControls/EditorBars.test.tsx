@@ -143,19 +143,6 @@ describe('EditorBars — tools toolbar', () => {
     await user.click(screen.getByRole('button', { name: 'Marquee selection' }));
     expect(useEditorSessionStore.getState().activeTool).toBe('marquee');
   });
-
-  it('renders layers panel toggle', () => {
-    renderToolsOnly();
-    expect(screen.getByTestId('toggle-layers-panel')).toBeInTheDocument();
-  });
-
-  it('clicking layers panel toggle flips layersPanelVisible in session store', async () => {
-    const user = userEvent.setup();
-    useEditorSessionStore.setState({ layersPanelVisible: true });
-    renderToolsOnly();
-    await user.click(screen.getByTestId('toggle-layers-panel'));
-    expect(useEditorSessionStore.getState().layersPanelVisible).toBe(false);
-  });
 });
 
 describe('EditorBars — desktop help cluster', () => {
@@ -504,5 +491,18 @@ describe('EditorBars — mobile layout', () => {
   it('renders the Download control in the top bar', () => {
     renderWithTitleChrome({ title: 'M' }, { isMobile: true });
     expect(screen.getByTestId('download-menu')).toBeInTheDocument();
+  });
+
+  it('renders layers panel toggle in the top bar', () => {
+    renderWithTitleChrome({ title: 'M' }, { isMobile: true });
+    expect(screen.getByTestId('toggle-layers-panel')).toBeInTheDocument();
+  });
+
+  it('clicking layers panel toggle flips layersPanelVisible in session store', async () => {
+    const user = userEvent.setup();
+    useEditorSessionStore.setState({ layersPanelVisible: true });
+    renderWithTitleChrome({ title: 'M' }, { isMobile: true });
+    await user.click(screen.getByTestId('toggle-layers-panel'));
+    expect(useEditorSessionStore.getState().layersPanelVisible).toBe(false);
   });
 });

@@ -218,7 +218,6 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           {c.gridOverlay}
           <ToolGroupCluster>
             {c.tiling}
-            {c.layersPanelToggle}
           </ToolGroupCluster>
           <ToolGroupCluster>
             {c.symmetry}
