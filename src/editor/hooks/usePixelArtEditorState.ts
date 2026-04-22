@@ -516,6 +516,21 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   // ── Context menu ─────────────────────────────────────────────────────────────
   const clearLiftedPixels = useCallback(() => { dragContext.lifted.current = null; }, [dragContext.lifted]);
 
+  const onDeselect = useCallback(() => {
+    polygonSelectContext.cancel();
+    setSelection(null);
+    dragContext.lifted.current = null;
+  }, [polygonSelectContext.cancel, setSelection, dragContext]);
+
+  const onDuplicateSelection = useCallback(() => {
+    if (!selection || !activeLayer) return;
+    handleCopy();
+    handlePaste();
+    cancelAllPaths();
+    onDeselect();
+    setActiveTool('move');
+  }, [selection, activeLayer, handleCopy, handlePaste, cancelAllPaths, onDeselect, setActiveTool]);
+
   const { onContextMenu, contextMenuProps } = useEditorContextMenu({
     canUndo,
     canRedo,
@@ -707,6 +722,11 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const editorChromeData: EditorChromeData = {
     ...(hasTitle && titleChromeWiring != null ? { ...toolsRowProps, ...titleChromeWiring } : { ...toolsRowProps }),
     ...downloadWiring,
+    isMobile,
+    selection,
+    onDeselect,
+    onDuplicateSelection,
+    duplicateSelectionDisabled: activeLayer == null,
     panelsVisible: panelsVisibleProp,
     onTogglePanels,
     drawingsPanelOpen,

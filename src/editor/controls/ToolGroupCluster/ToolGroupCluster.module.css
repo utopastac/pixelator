@@ -3,17 +3,23 @@
   flex-direction: row;
   align-items: center;
   gap: var(--space-xs);
-  min-width: 0;
+  /* Keep each cluster at least as wide as its tools + divider so flex parents
+   *  (e.g. mobile tools row) scroll instead of shrinking — avoids the trailing
+   *  cluster divider painting over the last control. */
+  flex-shrink: 0;
 
   .cluster {
     display: flex;
     align-items: center;
     gap: var(--space-xs);
-    min-width: 0;
+    min-width: min-content;
   }
 
   &.right {
-    flex: 1;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: 0;
+    min-width: min-content;
     width: 100%;
     justify-content: flex-end;
   }

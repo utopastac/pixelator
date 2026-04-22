@@ -3,6 +3,8 @@ export { default as BrushSizeControl } from './BrushSizeControl';
 export { default as BrushSizePicker } from './BrushSizePicker';
 export { default as CanvasSizePicker } from './CanvasSizePicker';
 export { default as AddLayerControl } from './AddLayerControl';
+export { default as DeselectControl } from './DeselectControl';
+export { default as DuplicateSelectionControl } from './DuplicateSelectionControl';
 export { default as DownloadControl } from './DownloadControl';
 export { default as ImportLayerImageControl } from './ImportLayerImageControl';
 export { default as DrawingsPanelToggleControl } from './DrawingsPanelToggleControl';

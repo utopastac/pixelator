@@ -4,6 +4,8 @@ import AlphaLockControl from '@/editor/controls/AlphaLockControl';
 import BrushSizeControl from '@/editor/controls/BrushSizeControl';
 import CanvasSizePicker from '@/editor/controls/CanvasSizePicker';
 import DrawingTitleControl from '@/editor/controls/DrawingTitleControl';
+import DeselectControl from '@/editor/controls/DeselectControl';
+import DuplicateSelectionControl from '@/editor/controls/DuplicateSelectionControl';
 import DownloadControl from '@/editor/controls/DownloadControl';
 import DrawingsPanelToggleControl from '@/editor/controls/DrawingsPanelToggleControl';
 import ImportLayerImageControl from '@/editor/controls/ImportLayerImageControl';
@@ -28,6 +30,7 @@ import ThemeToggleControl from '@/editor/controls/ThemeToggleControl';
 import TilingPreviewControl from '@/editor/controls/TilingPreviewControl';
 import WrapModeControl from '@/editor/controls/WrapModeControl';
 import ZoomControls from '@/editor/controls/ZoomControls/ZoomControls';
+import type { PixelArtSelection } from '@/editor/hooks/usePixelArtSelection';
 import type { SymmetryMode } from '@/editor/lib/symmetry';
 import type { UseViewportReturn } from '@/editor/hooks/useViewport';
 import type { Theme } from '@/hooks/useTheme';
@@ -155,7 +158,17 @@ export interface EditorHelpControlsWiring {
 export type EditorChromeData = EditorToolsPaletteProps &
   Partial<EditorControlsWiring> &
   Partial<EditorHelpControlsWiring> &
-  Partial<EditorDownloadWiring>;
+  Partial<EditorDownloadWiring> & {
+    /** From app layout — drives mobile-only affordances in `createEditorControls`. */
+    isMobile?: boolean;
+    selection?: PixelArtSelection | null;
+    /** Clears marquee / polygon selection and lifted pixels (⌘D / Escape parity). */
+    onDeselect?: () => void;
+    /** Internal copy + paste as a new layer (mobile selection strip). */
+    onDuplicateSelection?: () => void;
+    /** When true, duplicate is shown but inactive (e.g. no active layer). */
+    duplicateSelectionDisabled?: boolean;
+  };
 
 /** Popover / anchor state owned by `EditorBars`, passed through to each tool node. */
 export interface EditorToolPopoverInput {
@@ -192,6 +205,10 @@ export type EditorControlNodes = {
   historyRedo: ReactNode | null;
   moveTool: ReactNode;
   marquee: ReactNode;
+  /** Mobile only — shown when `selection` is non-null. */
+  deselect: ReactNode | null;
+  /** Mobile only — copy then paste as new layer when `selection` is non-null. */
+  duplicateSelection: ReactNode | null;
   brushSize: ReactNode;
   paint: ReactNode;
   pen: ReactNode;
@@ -330,6 +347,19 @@ export function createEditorControls(p: EditorChromeInput): EditorControlNodes {
       })
     : null;
 
+  const deselect =
+    p.isMobile && p.selection != null && p.onDeselect ? (
+      <DeselectControl onDeselect={p.onDeselect} />
+    ) : null;
+
+  const duplicateSelection =
+    p.isMobile && p.selection != null && p.onDuplicateSelection ? (
+      <DuplicateSelectionControl
+        onDuplicateSelection={p.onDuplicateSelection}
+        disabled={p.duplicateSelectionDisabled === true}
+      />
+    ) : null;
+
   return {
     ...titleBlock,
     moveTool: <MoveToolControl onClosePopovers={p.closeAllToolPopovers} />,
@@ -342,6 +372,8 @@ export function createEditorControls(p: EditorChromeInput): EditorControlNodes {
         onClosePopovers={p.closeAllToolPopovers}
       />
     ),
+    deselect,
+    duplicateSelection,
     brushSize: (
       <BrushSizeControl
         isOpen={p.isBrushPopoverOpen}

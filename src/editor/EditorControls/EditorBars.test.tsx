@@ -527,4 +527,46 @@ describe('EditorBars — mobile layout', () => {
     await user.click(getLayersPanelToggleButton());
     expect(useEditorSessionStore.getState().layersPanelVisible).toBe(false);
   });
+
+  it('shows Deselect in the tools row when selection is active on mobile', async () => {
+    const user = userEvent.setup();
+    const onDeselect = vi.fn();
+    const props: EditorBarsProps = {
+      panelsVisible: true,
+      isMobile: true,
+      chrome: {
+        ...defaultChrome(),
+        ...makeTitleWiring(),
+        isMobile: true,
+        selection: { shape: 'rect', x1: 0, y1: 0, x2: 1, y2: 1 },
+        onDeselect,
+      },
+    };
+    render(<EditorBars {...props} />);
+    const btn = within(getMainToolsToolbar()).getByRole('button', { name: 'Deselect' });
+    expect(btn).toBeInTheDocument();
+    await user.click(btn);
+    expect(onDeselect).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows Duplicate selection in the tools row when wired on mobile', async () => {
+    const user = userEvent.setup();
+    const onDuplicateSelection = vi.fn();
+    const props: EditorBarsProps = {
+      panelsVisible: true,
+      isMobile: true,
+      chrome: {
+        ...defaultChrome(),
+        ...makeTitleWiring(),
+        isMobile: true,
+        selection: { shape: 'rect', x1: 0, y1: 0, x2: 1, y2: 1 },
+        onDuplicateSelection,
+      },
+    };
+    render(<EditorBars {...props} />);
+    const btn = within(getMainToolsToolbar()).getByRole('button', { name: 'Duplicate selection' });
+    expect(btn).toBeInTheDocument();
+    await user.click(btn);
+    expect(onDuplicateSelection).toHaveBeenCalledTimes(1);
+  });
 });

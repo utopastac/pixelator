@@ -108,6 +108,53 @@ describe('createEditorControls', () => {
     });
     expect(c.download).toBeTruthy();
   });
+
+  it('returns null deselect when not mobile or no selection', () => {
+    const c = createEditorControls({
+      palette: ['#000'],
+      customColors: [],
+      ...titleBase,
+      ...toolPopoverStub(),
+    });
+    expect(c.deselect).toBeNull();
+  });
+
+  it('returns deselect control on mobile when selection and handler are wired', () => {
+    const c = createEditorControls({
+      palette: ['#000'],
+      customColors: [],
+      ...titleBase,
+      isMobile: true,
+      selection: { shape: 'rect', x1: 0, y1: 0, x2: 1, y2: 1 },
+      onDeselect: vi.fn(),
+      ...toolPopoverStub(),
+    });
+    expect(c.deselect).toBeTruthy();
+  });
+
+  it('returns null duplicateSelection when not mobile or no selection', () => {
+    const c = createEditorControls({
+      palette: ['#000'],
+      customColors: [],
+      ...titleBase,
+      ...toolPopoverStub(),
+      onDuplicateSelection: vi.fn(),
+    });
+    expect(c.duplicateSelection).toBeNull();
+  });
+
+  it('returns duplicate selection control on mobile when selection and handler are wired', () => {
+    const c = createEditorControls({
+      palette: ['#000'],
+      customColors: [],
+      ...titleBase,
+      isMobile: true,
+      selection: { shape: 'rect', x1: 0, y1: 0, x2: 1, y2: 1 },
+      onDuplicateSelection: vi.fn(),
+      ...toolPopoverStub(),
+    });
+    expect(c.duplicateSelection).toBeTruthy();
+  });
 });
 
 describe('createLayersPanelControlNodes', () => {

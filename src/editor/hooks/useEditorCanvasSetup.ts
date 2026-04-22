@@ -50,10 +50,11 @@ export function useEditorCanvasSetup({
   paintDragFlushRef,
   paintDragAbortResyncRef,
 }: UseEditorCanvasSetupProps): void {
-  // Resize all canvases when dimensions change. Canvases are sized 1:1 with
-  // the logical grid — one raster pixel = one logical pixel — and visual
-  // scaling is done via CSS transform on the wrapper.
-  useEffect(() => {
+  // Resize committed + preview canvases before composite in the same layout
+  // pass. A plain `useEffect` runs *after* paint and would clear the bitmap
+  // (setting `width` resets the canvas) after `compositeLayers` already ran,
+  // leaving a blank canvas until the next React update (e.g. any toolbar click).
+  useLayoutEffect(() => {
     if (committedCanvasRef.current) {
       committedCanvasRef.current.width = width;
       committedCanvasRef.current.height = height;

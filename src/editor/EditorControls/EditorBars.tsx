@@ -170,20 +170,24 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
               {c.swatches}
             </ToolGroupCluster>
           </div>
-          <div role="toolbar" aria-label="Pixel art tools">
-            <div className={styles.toolsRow}>
-              <ToolGroupCluster>
-                {c.moveTool}
-                {c.marquee}
-              </ToolGroupCluster>
-              <ToolGroupCluster trailingDivider={false}>
-                {c.brushSize}
-                {c.paint}
-                {c.pen}
-                {c.line}
-                {c.shape}
-                {c.eraser}
-              </ToolGroupCluster>
+          <div className={styles.mobileToolsToolbar} role="toolbar" aria-label="Pixel art tools">
+            <div className={styles.toolsRowScroll}>
+              <div className={styles.toolsRow}>
+                <ToolGroupCluster>
+                  {c.moveTool}
+                  {c.marquee}
+                  {c.deselect}
+                  {c.duplicateSelection}
+                </ToolGroupCluster>
+                <ToolGroupCluster trailingDivider={false}>
+                  {c.brushSize}
+                  {c.paint}
+                  {c.pen}
+                  {c.line}
+                  {c.shape}
+                  {c.eraser}
+                </ToolGroupCluster>
+              </div>
             </div>
           </div>
         </FloatingPanel>

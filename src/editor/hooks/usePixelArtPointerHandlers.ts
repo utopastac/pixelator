@@ -355,6 +355,29 @@ export function usePixelArtPointerHandlers({
     [width, height],
   );
 
+  /** Pen: committed anchor segments + rubber band to `(col,row)`. Touch taps
+   *  often emit no `pointermove`, so this runs from pointerdown as well. */
+  const redrawPenRubberBandAt = useCallback(
+    (col: number, row: number) => {
+      penContext.setCursor([col, row]);
+      const anchorsList = penContext.anchors.current;
+      if (anchorsList.length > 0 && previewCanvasRef.current) {
+        const raw: Array<[number, number]> = [];
+        for (let i = 0; i < anchorsList.length - 1; i++) {
+          raw.push(
+            ...bresenhamLine(anchorsList[i][0], anchorsList[i][1], anchorsList[i + 1][0], anchorsList[i + 1][1]),
+          );
+        }
+        const last = anchorsList[anchorsList.length - 1];
+        raw.push(...bresenhamLine(last[0], last[1], col, row));
+        const cells = expandCellsWithBrush(raw, brushSize, width, height, wrapMode);
+        const allPenCells = symmetryMode !== 'none' ? withSymmetry(cells, width, height, symmetryMode) : cells;
+        drawPreview(previewCanvasRef.current, allPenCells, activeColor);
+      }
+    },
+    [penContext, previewCanvasRef, brushSize, width, height, symmetryMode, activeColor, wrapMode],
+  );
+
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       if (disabled) return;
@@ -381,7 +404,7 @@ export function usePixelArtPointerHandlers({
           }
         }
         anchorsList.push([col, row]);
-        penContext.setCursor([col, row]);
+        redrawPenRubberBandAt(col, row);
         return;
       }
 
@@ -525,7 +548,7 @@ export function usePixelArtPointerHandlers({
       getCellFromEvent, isCellInBounds, selection, selectionContainsCell,
       marqueeShape, setSelection, setActiveColor, setIndependentHue, setActiveTool, layers,
       activePixels, penContext, polygonSelectContext, selectionDragContext, symmetryMode, wrapMode, alphaLock, moveOnDown,
-      handleWandSelect, liftSelectionPixels, paintLiftedToPreview, paintDragBypassReactRef,
+      handleWandSelect, liftSelectionPixels, paintLiftedToPreview, paintDragBypassReactRef, redrawPenRubberBandAt,
     ],
   );
 
@@ -542,19 +565,7 @@ export function usePixelArtPointerHandlers({
       }
 
       if (activeTool === 'pen') {
-        penContext.setCursor([col, row]);
-        const anchorsList = penContext.anchors.current;
-        if (anchorsList.length > 0 && previewCanvasRef.current) {
-          const raw: Array<[number, number]> = [];
-          for (let i = 0; i < anchorsList.length - 1; i++) {
-            raw.push(...bresenhamLine(anchorsList[i][0], anchorsList[i][1], anchorsList[i + 1][0], anchorsList[i + 1][1]));
-          }
-          const last = anchorsList[anchorsList.length - 1];
-          raw.push(...bresenhamLine(last[0], last[1], col, row));
-          const cells = expandCellsWithBrush(raw, brushSize, width, height, wrapMode);
-          const allPenCells = symmetryMode !== 'none' ? withSymmetry(cells, width, height, symmetryMode) : cells;
-          drawPreview(previewCanvasRef.current, allPenCells, activeColor);
-        }
+        redrawPenRubberBandAt(col, row);
         return;
       }
 
@@ -682,8 +693,9 @@ export function usePixelArtPointerHandlers({
     [
       disabled, activeTool, marqueeShape, rectFillMode, circleFillMode, triangleFillMode, starFillMode, arrowFillMode,
       brushSize, activeColor, width, height, getCellFromEvent,
-      selection, setSelection, activePixels, selectionDragContext, penContext, polygonSelectContext,
+      selection, setSelection, activePixels, selectionDragContext, polygonSelectContext,
       previewCanvasRef, renderShiftAwarePreview, symmetryMode, wrapMode, alphaLock, selectionContainsCell, moveOnMove,
+      redrawPenRubberBandAt,
       paintLiftedToPreview, activeLayerRasterPatchAccRef, paintDragBypassReactRef,
     ],
   );

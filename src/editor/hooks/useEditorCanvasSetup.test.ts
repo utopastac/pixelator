@@ -69,7 +69,7 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// Canvas resize effect
+// Canvas resize (useLayoutEffect — runs before composite in the same pass)
 // ---------------------------------------------------------------------------
 
 describe('canvas resize effect', () => {
