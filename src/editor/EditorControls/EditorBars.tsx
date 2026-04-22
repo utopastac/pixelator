@@ -1,5 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { SlidersHorizontal } from 'lucide-react';
 import FloatingPanel from '@/primitives/FloatingPanel';
+import ToolbarButton from '@/primitives/ToolbarButton';
 import ToolGroupCluster from '@/editor/controls/ToolGroupCluster';
 import { createEditorControls, type EditorChromeData } from './Controls';
 import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
@@ -10,9 +12,20 @@ export interface EditorBarsProps {
   isMobile: boolean;
   /** Palette + optional title-cluster fields from the editor hook (no popover state). */
   chrome: EditorChromeData;
+  /**
+   * Mobile only: called with the measured on-screen height (px) of the bottom
+   * fixed tool stack so the recent-colors strip can sit flush above it.
+   * Report `0` when the stack is not mounted.
+   */
+  onMobileBottomToolbarHeight?: (heightPx: number) => void;
 }
 
-export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBarsProps) {
+export default function EditorBars({
+  panelsVisible,
+  isMobile,
+  chrome,
+  onMobileBottomToolbarHeight,
+}: EditorBarsProps) {
   const [isBrushPopoverOpen, setIsBrushPopoverOpen] = useState(false);
   const [isShapePopoverOpen, setIsShapePopoverOpen] = useState(false);
   const [isMarqueePopoverOpen, setIsMarqueePopoverOpen] = useState(false);
@@ -20,6 +33,8 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
   const brushSizeAnchorRef = useRef<HTMLDivElement>(null);
   const shapeAnchorRef = useRef<HTMLDivElement>(null);
   const marqueeAnchorRef = useRef<HTMLDivElement>(null);
+  const mobileBottomToolbarRef = useRef<HTMLDivElement>(null);
+  const [mobileAdvancedStripOpen, setMobileAdvancedStripOpen] = useState(false);
 
   const closeAllToolPopovers = useCallback(() => {
     setIsBrushPopoverOpen(false);
@@ -104,6 +119,29 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
     onBrushButtonPress,
   });
 
+  useLayoutEffect(() => {
+    if (!onMobileBottomToolbarHeight) return;
+    if (!isMobile || !panelsVisible) {
+      onMobileBottomToolbarHeight(0);
+      return;
+    }
+    const el = mobileBottomToolbarRef.current;
+    if (!el) {
+      onMobileBottomToolbarHeight(0);
+      return;
+    }
+    const report = () => {
+      const h = el.getBoundingClientRect().height;
+      onMobileBottomToolbarHeight(h > 0 ? Math.round(h) : 0);
+    };
+    report();
+    const ro = new ResizeObserver(report);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+    };
+  }, [isMobile, panelsVisible, mobileAdvancedStripOpen, onMobileBottomToolbarHeight]);
+
   const desktopHelpPanel = (
     <FloatingPanel position="bottom-left" size="sm" direction="column" mobile={isMobile} aria-label="Help">
       <div className={styles.helpStack}>
@@ -125,7 +163,13 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
   if (isMobile) {
     return (
       <>
-        <FloatingPanel position="top-center" size="sm" mobile={isMobile} aria-label="Drawing title">
+        <FloatingPanel
+          position="top-center"
+          size="sm"
+          mobile={isMobile}
+          role="region"
+          aria-label="Drawing title"
+        >
           <div className={styles.barRow}>
             <ToolGroupCluster>
               {c.openDrawings}
@@ -151,6 +195,7 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           </div>
         </FloatingPanel>
         <FloatingPanel
+          ref={mobileBottomToolbarRef}
           position="bottom-center"
           direction="column"
           size="sm"
@@ -158,31 +203,45 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           className={styles.mobileStack}
           aria-label="Editor"
         >
-          <div className={styles.toolsStrip} role="region" aria-label="Drawing title">
-            <ToolGroupCluster>
-              {c.symmetry}
-            </ToolGroupCluster>
-            <ToolGroupCluster>
-              {c.wrap}
-            </ToolGroupCluster>
-            <ToolGroupCluster trailingDivider={false}>
-              {c.alphaLock}
-            </ToolGroupCluster>
-            <ToolGroupCluster trailingDivider={false} align="right">
-              {c.fill}
-              {c.eyedropper}
-              {c.swatches}
-            </ToolGroupCluster>
-          </div>
+          {mobileAdvancedStripOpen && (
+            <div
+              id="editor-mobile-advanced-tools"
+              className={styles.toolsStrip}
+              role="region"
+              aria-label="Advanced tools"
+            >
+              <ToolGroupCluster>
+                {c.moveTool}
+                {c.marquee}
+                {c.deselect}
+                {c.duplicateSelection}
+              </ToolGroupCluster>
+              <ToolGroupCluster>
+                {c.eyedropper}
+              </ToolGroupCluster>
+              <ToolGroupCluster>
+                {c.symmetry}
+              </ToolGroupCluster>
+              <ToolGroupCluster>
+                {c.wrap}
+              </ToolGroupCluster>
+              <ToolGroupCluster trailingDivider={false}>
+                {c.alphaLock}
+              </ToolGroupCluster>
+            </div>
+          )}
           <div className={styles.mobileToolsToolbar} role="toolbar" aria-label="Pixel art tools">
+            <div className={styles.mobileAdvancedToggleDock}>
+              <ToolbarButton
+                icon={SlidersHorizontal}
+                aria-label="Advanced tools"
+                selected={mobileAdvancedStripOpen}
+                fillHeight
+                onClick={() => setMobileAdvancedStripOpen((v) => !v)}
+              />
+            </div>
             <div className={styles.toolsRowScroll}>
               <div className={styles.toolsRow}>
-                <ToolGroupCluster>
-                  {c.moveTool}
-                  {c.marquee}
-                  {c.deselect}
-                  {c.duplicateSelection}
-                </ToolGroupCluster>
                 <ToolGroupCluster trailingDivider={false}>
                   {c.brushSize}
                   {c.paint}
@@ -190,8 +249,12 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
                   {c.line}
                   {c.shape}
                   {c.eraser}
+                  {c.fill}
                 </ToolGroupCluster>
               </div>
+            </div>
+            <div className={styles.mobileSwatchesDock} role="group" aria-label="Color">
+              {c.swatches}
             </div>
           </div>
         </FloatingPanel>
@@ -248,6 +311,10 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           <ToolGroupCluster trailingDivider={false}>
             {c.historyUndo}
             {c.historyRedo}
+          </ToolGroupCluster>
+          <ToolGroupCluster align="right" trailingDivider={false} leadingDivider={true}>
+            {c.download}
+            {c.layersPanelToggle}
           </ToolGroupCluster>
         </div>
       </FloatingPanel>

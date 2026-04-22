@@ -31,6 +31,10 @@ export interface UseMobileTwoFingerViewportResult {
  * only). When a second finger lands, in-flight drawing is cancelled via
  * `handlePointerCancel`, then centroid motion pans and finger separation
  * scales zoom around the pinch centroid.
+ *
+ * Touch streams fire at high frequency; updates are coalesced to one
+ * `panBy` / `zoomAtPoint` flush per animation frame (same idea as
+ * `useCanvasWheelZoom`) so React is not re-rendered on every pointer event.
  */
 export function useMobileTwoFingerViewport({
   isMobile,
@@ -45,8 +49,44 @@ export function useMobileTwoFingerViewport({
   const touchPointsRef = useRef(new Map<number, TouchPoint>());
   const pinchActiveRef = useRef(false);
   const pinchLastRef = useRef<{ dist: number; cx: number; cy: number } | null>(null);
-  const zoomRef = useRef(zoom);
-  zoomRef.current = zoom;
+
+  const latestRef = useRef({ zoom, panBy, zoomAtPoint });
+  latestRef.current = { zoom, panBy, zoomAtPoint };
+
+  const rafIdRef = useRef<number | null>(null);
+  const pendingPanRef = useRef({ dx: 0, dy: 0 });
+  const pendingZoomRef = useRef({ factor: 1, ax: 0, ay: 0 });
+
+  const applyPending = useCallback(() => {
+    const { zoom: z, panBy: pb, zoomAtPoint: zap } = latestRef.current;
+    const p = pendingPanRef.current;
+    if (p.dx !== 0 || p.dy !== 0) {
+      pb(p.dx, p.dy);
+      pendingPanRef.current = { dx: 0, dy: 0 };
+    }
+    const q = pendingZoomRef.current;
+    if (q.factor !== 1) {
+      zap(z * q.factor, q.ax, q.ay);
+      pendingZoomRef.current = { factor: 1, ax: 0, ay: 0 };
+    }
+  }, []);
+
+  const flush = useCallback(() => {
+    rafIdRef.current = null;
+    applyPending();
+  }, [applyPending]);
+
+  const scheduleFlush = useCallback(() => {
+    if (rafIdRef.current !== null) return;
+    rafIdRef.current = requestAnimationFrame(flush);
+  }, [flush]);
+
+  const cancelScheduledFlush = useCallback(() => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+  }, []);
 
   const trackTouchPoint = useCallback((pointerId: number, clientX: number, clientY: number) => {
     if (!touchPointsRef.current.has(pointerId)) return;
@@ -101,27 +141,36 @@ export function useMobileTwoFingerViewport({
       const anchorY = cy - rect.top;
       const last = pinchLastRef.current;
       if (last && dist > 6 && last.dist > 6) {
-        panBy(cx - last.cx, cy - last.cy);
+        pendingPanRef.current.dx += cx - last.cx;
+        pendingPanRef.current.dy += cy - last.cy;
         const ratio = dist / last.dist;
         if (Math.abs(ratio - 1) > 0.006) {
           const clamped = Math.min(1.2, Math.max(1 / 1.2, ratio));
-          zoomAtPoint(zoomRef.current * clamped, anchorX, anchorY);
+          pendingZoomRef.current.factor *= clamped;
+          pendingZoomRef.current.ax = anchorX;
+          pendingZoomRef.current.ay = anchorY;
         }
+        scheduleFlush();
       }
       pinchLastRef.current = { dist, cx, cy };
       return true;
     },
-    [disabled, isMobile, panBy, zoomAtPoint],
+    [disabled, isMobile, scheduleFlush],
   );
 
-  const onTouchPointerUpOrCancel = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isMobile || e.pointerType !== 'touch') return;
-    touchPointsRef.current.delete(e.pointerId);
-    if (touchPointsRef.current.size < 2) {
-      pinchActiveRef.current = false;
-      pinchLastRef.current = null;
-    }
-  }, [isMobile]);
+  const onTouchPointerUpOrCancel = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isMobile || e.pointerType !== 'touch') return;
+      cancelScheduledFlush();
+      applyPending();
+      touchPointsRef.current.delete(e.pointerId);
+      if (touchPointsRef.current.size < 2) {
+        pinchActiveRef.current = false;
+        pinchLastRef.current = null;
+      }
+    },
+    [applyPending, cancelScheduledFlush, isMobile],
+  );
 
   return {
     trackTouchPoint,

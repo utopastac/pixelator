@@ -96,6 +96,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   // ── Modal state ──────────────────────────────────────────────────────────────
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [mobileBottomToolbarHeightPx, setMobileBottomToolbarHeightPx] = useState(0);
   const [layerImageImportError, setLayerImageImportError] = useState<string | null>(null);
   const layerImageImportErrorTimerRef = useRef<number | null>(null);
 
@@ -713,11 +714,16 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const onOpenShortcuts = useCallback(() => setIsShortcutsOpen(true), []);
   const onCloseShortcuts = useCallback(() => setIsShortcutsOpen(false), []);
 
+  const onMobileBottomToolbarHeight = useCallback((h: number) => {
+    setMobileBottomToolbarHeightPx((prev) => (prev === h ? prev : h));
+  }, []);
+
   const recentColorsPanelProps = {
     recents,
     activeColor,
     onPick: setActiveColor,
     mobile: isMobile,
+    mobileBottomToolbarOffsetPx: isMobile ? mobileBottomToolbarHeightPx : undefined,
   };
 
   const editorChromeData: EditorChromeData = {
@@ -741,6 +747,7 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     // Wrapper
     onDragOver: onWrapperDragOver,
     onDrop: onWrapperDrop,
+    onMobileBottomToolbarHeight,
     // Panel props
     editorChromeData,
     // Canvas

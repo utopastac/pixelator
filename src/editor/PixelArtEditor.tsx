@@ -70,6 +70,7 @@ const PixelArtEditor: React.FC<PixelArtEditorProps> = (props) => {
   const {
     onDragOver,
     onDrop,
+    onMobileBottomToolbarHeight,
     editorChromeData,
     containerRef,
     editorCanvasProps,
@@ -92,7 +93,12 @@ const PixelArtEditor: React.FC<PixelArtEditorProps> = (props) => {
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <EditorBars isMobile={isMobile} panelsVisible={panelsVisible} chrome={editorChromeData} />
+      <EditorBars
+        isMobile={isMobile}
+        panelsVisible={panelsVisible}
+        chrome={editorChromeData}
+        onMobileBottomToolbarHeight={onMobileBottomToolbarHeight}
+      />
 
       <EditorCanvas ref={containerRef} {...editorCanvasProps} />
 

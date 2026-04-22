@@ -14,6 +14,19 @@ describe('RecentColorsPanel', () => {
     expect(screen.getByLabelText('Recent colors')).toHaveClass(styles.mobile);
   });
 
+  it('sets bottom from mobileBottomToolbarOffsetPx when mobile', () => {
+    render(
+      <RecentColorsPanel
+        recents={[]}
+        activeColor="#ff0000"
+        onPick={() => {}}
+        mobile
+        mobileBottomToolbarOffsetPx={88}
+      />,
+    );
+    expect(screen.getByLabelText('Recent colors')).toHaveStyle({ bottom: '88px' });
+  });
+
   it('always renders black and white pinned swatches even when recents is empty', () => {
     render(<RecentColorsPanel recents={[]} activeColor="#ff0000" onPick={() => {}} />);
     expect(screen.getByRole('button', { name: 'Black' })).toBeInTheDocument();

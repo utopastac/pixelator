@@ -456,9 +456,12 @@ describe('EditorBars — symmetry picker', () => {
 });
 
 describe('EditorBars — symmetry (mobile)', () => {
-  it('renders inline mirroring toggles instead of the Symmetry popover trigger', () => {
+  it('renders inline mirroring toggles instead of the Symmetry popover trigger', async () => {
+    const user = userEvent.setup();
     renderWithTitleChrome({ symmetryMode: 'none', setSymmetryMode: vi.fn() }, { isMobile: true });
     expect(screen.queryByRole('button', { name: 'Symmetry' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Symmetry mode' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Advanced tools' }));
     expect(screen.getByRole('group', { name: 'Symmetry mode' })).toBeInTheDocument();
   });
 });
@@ -524,6 +527,17 @@ describe('EditorBars — mobile layout', () => {
     renderWithTitleChrome({ title: 'M' }, { isMobile: true });
     expect(screen.getByRole('region', { name: 'Drawing title' })).toBeInTheDocument();
     expect(screen.getByRole('toolbar', { name: 'Pixel art tools' })).toBeInTheDocument();
+  });
+
+  it('hides the advanced tools strip by default; toggle reveals the Advanced tools region', async () => {
+    const user = userEvent.setup();
+    renderWithTitleChrome({ title: 'M' }, { isMobile: true });
+    expect(screen.queryByRole('region', { name: 'Advanced tools' })).not.toBeInTheDocument();
+    expect(within(getMainToolsToolbar()).queryByRole('button', { name: 'Move' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Advanced tools' }));
+    const advanced = screen.getByRole('region', { name: 'Advanced tools' });
+    expect(advanced).toBeInTheDocument();
+    expect(within(advanced).getByRole('button', { name: 'Move' })).toBeInTheDocument();
   });
 
   it('exposes download and layers controls (role + label; placement-independent)', () => {

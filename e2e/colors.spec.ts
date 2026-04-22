@@ -14,7 +14,7 @@ test.describe('Active color persistence', () => {
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
 
     // Open the color picker.
-    await page.getByLabel('Colors').click();
+    await page.getByRole('button', { name: 'Colors', exact: true }).click();
 
     // The hex input should reflect the most recent color, not the palette default.
     await expect(page.locator('#hex-color-input')).toHaveValue('ff6600');
@@ -28,7 +28,7 @@ test.describe('Active color persistence', () => {
     await page.goto('/');
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
 
-    await page.getByLabel('Colors').click();
+    await page.getByRole('button', { name: 'Colors', exact: true }).click();
 
     // With no recents, seeds fall back to #000000 (SEED[0] in useRecentColors).
     await expect(page.locator('#hex-color-input')).toHaveValue('000000');

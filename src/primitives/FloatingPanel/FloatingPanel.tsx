@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import styles from './FloatingPanel.module.css';
 
 export type FloatingPanelPosition =
@@ -54,21 +54,23 @@ const DIRECTION_CLASS: Record<FloatingPanelDirection, string> = {
 };
 
 /**
- * Absolutely-positioned panel used for floating toolbars and utility clusters.
- * Position, padding/gap size, and flex direction are controlled via props;
- * the component itself is a styled container with no built-in behaviour.
+ * Fixed-positioned panel for floating toolbars and utility clusters. Supports
+ * `ref` for layout measurement (e.g. offsetting the recent-colors strip on mobile).
  */
-const FloatingPanel: React.FC<FloatingPanelProps> = ({
-  children,
-  position = 'bottom-center',
-  size = 'md',
-  direction = 'row',
-  className = '',
-  style,
-  role,
-  'aria-label': ariaLabel,
-  mobile = false,
-}) => {
+const FloatingPanel = forwardRef<HTMLDivElement, FloatingPanelProps>(function FloatingPanel(
+  {
+    children,
+    position = 'bottom-center',
+    size = 'md',
+    direction = 'row',
+    className = '',
+    style,
+    role,
+    'aria-label': ariaLabel,
+    mobile = false,
+  },
+  ref,
+) {
   const rootClass = [
     styles.panel,
     mobile && styles.mobile,
@@ -82,6 +84,7 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
 
   return (
     <div
+      ref={ref}
       className={rootClass}
       style={style}
       role={role}
@@ -90,6 +93,6 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
       {children}
     </div>
   );
-};
+});
 
 export default FloatingPanel;

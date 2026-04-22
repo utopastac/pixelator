@@ -120,8 +120,9 @@ test.describe('Pixelator layers', () => {
     await page.goto('/');
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
 
-    // The first "Hide layer" button corresponds to the top-displayed layer (Foreground / layer-2).
-    await page.getByRole('button', { name: 'Hide layer' }).first().click();
+    // Target the Foreground row's eye control (avoids nested row role=button vs inner button quirks).
+    const foregroundRow = page.getByRole('button', { name: 'Layer Foreground', exact: true });
+    await foregroundRow.getByRole('button', { name: 'Hide layer', exact: true }).click();
 
     // Wait for that layer to become invisible in localStorage.
     await expect.poll(async () => {
@@ -132,7 +133,7 @@ test.describe('Pixelator layers', () => {
     }, { timeout: 2000 }).toBe(false);
 
     // Click "Show layer" to make it visible again.
-    await page.getByRole('button', { name: 'Show layer' }).first().click();
+    await foregroundRow.getByRole('button', { name: 'Show layer', exact: true }).click();
 
     await expect.poll(async () => {
       const store = await readStore(page);

@@ -11,7 +11,7 @@ test.describe('Panel visibility toggle', () => {
 
     await expect(page.getByRole('toolbar', { name: 'Pixel art tools' })).toBeVisible();
     await expect(page.getByLabel('Drawing title')).toBeVisible();
-    await expect(page.getByLabel('Layers')).toBeVisible();
+    await expect(page.getByLabel('Layers', { exact: true })).toBeVisible();
     await expect(page.getByTestId('open-drawings')).toBeVisible();
     // Help panel always stays visible
     await expect(page.getByLabel('Help')).toBeVisible();
@@ -26,7 +26,7 @@ test.describe('Panel visibility toggle', () => {
 
     await expect(page.getByRole('toolbar', { name: 'Pixel art tools' })).not.toBeVisible();
     await expect(page.getByLabel('Drawing title')).not.toBeVisible();
-    await expect(page.getByLabel('Layers')).not.toBeVisible();
+    await expect(page.getByLabel('Layers', { exact: true })).not.toBeVisible();
     await expect(page.getByTestId('open-drawings')).not.toBeVisible();
     // Canvas and help pill remain
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
@@ -43,7 +43,7 @@ test.describe('Panel visibility toggle', () => {
 
     await expect(page.getByRole('toolbar', { name: 'Pixel art tools' })).toBeVisible();
     await expect(page.getByLabel('Drawing title')).toBeVisible();
-    await expect(page.getByLabel('Layers')).toBeVisible();
+    await expect(page.getByLabel('Layers', { exact: true })).toBeVisible();
     await expect(page.getByTestId('open-drawings')).toBeVisible();
   });
 

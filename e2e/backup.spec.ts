@@ -38,7 +38,7 @@ test.describe('Pixelator backup / restore', () => {
     const parsed = JSON.parse(raw);
 
     expect(parsed.format).toBe('pixelator-backup');
-    expect(parsed.version).toBe(1);
+    expect(parsed.version).toBe(3);
     expect(parsed.scope).toBe('all');
     expect(typeof parsed.exportedAt).toBe('number');
     expect(Array.isArray(parsed.drawings)).toBe(true);

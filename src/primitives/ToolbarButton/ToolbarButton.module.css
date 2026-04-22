@@ -2,9 +2,7 @@
   @mixin icon-button;
   box-sizing: border-box;
   width: var(--toolbar-button-size-md);
-  align-self: stretch;
-  min-height: var(--toolbar-button-size-md);
-  height: auto;
+  height: var(--toolbar-button-size-md);
   border-radius: var(--interactive-radius);
   color: var(--text-primary);
   transition: background-color 0.15s, color 0.15s, opacity 0.15s;
@@ -69,9 +67,7 @@
   /* Sizes */
   &.sm {
     width: var(--toolbar-button-size-sm);
-    /* min-height: var(--toolbar-button-size-sm); */
-    height: auto;
-    align-self: stretch;
+    height: var(--toolbar-button-size-sm);
     padding: var(--toolbar-button-padding-sm);
     border-radius: var(--radius-xs);
 
@@ -85,9 +81,7 @@
 
   &.md {
     width: var(--toolbar-button-size-md);
-    /* min-height: var(--toolbar-button-size-md); */
-    height: auto;
-    align-self: stretch;
+    height: var(--toolbar-button-size-md);
     padding: var(--toolbar-button-padding-md);
   }
 

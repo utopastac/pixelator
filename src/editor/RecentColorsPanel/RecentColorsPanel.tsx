@@ -8,14 +8,21 @@ export interface RecentColorsPanelProps {
   onPick: (color: string) => void;
   /** When true, adds a mobile hook class on the root for CSS overrides. */
   mobile?: boolean;
+  /**
+   * Mobile: distance (px) from the bottom of the editor area to the bottom
+   * edge of this panel — set to the measured height of the bottom `EditorBars`
+   * stack so the strip sits flush above the toolbars.
+   */
+  mobileBottomToolbarOffsetPx?: number;
 }
 
 const PINNED = ['#000000', '#ffffff'];
 
 /**
  * Desktop: left-center floating column of recents + divider + pinned B/W.
- * Mobile: bottom-centered horizontal pill (scrollable recents) so the strip
- * clears the canvas and sits above the bottom toolbars.
+ * Mobile: bottom horizontal pill; `bottom` is set from the measured height of
+ * the bottom tool stack (`mobileBottomToolbarOffsetPx`) so it stays flush
+ * above the toolbars.
  *
  * Positioned ABSOLUTELY inside the editor's `.main` area (not viewport-fixed)
  * so it moves with the editor when the DrawingsPanel pushes it right.
@@ -25,11 +32,17 @@ const RecentColorsPanel: React.FC<RecentColorsPanelProps> = ({
   activeColor,
   onPick,
   mobile = false,
+  mobileBottomToolbarOffsetPx,
 }) => {
   const active = activeColor.toLowerCase();
   const displayed = recents.filter((c) => !PINNED.includes(c.toLowerCase()));
 
   const rootClass = [styles.panel, mobile && styles.mobile].filter(Boolean).join(' ');
+
+  const mobileLayoutStyle: React.CSSProperties | undefined =
+    mobile && mobileBottomToolbarOffsetPx !== undefined
+      ? { bottom: `${mobileBottomToolbarOffsetPx}px` }
+      : undefined;
 
   const recentSwatches = displayed.map((color) => (
     <ColorSwatch
@@ -68,7 +81,7 @@ const RecentColorsPanel: React.FC<RecentColorsPanelProps> = ({
   );
 
   return (
-    <div className={rootClass} aria-label="Recent colors">
+    <div className={rootClass} style={mobileLayoutStyle} aria-label="Recent colors">
       {displayed.length > 0 && (
         <>
           {mobile ? (

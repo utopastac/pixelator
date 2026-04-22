@@ -24,30 +24,61 @@
   gap: 0;
 
   & .toolsStrip {
+    box-sizing: border-box;
     min-width: 0;
     width: 100%;
     border-bottom: 1px solid var(--border-subtle);
     padding-left: var(--space-xs);
     display: flex;
-  }
-
-  & .mobileToolsToolbar {
-    min-width: 0;
-    width: 100%;
-  }
-
-  /* Horizontal swipe for the main tool row when it exceeds the viewport. */
-  & .toolsRowScroll {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
+    flex-wrap: nowrap;
+    align-items: center;
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;
     touch-action: pan-x;
     -webkit-overflow-scrolling: touch;
-    padding-inline: max(var(--space-s), env(safe-area-inset-left, 0px))
-      max(var(--space-s), env(safe-area-inset-right, 0px));
+  }
+
+  & .mobileToolsToolbar {
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  & .mobileAdvancedToggleDock {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: stretch;
+    border-right: 1px solid var(--border-subtle);
+    padding: 0;
+  }
+
+  & .mobileSwatchesDock {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--border-subtle);
+    padding-left: var(--space-xs);
+    padding-right: max(var(--space-s), env(safe-area-inset-right, 0px));
+  }
+
+  /* Horizontal swipe for the main tool row when it exceeds the viewport. */
+  & .toolsRowScroll {
+    box-sizing: border-box;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 0;
+    padding-right: 0;
     scrollbar-width: thin;
     scrollbar-color: var(--border-subtle) transparent;
 

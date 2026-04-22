@@ -329,10 +329,6 @@ html[data-mobile='true'] {
     8px + 1px + var(--toolbar-button-size-sm)
   );
 
-  /* Height of EditorBars bottom stack (two sm rows + borders). Recent colours
-   *  strip sits flush on top — `bottom` uses this value with no extra gutter. */
-  --mobile-editor-bottom-chrome-height: 94px;
-
   /* Swatches colour popover: full-width column for SV grid + fluid swatches. */
   --swatches-popover-max-width: min(360px, calc(100vw - 24px));
 
