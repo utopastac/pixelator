@@ -7,8 +7,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ToolsPanel, { type ToolsPanelProps } from './ToolsPanel';
+import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
 
-vi.mock('../SwatchesPopover', () => ({
+vi.mock('@/editor/controls/SwatchesPopover', () => ({
   default: () => <div data-testid="swatches-popover" />,
 }));
 
@@ -21,35 +22,15 @@ vi.stubGlobal('ResizeObserver', MockResizeObserver);
 
 beforeEach(() => {
   document.body.innerHTML = '';
+  const cancelPenPath = vi.fn();
+  useEditorSessionStore.getState().resetSession('#ff0000');
+  useEditorSessionStore.setState({ cancelPenPath });
 });
 
 function makeProps(overrides: Partial<ToolsPanelProps> = {}): ToolsPanelProps {
   return {
-    activeTool: 'paint',
-    setActiveTool: vi.fn(),
-    brushSize: 'sm',
-    setBrushSize: vi.fn(),
-    activeColor: '#ff0000',
-    setActiveColor: vi.fn(),
     palette: ['#000000', '#ffffff'],
     customColors: [],
-    setIndependentHue: vi.fn(),
-    independentHue: null,
-    rectFillMode: 'fill',
-    setRectFillMode: vi.fn(),
-    circleFillMode: 'fill',
-    setCircleFillMode: vi.fn(),
-    triangleFillMode: 'fill',
-    setTriangleFillMode: vi.fn(),
-    starFillMode: 'fill',
-    setStarFillMode: vi.fn(),
-    arrowFillMode: 'fill',
-    setArrowFillMode: vi.fn(),
-    lastShape: 'rect',
-    setLastShape: vi.fn(),
-    marqueeShape: 'rect',
-    setMarqueeShape: vi.fn(),
-    cancelPenPath: vi.fn(),
     ...overrides,
   };
 }
@@ -91,18 +72,18 @@ describe('tool selection', () => {
     ['Line', 'line'],
     ['Pen', 'pen'],
     ['Move', 'move'],
-  ] as const)('clicking %s calls setActiveTool("%s")', async (label, tool) => {
+  ] as const)('clicking %s sets activeTool to "%s"', async (label, tool) => {
     const user = userEvent.setup();
-    const setActiveTool = vi.fn();
-    render(<ToolsPanel {...makeProps({ setActiveTool })} />);
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: label }));
-    expect(setActiveTool).toHaveBeenCalledWith(tool);
+    expect(useEditorSessionStore.getState().activeTool).toBe(tool);
   });
 
   it('clicking Paint calls cancelPenPath', async () => {
     const user = userEvent.setup();
     const cancelPenPath = vi.fn();
-    render(<ToolsPanel {...makeProps({ cancelPenPath })} />);
+    useEditorSessionStore.setState({ cancelPenPath });
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Paint' }));
     expect(cancelPenPath).toHaveBeenCalled();
   });
@@ -113,12 +94,11 @@ describe('tool selection', () => {
 // ---------------------------------------------------------------------------
 
 describe('marquee selection', () => {
-  it('clicking Marquee calls setActiveTool("marquee")', async () => {
+  it('clicking Marquee sets activeTool to "marquee"', async () => {
     const user = userEvent.setup();
-    const setActiveTool = vi.fn();
-    render(<ToolsPanel {...makeProps({ setActiveTool })} />);
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Marquee selection' }));
-    expect(setActiveTool).toHaveBeenCalledWith('marquee');
+    expect(useEditorSessionStore.getState().activeTool).toBe('marquee');
   });
 });
 
@@ -129,60 +109,60 @@ describe('marquee selection', () => {
 describe('shape button short press', () => {
   it('when not on a shape tool, switches to lastShape', async () => {
     const user = userEvent.setup();
-    const setActiveTool = vi.fn();
-    render(<ToolsPanel {...makeProps({ activeTool: 'paint', lastShape: 'circle', setActiveTool })} />);
+    useEditorSessionStore.setState({ activeTool: 'paint', lastShape: 'circle' });
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Shapes' }));
-    expect(setActiveTool).toHaveBeenCalledWith('circle');
+    expect(useEditorSessionStore.getState().activeTool).toBe('circle');
   });
 
   it('when on rect tool, toggles rectFillMode', async () => {
     const user = userEvent.setup();
-    const setRectFillMode = vi.fn();
-    render(<ToolsPanel {...makeProps({ activeTool: 'rect', setRectFillMode })} />);
+    useEditorSessionStore.setState({ activeTool: 'rect', rectFillMode: 'fill' });
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Shapes' }));
-    expect(setRectFillMode).toHaveBeenCalled();
+    expect(useEditorSessionStore.getState().rectFillMode).toBe('outline');
   });
 
   it('when on circle tool, toggles circleFillMode', async () => {
     const user = userEvent.setup();
-    const setCircleFillMode = vi.fn();
-    render(<ToolsPanel {...makeProps({ activeTool: 'circle', setCircleFillMode })} />);
+    useEditorSessionStore.setState({ activeTool: 'circle', circleFillMode: 'fill' });
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Shapes' }));
-    expect(setCircleFillMode).toHaveBeenCalled();
+    expect(useEditorSessionStore.getState().circleFillMode).toBe('outline');
   });
 
   it('when on triangle tool, toggles triangleFillMode', async () => {
     const user = userEvent.setup();
-    const setTriangleFillMode = vi.fn();
-    render(<ToolsPanel {...makeProps({ activeTool: 'triangle', setTriangleFillMode })} />);
+    useEditorSessionStore.setState({ activeTool: 'triangle', triangleFillMode: 'fill' });
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Shapes' }));
-    expect(setTriangleFillMode).toHaveBeenCalled();
+    expect(useEditorSessionStore.getState().triangleFillMode).toBe('outline');
   });
 
   it('when on star tool, toggles starFillMode', async () => {
     const user = userEvent.setup();
-    const setStarFillMode = vi.fn();
-    render(<ToolsPanel {...makeProps({ activeTool: 'star', setStarFillMode })} />);
+    useEditorSessionStore.setState({ activeTool: 'star', starFillMode: 'fill' });
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Shapes' }));
-    expect(setStarFillMode).toHaveBeenCalled();
+    expect(useEditorSessionStore.getState().starFillMode).toBe('outline');
   });
 
   it('when on arrow tool, toggles arrowFillMode', async () => {
     const user = userEvent.setup();
-    const setArrowFillMode = vi.fn();
-    render(<ToolsPanel {...makeProps({ activeTool: 'arrow', setArrowFillMode })} />);
+    useEditorSessionStore.setState({ activeTool: 'arrow', arrowFillMode: 'fill' });
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Shapes' }));
-    expect(setArrowFillMode).toHaveBeenCalled();
+    expect(useEditorSessionStore.getState().arrowFillMode).toBe('outline');
   });
 
   it('fill mode toggler flips fill→outline', async () => {
     const user = userEvent.setup();
-    const setRectFillMode = vi.fn();
-    render(<ToolsPanel {...makeProps({ activeTool: 'rect', rectFillMode: 'fill', setRectFillMode })} />);
+    useEditorSessionStore.setState({ activeTool: 'rect', rectFillMode: 'fill' });
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Shapes' }));
-    const toggler = setRectFillMode.mock.calls[0][0];
-    expect(toggler('fill')).toBe('outline');
-    expect(toggler('outline')).toBe('fill');
+    expect(useEditorSessionStore.getState().rectFillMode).toBe('outline');
+    await user.click(screen.getByRole('button', { name: 'Shapes' }));
+    expect(useEditorSessionStore.getState().rectFillMode).toBe('fill');
   });
 });
 
@@ -211,13 +191,12 @@ describe('brush size popover', () => {
     expect(screen.queryByRole('menu', { name: 'Brush size' })).not.toBeInTheDocument();
   });
 
-  it('picking a brush size calls setBrushSize and closes the popover', async () => {
+  it('picking a brush size updates store and closes the popover', async () => {
     const user = userEvent.setup();
-    const setBrushSize = vi.fn();
-    render(<ToolsPanel {...makeProps({ setBrushSize })} />);
+    render(<ToolsPanel {...makeProps()} />);
     await user.click(screen.getByRole('button', { name: 'Brush size' }));
     await user.click(screen.getByRole('menuitemradio', { name: /medium/i }));
-    expect(setBrushSize).toHaveBeenCalledWith('md');
+    expect(useEditorSessionStore.getState().brushSize).toBe('md');
     expect(screen.queryByRole('menu', { name: 'Brush size' })).not.toBeInTheDocument();
   });
 });

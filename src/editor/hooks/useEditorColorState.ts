@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import type { PixelArtTool } from '../PixelArtEditor';
 import type { PixelArtFillMode, PixelArtBrushSize } from '../lib/pixelArtUtils';
 import { useRecentColors } from './useRecentColors';
 import { useCustomColors } from './useCustomColors';
+import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
 
 interface UseEditorColorStateProps {
   palette: string[];
@@ -45,49 +46,70 @@ interface UseEditorColorStateReturn {
 
 /**
  * Consolidates all tool + colour state for the editor into one hook.
- * Fully uncontrolled — owns activeColor, customColors, and recentColors
- * internally via localStorage-backed hooks.
- *
- * `onColorCommit` is an optional callback fired once per stroke commit when
- * the colour is valid. The editor's own recent-colour list is updated
- * regardless of whether the callback is supplied.
+ * Session fields live in `useEditorSessionStore`; this hook wires recents,
+ * custom colours, and stroke commit behaviour.
  */
 export function useEditorColorState({
   palette,
   commitPixels,
   onColorCommit,
 }: UseEditorColorStateProps): UseEditorColorStateReturn {
-  const [activeTool, setActiveTool] = useState<PixelArtTool>('paint');
-  const [brushSize, setBrushSize] = useState<PixelArtBrushSize>('sm');
-  const [lastShape, setLastShape] = useState<'rect' | 'circle' | 'triangle' | 'star' | 'arrow'>('rect');
-  const [rectFillMode, setRectFillMode] = useState<PixelArtFillMode>('outline');
-  const [circleFillMode, setCircleFillMode] = useState<PixelArtFillMode>('outline');
-  const [triangleFillMode, setTriangleFillMode] = useState<PixelArtFillMode>('outline');
-  const [starFillMode, setStarFillMode] = useState<PixelArtFillMode>('outline');
-  const [arrowFillMode, setArrowFillMode] = useState<PixelArtFillMode>('outline');
-
   const { recents, pushRecent } = useRecentColors();
-
-  const [activeColor, setActiveColorInternal] = useState<string>(() => recents[0] ?? palette[0] ?? '#000000');
-
-  const [independentHue, setIndependentHue] = useState<number | null>(null);
   const { customColors, pushCustomColor, removeCustomColor } = useCustomColors();
+
+  const sessionSeededRef = useRef(false);
+  if (!sessionSeededRef.current) {
+    sessionSeededRef.current = true;
+    useEditorSessionStore.getState().resetSession(recents[0] ?? palette[0] ?? '#000000');
+  }
+
+  const activeTool = useEditorSessionStore((s) => s.activeTool);
+  const setActiveTool = useEditorSessionStore((s) => s.setActiveTool);
+  const brushSize = useEditorSessionStore((s) => s.brushSize);
+  const setBrushSize = useEditorSessionStore((s) => s.setBrushSize);
+  const lastShape = useEditorSessionStore((s) => s.lastShape);
+  const setLastShape = useEditorSessionStore((s) => s.setLastShape);
+  const rectFillMode = useEditorSessionStore((s) => s.rectFillMode);
+  const setRectFillMode = useEditorSessionStore((s) => s.setRectFillMode);
+  const circleFillMode = useEditorSessionStore((s) => s.circleFillMode);
+  const setCircleFillMode = useEditorSessionStore((s) => s.setCircleFillMode);
+  const triangleFillMode = useEditorSessionStore((s) => s.triangleFillMode);
+  const setTriangleFillMode = useEditorSessionStore((s) => s.setTriangleFillMode);
+  const starFillMode = useEditorSessionStore((s) => s.starFillMode);
+  const setStarFillMode = useEditorSessionStore((s) => s.setStarFillMode);
+  const arrowFillMode = useEditorSessionStore((s) => s.arrowFillMode);
+  const setArrowFillMode = useEditorSessionStore((s) => s.setArrowFillMode);
+  const activeColor = useEditorSessionStore((s) => s.activeColor);
+  const setActiveColorInternal = useEditorSessionStore((s) => s.setActiveColor);
+  const independentHue = useEditorSessionStore((s) => s.independentHue);
+  const setIndependentHueStore = useEditorSessionStore((s) => s.setIndependentHue);
+  const setIndependentHue: Dispatch<SetStateAction<number | null>> = useCallback(
+    (value) => {
+      const next =
+        typeof value === 'function'
+          ? (value as (prev: number | null) => number | null)(useEditorSessionStore.getState().independentHue)
+          : value;
+      setIndependentHueStore(next);
+    },
+    [setIndependentHueStore],
+  );
+  const marqueeShape = useEditorSessionStore((s) => s.marqueeShape);
+  const setMarqueeShape = useEditorSessionStore((s) => s.setMarqueeShape);
 
   const setActiveColor = useCallback((c: string) => {
     setActiveColorInternal(c);
-  }, []);
-
-  const [marqueeShape, setMarqueeShape] = useState<'rect' | 'ellipse' | 'wand' | 'polygon'>('rect');
+  }, [setActiveColorInternal]);
 
   const commitPixelsWithColor = useCallback(
     (px: string[], beforePixels?: string[]) => {
       commitPixels(px, beforePixels);
-      if (activeTool === 'eraser') return;
-      if (!/^#[0-9a-fA-F]{6}$/.test(activeColor)) return;
-      pushRecent(activeColor);
-      onColorCommit?.(activeColor);
+      const { activeTool: tool, activeColor: color } = useEditorSessionStore.getState();
+      if (tool === 'eraser') return;
+      if (!/^#[0-9a-fA-F]{6}$/.test(color)) return;
+      pushRecent(color);
+      onColorCommit?.(color);
     },
-    [commitPixels, activeTool, activeColor, pushRecent, onColorCommit],
+    [commitPixels, pushRecent, onColorCommit],
   );
 
   return {

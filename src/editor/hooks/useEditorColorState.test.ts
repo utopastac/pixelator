@@ -8,9 +8,11 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useEditorColorState } from './useEditorColorState';
+import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
 
 beforeEach(() => {
   localStorage.clear();
+  useEditorSessionStore.getState().resetSession('#000000');
 });
 
 const PALETTE = ['#ff0000', '#00ff00'];

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { PlusIcon, MinusIcon } from '../icons/PixelToolIcons';
+import { PlusIcon, MinusIcon } from '@/editor/icons/PixelToolIcons';
 import ToolbarButton from '@/primitives/ToolbarButton';
 import Popover from '@/overlays/Popover';
 import ReadoutButton from '@/primitives/ReadoutButton';
@@ -7,7 +7,7 @@ import Tooltip from '@/overlays/Tooltip';
 import MenuPopover from '@/primitives/MenuPopover';
 import PopoverMenuItem from '@/overlays/PopoverMenuItem';
 import styles from './ZoomControls.module.css';
-import type { UseViewportReturn } from '../hooks/useViewport';
+import type { UseViewportReturn } from '@/editor/hooks/useViewport';
 
 export interface ZoomControlsProps {
   viewport: Pick<UseViewportReturn, 'zoom' | 'setZoom' | 'fit' | 'isAutoFit'>;

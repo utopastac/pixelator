@@ -7,8 +7,8 @@ import CompactInput from '@/primitives/CompactInput';
 import Popover from '@/overlays/Popover';
 import PopoverMenuItem from '@/overlays/PopoverMenuItem';
 import Tooltip from '@/overlays/Tooltip';
-import { ChevronSmIcon } from '../icons/PixelToolIcons';
-import { HEX_REGEX } from '../lib/pixelArtUtils';
+import { ChevronSmIcon } from '@/editor/icons/PixelToolIcons';
+import { HEX_REGEX } from '@/editor/lib/pixelArtUtils';
 import MenuPopover from '@/primitives/MenuPopover';
 import styles from './SwatchesPopover.module.css';
 

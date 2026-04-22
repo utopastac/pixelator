@@ -24,8 +24,8 @@ import { useLayerBlockGuard } from './useLayerBlockGuard';
 import { useSelectionHoverTracker } from './useSelectionHoverTracker';
 import { useEditorContextMenu } from './useEditorContextMenu';
 import { createDefaultLayer } from '@/lib/storage';
-import type { SymmetryMode } from '../lib/symmetry';
 import type { PixelArtEditorProps } from '../PixelArtEditor';
+import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
 
 const ZOOM_SENSITIVITY = 0.01;
 
@@ -83,11 +83,15 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
-  // ── Drawing mode state ───────────────────────────────────────────────────────
-  const [symmetryMode, setSymmetryMode] = useState<SymmetryMode>('none');
-  const [tilingEnabled, setTilingEnabled] = useState(false);
-  const [wrapMode, setWrapMode] = useState(false);
-  const [alphaLock, setAlphaLock] = useState(false);
+  // ── Drawing mode state (Zustand session store) ───────────────────────────────
+  const symmetryMode = useEditorSessionStore((s) => s.symmetryMode);
+  const setSymmetryMode = useEditorSessionStore((s) => s.setSymmetryMode);
+  const tilingEnabled = useEditorSessionStore((s) => s.tilingEnabled);
+  const setTilingEnabled = useEditorSessionStore((s) => s.setTilingEnabled);
+  const wrapMode = useEditorSessionStore((s) => s.wrapMode);
+  const setWrapMode = useEditorSessionStore((s) => s.setWrapMode);
+  const alphaLock = useEditorSessionStore((s) => s.alphaLock);
+  const setAlphaLock = useEditorSessionStore((s) => s.setAlphaLock);
 
   // ── History (mount-only seed) ────────────────────────────────────────────────
   const initialSeed = useMemo(() => {
@@ -145,28 +149,19 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     activeTool,
     setActiveTool,
     brushSize,
-    setBrushSize,
     lastShape,
-    setLastShape,
     rectFillMode,
-    setRectFillMode,
     circleFillMode,
-    setCircleFillMode,
     triangleFillMode,
-    setTriangleFillMode,
     starFillMode,
-    setStarFillMode,
     arrowFillMode,
-    setArrowFillMode,
     activeColor,
     setActiveColor,
-    independentHue,
     setIndependentHue,
     recents,
     customColors,
     pushCustomColor,
     marqueeShape,
-    setMarqueeShape,
     commitPixelsWithColor,
   } = useEditorColorState({ palette, commitPixels });
 
@@ -405,6 +400,10 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
     polygonSelectContext.cancel();
   }, [penContext, polygonSelectContext]);
 
+  useEffect(() => {
+    useEditorSessionStore.getState().setCancelPenPath(cancelAllPaths);
+  }, [cancelAllPaths]);
+
   useCanvasKeyboardShortcuts({
     disabled,
     activeTool,
@@ -502,34 +501,11 @@ export function usePixelArtEditorState(props: PixelArtEditorProps) {
   const currentHeightForToolbar = sizesEnabled ? managedHeight : undefined;
 
   const toolsPanelBaseProps = {
-    activeTool,
-    setActiveTool,
-    brushSize,
-    setBrushSize,
-    activeColor,
-    setActiveColor,
     palette,
     paletteId,
     onPaletteChange,
     customColors,
     onAddCustomColor: pushCustomColor,
-    setIndependentHue,
-    independentHue,
-    rectFillMode,
-    setRectFillMode,
-    circleFillMode,
-    setCircleFillMode,
-    triangleFillMode,
-    setTriangleFillMode,
-    starFillMode,
-    setStarFillMode,
-    arrowFillMode,
-    setArrowFillMode,
-    lastShape,
-    setLastShape,
-    marqueeShape,
-    setMarqueeShape,
-    cancelPenPath: cancelAllPaths,
   };
 
   const titlePanelProps = {

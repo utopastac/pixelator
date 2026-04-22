@@ -5,7 +5,7 @@ import Popover from '@/overlays/Popover';
 import PopoverMenuItem from '@/overlays/PopoverMenuItem';
 import ReadoutButton from '@/primitives/ReadoutButton';
 import Tooltip from '@/overlays/Tooltip';
-import { CheckIcon, Icons } from '../icons/PixelToolIcons';
+import { CheckIcon, Icons } from '@/editor/icons/PixelToolIcons';
 import MenuPopover from '@/primitives/MenuPopover';
 import styles from './CanvasSizePicker.module.css';
 
