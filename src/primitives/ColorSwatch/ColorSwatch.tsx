@@ -17,6 +17,8 @@ export interface ColorSwatchProps {
    *  reads as a bead inside a pill — used for the primary colour trigger in
    *  the tools pill. */
   ring?: boolean;
+  /** Stretch to the grid cell (width 100%, aspect-ratio 1) — mobile palette rows. */
+  fluidInGrid?: boolean;
   onClick?: () => void;
   /** Required — swatches render only a coloured box, no visible label. */
   'aria-label': string;
@@ -51,6 +53,7 @@ const ColorSwatch = React.forwardRef<HTMLButtonElement, ColorSwatchProps>(functi
     size = 'xs',
     shape = 'rounded',
     ring = false,
+    fluidInGrid = false,
     onClick,
     title,
     className = '',
@@ -66,6 +69,7 @@ const ColorSwatch = React.forwardRef<HTMLButtonElement, ColorSwatchProps>(functi
     SIZE_CLASS[size],
     SHAPE_CLASS[shape],
     ring ? styles.ring : '',
+    fluidInGrid ? styles.fluidInGrid : '',
     selected ? styles.selected : '',
     className,
   ]

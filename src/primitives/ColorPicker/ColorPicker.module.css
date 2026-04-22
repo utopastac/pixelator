@@ -4,6 +4,11 @@
   gap: var(--space-s);
 }
 
+.rootFill {
+  width: 100%;
+  min-width: 0;
+}
+
 .canvasWrap {
   overflow: hidden;
   line-height: 0;

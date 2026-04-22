@@ -5,12 +5,41 @@
 .colorPickerPopover {
   @mixin popover-panel;
   padding: var(--space-s);
+  width: max-content;
+  /* ~240px matches the historical swatches column; mobile overrides below. */
+  max-width: min(240px, calc(100vw - 16px));
+}
+
+:global(html[data-mobile='true']) {
+  & .colorPickerPopover {
+    width: var(--swatches-popover-max-width);
+    max-width: var(--swatches-popover-max-width);
+  }
+
+  & .swatchGrid {
+    justify-items: stretch;
+  }
+}
+
+/* Portaled under the colour dialog (`--z-popover`); must sit below the panel. */
+.mobileColorBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-popover) - 1);
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: var(--overlay-scrim);
+  appearance: none;
 }
 
 .colorPickerBody {
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
+  width: 100%;
+  min-width: 0;
 }
 
 /* Swatches popover: palette header + scrollable grid + fixed "+" row. The
@@ -22,11 +51,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
-  /* Width follows the ColorPicker (200px desktop, wider on mobile); cap so
-     the popover never spills past the viewport on narrow phones. */
-  width: fit-content;
-  max-width: calc(100vw - 24px);
-  min-width: 200px;
+  width: 100%;
+  min-width: 0;
 }
 
 /* Hex input + palette picker sit side-by-side on one row. Both share the
@@ -35,6 +61,15 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
+  width: 100%;
+  min-width: 0;
+}
+
+/* Keeps the hex field from stretching across the full popover width on desktop. */
+.hexInputSlot {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(11rem, 55%);
 }
 
 /* Button that opens the palette picker — styled to match CompactInput so the
@@ -90,8 +125,7 @@
   display: grid;
   /* Fixed 8-track grid so both the palette and custom-swatches grids line up
      on the same column boundaries even when one has fewer than 8 items.
-     Tracks are `1fr` so the grid fills the popover width; 20px swatches sit
-     centered in their cells. */
+     Tracks are `1fr` so the grid fills the popover width. */
   grid-template-columns: repeat(8, 1fr);
   justify-items: center;
   gap: var(--space-xxs);

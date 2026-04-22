@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { PALETTES, getPalette } from '@/lib/palettes';
 import { hsvToHex, hexToHsv } from '@/lib/colorUtils';
 import ColorPicker from '@/primitives/ColorPicker/ColorPicker';
@@ -10,6 +11,7 @@ import Tooltip from '@/overlays/Tooltip';
 import { ChevronSmIcon } from '@/editor/icons/PixelToolIcons';
 import { HEX_REGEX } from '@/editor/lib/pixelArtUtils';
 import MenuPopover from '@/primitives/MenuPopover';
+import { useAppMobileOptional } from '@/AppMobileContext';
 import styles from './SwatchesPopover.module.css';
 
 export interface SwatchesPopoverProps {
@@ -43,6 +45,7 @@ const SwatchesPopover: React.FC<SwatchesPopoverProps> = ({
 }) => {
   const activeColorSwatchRef = useRef<HTMLButtonElement>(null);
   const paletteHeaderRef = useRef<HTMLButtonElement>(null);
+  const isMobile = useAppMobileOptional()?.isMobile ?? false;
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [isPaletteMenuOpen, setIsPaletteMenuOpen] = useState(false);
   const [hexDraft, setHexDraft] = useState(() => activeColor.replace(/^#/, ''));
@@ -54,8 +57,34 @@ const SwatchesPopover: React.FC<SwatchesPopoverProps> = ({
     setHexDraft(activeColor.replace(/^#/, ''));
   }, [activeColor]);
 
+  const closeColorPicker = useCallback(() => {
+    if (
+      onAddCustomColor &&
+      HEX_REGEX.test(activeColor) &&
+      !palette.includes(activeColor) &&
+      !customColors.includes(activeColor)
+    ) {
+      onAddCustomColor(activeColor);
+    }
+    setIsColorPickerOpen(false);
+  }, [onAddCustomColor, activeColor, palette, customColors]);
+
+  const mobileBackdrop =
+    isMobile && isColorPickerOpen
+      ? createPortal(
+          <button
+            type="button"
+            className={styles.mobileColorBackdrop}
+            aria-label="Close colors"
+            onClick={closeColorPicker}
+          />,
+          document.body,
+        )
+      : null;
+
   return (
     <>
+      {mobileBackdrop}
       <Tooltip content="Colors" placement="top" delay={400}>
         <ColorSwatch
           ref={activeColorSwatchRef}
@@ -71,20 +100,7 @@ const SwatchesPopover: React.FC<SwatchesPopoverProps> = ({
       </Tooltip>
       <Popover
         isOpen={isColorPickerOpen}
-        onClose={() => {
-          // When the popover closes, if the active colour is a valid hex
-          // that isn't in the current palette or custom list, append it
-          // to the custom colours so the user can get back to it later.
-          if (
-            onAddCustomColor &&
-            HEX_REGEX.test(activeColor) &&
-            !palette.includes(activeColor) &&
-            !customColors.includes(activeColor)
-          ) {
-            onAddCustomColor(activeColor);
-          }
-          setIsColorPickerOpen(false);
-        }}
+        onClose={closeColorPicker}
         anchorRef={activeColorSwatchRef}
         role="dialog"
         className={styles.colorPickerPopover}
@@ -92,20 +108,22 @@ const SwatchesPopover: React.FC<SwatchesPopoverProps> = ({
       >
         <div className={styles.swatchesPopover}>
           <div className={styles.hexRow}>
-            <CompactInput
-              prefix="#"
-              id="hex-color-input"
-              value={hexDraft}
-              onChange={(raw) => {
-                const stripped = raw.replace(/^#/, '');
-                setHexDraft(stripped);
-                const hex = '#' + stripped;
-                if (HEX_REGEX.test(hex)) {
-                  setIndependentHue(null);
-                  setActiveColor(hex.toLowerCase());
-                }
-              }}
-            />
+            <div className={styles.hexInputSlot}>
+              <CompactInput
+                prefix="#"
+                id="hex-color-input"
+                value={hexDraft}
+                onChange={(raw) => {
+                  const stripped = raw.replace(/^#/, '');
+                  setHexDraft(stripped);
+                  const hex = '#' + stripped;
+                  if (HEX_REGEX.test(hex)) {
+                    setIndependentHue(null);
+                    setActiveColor(hex.toLowerCase());
+                  }
+                }}
+              />
+            </div>
             {paletteId !== undefined && onPaletteChange && (
               <>
                 <Tooltip content="Palette" placement="bottom" delay={400}>
@@ -150,6 +168,7 @@ const SwatchesPopover: React.FC<SwatchesPopoverProps> = ({
           </div>
           <div className={styles.colorPickerBody}>
             <ColorPicker
+              fillWidth
               hue={(() => {
                 const hsv = HEX_REGEX.test(activeColor) ? hexToHsv(activeColor) : { h: 0, s: 1, v: 1 };
                 return independentHue !== null ? independentHue : hsv.h;
@@ -172,6 +191,7 @@ const SwatchesPopover: React.FC<SwatchesPopoverProps> = ({
                 <ColorSwatch
                   key={color}
                   color={color}
+                  fluidInGrid={isMobile}
                   selected={activeColor.toLowerCase() === color}
                   onClick={() => {
                     setActiveColor(color);
@@ -190,6 +210,7 @@ const SwatchesPopover: React.FC<SwatchesPopoverProps> = ({
                     <ColorSwatch
                       key={`custom-${color}`}
                       color={color}
+                      fluidInGrid={isMobile}
                       selected={activeColor === color}
                       onClick={() => {
                         setActiveColor(color);

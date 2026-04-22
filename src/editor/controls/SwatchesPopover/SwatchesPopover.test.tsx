@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { fireEvent } from '@testing-library/react';
+import { AppMobileContext } from '@/AppMobileContext';
 import SwatchesPopover from './SwatchesPopover';
 
 // jsdom lacks ResizeObserver — stub it globally so Popover doesn't throw.
@@ -217,5 +218,28 @@ describe('SwatchesPopover', () => {
     await flushRaf();
     fireEvent.pointerDown(document.body);
     expect(onAddCustomColor).not.toHaveBeenCalled();
+  });
+
+  it('does not render a modal scrim on desktop when the picker is open', async () => {
+    const user = userEvent.setup();
+    render(<SwatchesPopover {...makeProps()} />);
+    await user.click(screen.getByRole('button', { name: /colors/i }));
+    await flushRaf();
+    expect(screen.queryByRole('button', { name: 'Close colors' })).not.toBeInTheDocument();
+  });
+
+  it('mobile: modal scrim closes the colour picker', async () => {
+    const user = userEvent.setup();
+    render(
+      <AppMobileContext.Provider value={{ isMobile: true, setMobile: vi.fn() }}>
+        <SwatchesPopover {...makeProps()} />
+      </AppMobileContext.Provider>,
+    );
+    await user.click(screen.getByRole('button', { name: /colors/i }));
+    await flushRaf();
+    expect(screen.getByRole('dialog', { name: /colors/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Close colors' }));
+    await flushRaf();
+    expect(screen.queryByRole('dialog', { name: /colors/i })).not.toBeInTheDocument();
   });
 });

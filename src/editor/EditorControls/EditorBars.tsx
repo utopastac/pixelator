@@ -153,7 +153,12 @@ export default function EditorBars({ panelsVisible, isMobile, chrome }: EditorBa
           aria-label="Editor"
         >
           <div className={styles.toolsStrip} role="region" aria-label="Drawing title">
-            <ToolGroupCluster trailingDivider={false}>
+            <ToolGroupCluster>
+              {c.symmetry}
+              {c.wrap}
+              {c.alphaLock}
+            </ToolGroupCluster>
+            <ToolGroupCluster trailingDivider={false} align="right">
               {c.fill}
               {c.eyedropper}
               {c.swatches}

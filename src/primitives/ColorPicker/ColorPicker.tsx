@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useMemo, useLayoutEffect } from 'react';
+import React, { useRef, useEffect, useCallback, useMemo, useLayoutEffect, useState } from 'react';
 import { useAppMobileOptional } from '@/AppMobileContext';
 import { hsvToRgb } from '@/lib/colorUtils';
 import styles from './ColorPicker.module.css';
@@ -8,8 +8,10 @@ interface ColorPickerProps {
   saturation: number;
   brightness: number;
   onChange: (h: number, s: number, v: number) => void;
-  /** Logical pixel width/height of the SV square; defaults 200 desktop, larger on mobile. */
+  /** Logical pixel width/height of the SV square when not using `fillWidth`. */
   size?: number;
+  /** When true, SV square uses 100% of the parent width (see ResizeObserver). */
+  fillWidth?: boolean;
   'data-testid'?: string;
 }
 
@@ -22,7 +24,11 @@ const HUE_BAR_HEIGHT_MOBILE = 32;
 const SV_CELLS = 20;
 const HUE_CELLS = 24;
 
+/** Fallback when `isMobile` but parent does not use `fillWidth` (tests / rare). */
 const MOBILE_SPECTRUM_PX = 272;
+
+const SPECTRUM_MIN = 160;
+const SPECTRUM_MAX = 520;
 
 /**
  * HSV colour picker: a saturation/brightness square plus a hue bar underneath.
@@ -40,17 +46,69 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
   brightness,
   onChange,
   size: sizeProp,
+  fillWidth = false,
   'data-testid': dataTestId,
 }) => {
   const isMobile = useAppMobileOptional()?.isMobile ?? false;
-  const size = sizeProp ?? (isMobile ? MOBILE_SPECTRUM_PX : 200);
   const hueBarHeight = isMobile ? HUE_BAR_HEIGHT_MOBILE : HUE_BAR_HEIGHT_DESKTOP;
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [measuredSpectrum, setMeasuredSpectrum] = useState<number | null>(null);
+
+  const spectrumSize = useMemo(() => {
+    if (sizeProp != null) return sizeProp;
+    if (fillWidth) {
+      if (measuredSpectrum != null && measuredSpectrum > 0) {
+        return clamp(Math.floor(measuredSpectrum), SPECTRUM_MIN, SPECTRUM_MAX);
+      }
+      return 200;
+    }
+    return isMobile ? MOBILE_SPECTRUM_PX : 200;
+  }, [sizeProp, fillWidth, measuredSpectrum, isMobile]);
+
+  const svHeight = spectrumSize;
+
+  const readSpectrumWidth = useCallback((el: HTMLElement) => {
+    const inlineWidth = (node: HTMLElement | null) => {
+      if (!node) return 0;
+      const attr = node.getAttribute('style') ?? '';
+      const m = /width\s*:\s*(\d+(?:\.\d+)?)px/i.exec(attr);
+      if (!m) return 0;
+      const parsed = parseFloat(m[1]);
+      return Number.isFinite(parsed) ? Math.floor(parsed) : 0;
+    };
+
+    let node: HTMLElement | null = el;
+    for (let depth = 0; depth < 5 && node; depth += 1) {
+      const fromLayout = Math.floor(node.offsetWidth || node.getBoundingClientRect().width);
+      if (fromLayout > 0) return fromLayout;
+      const fromStyle = inlineWidth(node);
+      if (fromStyle > 0) return fromStyle;
+      node = node.parentElement;
+    }
+    return 0;
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!fillWidth || !rootRef.current) return;
+    const w = readSpectrumWidth(rootRef.current);
+    if (w > 0) setMeasuredSpectrum(w);
+  }, [fillWidth, readSpectrumWidth]);
+
+  useEffect(() => {
+    if (!fillWidth || !rootRef.current || typeof ResizeObserver === 'undefined') return;
+    const el = rootRef.current;
+    const ro = new ResizeObserver(() => {
+      const w = readSpectrumWidth(el);
+      if (w > 0) setMeasuredSpectrum(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fillWidth, readSpectrumWidth]);
 
   const svCanvasRef = useRef<HTMLCanvasElement>(null);
   const hueCanvasRef = useRef<HTMLCanvasElement>(null);
   const isDraggingRef = useRef<'sv' | 'hue' | null>(null);
-
-  const svHeight = size;
 
   const drawSV = useCallback(() => {
     const canvas = svCanvasRef.current;
@@ -59,6 +117,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
+    const size = spectrumSize;
     canvas.width = size * dpr;
     canvas.height = svHeight * dpr;
     ctx.scale(dpr, dpr);
@@ -90,7 +149,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     ctx.lineWidth = 1;
     ctx.strokeStyle = '#ffffff';
     ctx.strokeRect(sx0 + 0.5, sy0 + 0.5, sx1 - sx0 - 1, sy1 - sy0 - 1);
-  }, [hue, saturation, brightness, size, svHeight]);
+  }, [hue, saturation, brightness, spectrumSize, svHeight]);
 
   const drawHue = useCallback(() => {
     const canvas = hueCanvasRef.current;
@@ -99,6 +158,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
+    const size = spectrumSize;
     canvas.width = size * dpr;
     canvas.height = hueBarHeight * dpr;
     ctx.scale(dpr, dpr);
@@ -122,7 +182,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     ctx.lineWidth = 1;
     ctx.strokeStyle = '#ffffff';
     ctx.strokeRect(hx0 + 0.5, 0.5, hx1 - hx0 - 1, hueBarHeight - 1);
-  }, [hue, size, hueBarHeight]);
+  }, [hue, spectrumSize, hueBarHeight]);
 
   useEffect(() => {
     drawSV();
@@ -137,13 +197,14 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
       const canvas = svCanvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
+      const size = spectrumSize;
       const x = ((clientX - rect.left) / rect.width) * size;
       const y = ((clientY - rect.top) / rect.height) * svHeight;
       const s = clamp(x / size, 0, 1);
       const v = clamp(1 - y / svHeight, 0, 1);
       onChange(hue, parseFloat(s.toFixed(3)), parseFloat(v.toFixed(3)));
     },
-    [size, svHeight, hue, onChange],
+    [spectrumSize, svHeight, hue, onChange],
   );
 
   const handleHueInteraction = useCallback(
@@ -151,11 +212,12 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
       const canvas = hueCanvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
+      const size = spectrumSize;
       const x = ((clientX - rect.left) / rect.width) * size;
       const h = clamp((x / size) * 360, 0, 360);
       onChange(Math.round(h), saturation, brightness);
     },
-    [size, saturation, brightness, onChange],
+    [spectrumSize, saturation, brightness, onChange],
   );
 
   const handleSVInteractionRef = useRef(handleSVInteraction);
@@ -243,18 +305,21 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     };
   }, [pointerOpts]);
 
+  const rootClass = fillWidth ? `${styles.root} ${styles.rootFill}` : styles.root;
+
   return (
     <div
+      ref={rootRef}
       data-testid={dataTestId}
-      className={styles.root}
-      style={{ width: size }}
+      className={rootClass}
+      style={fillWidth ? undefined : { width: spectrumSize }}
     >
       <div className={styles.canvasWrap}>
         <canvas
           ref={svCanvasRef}
           className={styles.canvas}
           style={{
-            width: size,
+            width: spectrumSize,
             height: svHeight,
           }}
         />
@@ -264,7 +329,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
           ref={hueCanvasRef}
           className={styles.canvas}
           style={{
-            width: size,
+            width: spectrumSize,
             height: hueBarHeight,
           }}
         />

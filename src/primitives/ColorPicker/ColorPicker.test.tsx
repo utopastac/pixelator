@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import ColorPicker from './ColorPicker';
 
 function makeMockCtx() {
@@ -98,6 +98,18 @@ describe('ColorPicker', () => {
       <ColorPicker hue={0} saturation={0.5} brightness={0.5} onChange={vi.fn()} />,
     );
     expect(container.querySelectorAll('canvas')).toHaveLength(2);
+  });
+
+  it('fillWidth sizes the SV canvas to the parent width', async () => {
+    const { container } = render(
+      <div style={{ width: 300 }}>
+        <ColorPicker fillWidth hue={0} saturation={0.5} brightness={0.5} onChange={vi.fn()} data-testid="cp" />
+      </div>,
+    );
+    const sv = container.querySelector('canvas');
+    await waitFor(() => {
+      expect(sv).toHaveStyle({ width: '300px', height: '300px' });
+    });
   });
 
   it('pointerdown on the SV canvas calls onChange with s/v from click position', () => {

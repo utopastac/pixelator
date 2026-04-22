@@ -29,6 +29,17 @@
   height: var(--icon-button-size-md);
 }
 
+/* Fills a `1fr` grid track (see SwatchesPopover mobile). */
+.swatch.fluidInGrid.sizeXs,
+.swatch.fluidInGrid.sizeSm,
+.swatch.fluidInGrid.sizeMd {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
 .shapeRounded {
   border-radius: var(--radius-xs);
 }
