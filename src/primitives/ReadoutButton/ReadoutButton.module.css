@@ -5,7 +5,7 @@
 .readout {
   @mixin type-body-xs;
   width: 48px;
-  height: 24px;
+  height: 100%;
   padding: 0 var(--space-xs);
   display: inline-flex;
   align-items: center;

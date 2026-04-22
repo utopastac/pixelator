@@ -64,7 +64,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-xxs);
-  padding: var(--space-xs);
+  padding: 0;
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
