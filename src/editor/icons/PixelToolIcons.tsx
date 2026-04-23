@@ -129,6 +129,7 @@ export const SelectAllIcon = resolveIcon('SelectAll');
 export const LassoSelectIcon = resolveIcon('Select');
 export const PolygonSelectIcon = resolveIcon('PolygonSelect');
 export const FitToScreenIcon = resolveIcon('FitToScreen');
+export const FilterIcon = resolveIcon('Filter');
 export const CloseIcon = resolveIcon('Close');
 export const LayersIcon = resolveIcon('Layers');
 export const FolderIcon = resolveIcon('Folder');

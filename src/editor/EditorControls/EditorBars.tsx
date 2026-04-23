@@ -1,9 +1,9 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
 import FloatingPanel from '@/primitives/FloatingPanel';
 import ToolbarButton from '@/primitives/ToolbarButton';
 import ToolGroupCluster from '@/editor/controls/ToolGroupCluster';
 import { createEditorControls, type EditorChromeData } from './Controls';
+import { FilterIcon } from '@/editor/icons/PixelToolIcons';
 import { useEditorSessionStore } from '@/editor/stores/useEditorSessionStore';
 import styles from './EditorBars.module.css';
 
@@ -233,7 +233,7 @@ export default function EditorBars({
           <div className={styles.mobileToolsToolbar} role="toolbar" aria-label="Pixel art tools">
             <div className={styles.mobileAdvancedToggleDock}>
               <ToolbarButton
-                icon={SlidersHorizontal}
+                icon={FilterIcon}
                 aria-label="Advanced tools"
                 selected={mobileAdvancedStripOpen}
                 fillHeight
