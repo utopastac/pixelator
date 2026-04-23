@@ -121,7 +121,7 @@ test.describe('Pixelator layers', () => {
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
 
     // Target the Foreground row's eye control (avoids nested row role=button vs inner button quirks).
-    const foregroundRow = page.getByRole('button', { name: 'Layer Foreground', exact: true });
+    const foregroundRow = page.getByRole('listitem', { name: 'Layer Foreground', exact: true });
     await foregroundRow.getByRole('button', { name: 'Hide layer', exact: true }).click();
 
     // Wait for that layer to become invisible in localStorage.
@@ -231,8 +231,8 @@ test.describe('Pixelator layers', () => {
     // Display order is reversed from array: Top (display 0), Middle (1), Bottom (2).
     // Drag the Bottom row's grip up above the Top row → drop slot 0 → moves
     // layer-bottom to the highest array index (top of the render stack).
-    const topRow = page.getByRole('button', { name: 'Layer Top', exact: true });
-    const bottomRow = page.getByRole('button', { name: 'Layer Bottom', exact: true });
+    const topRow = page.getByRole('listitem', { name: 'Layer Top', exact: true });
+    const bottomRow = page.getByRole('listitem', { name: 'Layer Bottom', exact: true });
 
     const topBox = await topRow.boundingBox();
     const bottomBox = await bottomRow.boundingBox();
@@ -292,8 +292,8 @@ test.describe('Pixelator layers', () => {
 
     // Display order: LayerB (display 0), LayerA (display 1).
     // Alt-drag LayerA (bottom of list) up above LayerB → duplicates it to the top slot.
-    const topRow = page.getByRole('button', { name: 'Layer LayerB', exact: true });
-    const bottomRow = page.getByRole('button', { name: 'Layer LayerA', exact: true });
+    const topRow = page.getByRole('listitem', { name: 'Layer LayerB', exact: true });
+    const bottomRow = page.getByRole('listitem', { name: 'Layer LayerA', exact: true });
 
     const topBox = await topRow.boundingBox();
     const bottomBox = await bottomRow.boundingBox();

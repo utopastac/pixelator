@@ -102,8 +102,8 @@ describe('LayersPanel — layer list', () => {
 
   it('renders a row for each layer by name', () => {
     render(<LayersPanel {...makeProps()} />);
-    expect(screen.getByRole('button', { name: 'Layer Background' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Layer Foreground' })).toBeInTheDocument();
+    expect(screen.getByRole('listitem', { name: 'Layer Background' })).toBeInTheDocument();
+    expect(screen.getByRole('listitem', { name: 'Layer Foreground' })).toBeInTheDocument();
   });
 
   it('renders the list as a list element', () => {
@@ -148,16 +148,16 @@ describe('LayersPanel — layer list', () => {
 // ---------------------------------------------------------------------------
 
 describe('LayersPanel — active layer', () => {
-  it('marks the active layer row with aria-pressed=true', () => {
+  it('marks the active layer row with aria-current=true', () => {
     render(<LayersPanel {...makeProps({ activeLayerId: 'a' })} />);
-    const activeRow = screen.getByRole('button', { name: 'Layer Background' });
-    expect(activeRow).toHaveAttribute('aria-pressed', 'true');
+    const activeRow = screen.getByRole('listitem', { name: 'Layer Background' });
+    expect(activeRow).toHaveAttribute('aria-current', 'true');
   });
 
-  it('marks the inactive layer row with aria-pressed=false', () => {
+  it('does not mark inactive rows as current', () => {
     render(<LayersPanel {...makeProps({ activeLayerId: 'a' })} />);
-    const inactiveRow = screen.getByRole('button', { name: 'Layer Foreground' });
-    expect(inactiveRow).toHaveAttribute('aria-pressed', 'false');
+    const inactiveRow = screen.getByRole('listitem', { name: 'Layer Foreground' });
+    expect(inactiveRow).not.toHaveAttribute('aria-current');
   });
 });
 
@@ -170,7 +170,7 @@ describe('LayersPanel — selecting a layer', () => {
     const user = userEvent.setup();
     const onSetActive = vi.fn();
     render(<LayersPanel {...makeProps({ onSetActive })} />);
-    await user.click(screen.getByRole('button', { name: 'Layer Background' }));
+    await user.click(screen.getByRole('listitem', { name: 'Layer Background' }));
     expect(onSetActive).toHaveBeenCalledWith('a');
   });
 });

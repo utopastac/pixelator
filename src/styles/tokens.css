@@ -340,11 +340,14 @@ html[data-mobile='true'] {
   --layers-panel-mobile-width: 80vw;
 }
 
-/* Long-press on iOS/WebKit otherwise starts a native text selection (or
-   callout) on icon-only controls and layer rows. Portaled popovers inherit
-   from `<html>`, so this stays scoped to the mobile layout flag. */
-html[data-mobile='true'] button,
-html[data-mobile='true'] [role='button'] {
+/* iOS/WebKit: long-press otherwise selects arbitrary text across the shell
+   (canvas, panels, labels). Inherit `none` from the document and re-enable
+   selection only on real fields. Portaled popovers inherit from `<html>`. */
+html[data-mobile='true'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html[data-mobile='true'] body {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -352,6 +355,7 @@ html[data-mobile='true'] [role='button'] {
 
 html[data-mobile='true'] input,
 html[data-mobile='true'] textarea,
+html[data-mobile='true'] select,
 html[data-mobile='true'] [contenteditable='true'] {
   -webkit-user-select: text;
   user-select: text;

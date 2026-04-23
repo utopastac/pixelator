@@ -77,20 +77,11 @@ const LayerRow: React.FC<LayerRowProps> = ({
   return (
     <div
       className={`${styles.row} ${isActive ? styles.rowActive : ''} ${isDragging ? styles.rowDragging : ''} ${!layer.visible ? styles.rowHidden : ''}`}
-      role="button"
-      tabIndex={0}
-      aria-pressed={isActive}
+      role="listitem"
+      aria-current={isActive ? 'true' : undefined}
       aria-label={`Layer ${layer.name}`}
       onClick={handleRowClick}
       onContextMenu={handleContextMenu}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          if ((e.target as HTMLElement).closest('[data-stop-row-click]')) return;
-          if ((e.target as HTMLElement).tagName === 'INPUT') return;
-          e.preventDefault();
-          onSetActive(layer.id);
-        }
-      }}
     >
       <span
         data-stop-row-click
@@ -103,6 +94,9 @@ const LayerRow: React.FC<LayerRowProps> = ({
       <span
         data-stop-row-click
         onClick={(e) => {
+          // Stop bubbling so the row never treats this tap as "activate layer"
+          // (nested interactive + iOS quirk when the row was role="button").
+          e.stopPropagation();
           // Alt/Option-click: solo this layer across the whole stack. Normal
           // click: toggle this layer only. Handled on the wrapper so we can
           // read modifier keys — ToolbarButton's onClick has no event arg.
