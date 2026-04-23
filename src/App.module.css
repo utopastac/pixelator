@@ -1,7 +1,11 @@
 .app {
   display: flex;
   flex-direction: column;
+  /* `100vh` alone is taller than the visible area on mobile Safari; `dvh`
+   * tracks the dynamic URL bar so in-app `position:absolute` bottoms line up
+   * with `position:fixed` chrome (e.g. RecentColorsPanel vs EditorBars). */
   height: 100vh;
+  height: 100dvh;
   min-height: 0;
 }
 

@@ -306,6 +306,10 @@ html[data-mobile='true'] {
    *  `0`) so `calc(-100% - var(--floating-offset))` stays valid length math. */
   --floating-offset: 0px;
 
+  /* Requires `viewport-fit=cover` on the viewport meta tag. */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+
   --font-size-s: calc(1.152rem * 1.3);
   --font-size-xs: calc(1.044rem * 1.3);
   --font-size-ui: calc(0.9rem * 1.3);

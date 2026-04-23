@@ -19,6 +19,8 @@
       left: 0;
       right: 0;
       transform: none;
+      /* Measured height (ResizeObserver → recent-colors offset) includes this. */
+      padding-bottom: var(--safe-area-inset-bottom, 0px);
     }
 
     &.topCenter {
@@ -26,6 +28,7 @@
       left: 0;
       right: 0;
       transform: none;
+      padding-top: var(--safe-area-inset-top, 0px);
     }
     
     

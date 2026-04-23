@@ -21,6 +21,10 @@
   transition: left 220ms cubic-bezier(0.2, 0, 0, 1);
 
   &.mobile {
+    /* Same containing block as `FloatingPanel` toolbars (`position: fixed`) so
+     *  `bottom` + measured toolbar height stays flush on iOS (avoids `100vh`
+     *  vs layout viewport drift from absolutely positioning inside `.wrapper`). */
+    position: fixed;
     /* Just under main editor chrome (EditorBars is `z-sheet`) so a tight overlap
      *  still leaves tools tappable. */
     z-index: calc(var(--z-sheet) - 1);

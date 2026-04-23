@@ -24,8 +24,10 @@ const PINNED = ['#000000', '#ffffff'];
  * the bottom tool stack (`mobileBottomToolbarOffsetPx`) so it stays flush
  * above the toolbars.
  *
- * Positioned ABSOLUTELY inside the editor's `.main` area (not viewport-fixed)
- * so it moves with the editor when the DrawingsPanel pushes it right.
+ * Desktop: absolutely positioned inside the editor wrapper so it moves with
+ * the canvas when the DrawingsPanel shifts `--chrome-inset`. Mobile: fixed to
+ * the viewport (same as `FloatingPanel` toolbars) so `bottom` + measured
+ * toolbar height stays aligned on iOS.
  */
 const RecentColorsPanel: React.FC<RecentColorsPanelProps> = ({
   recents,

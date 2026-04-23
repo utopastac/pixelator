@@ -569,7 +569,9 @@ describe('EditorBars — mobile layout', () => {
       },
     };
     render(<EditorBars {...props} />);
-    const btn = within(getMainToolsToolbar()).getByRole('button', { name: 'Deselect' });
+    await user.click(screen.getByRole('button', { name: 'Advanced tools' }));
+    const advanced = screen.getByRole('region', { name: 'Advanced tools' });
+    const btn = within(advanced).getByRole('button', { name: 'Deselect' });
     expect(btn).toBeInTheDocument();
     await user.click(btn);
     expect(onDeselect).toHaveBeenCalledTimes(1);
@@ -590,7 +592,9 @@ describe('EditorBars — mobile layout', () => {
       },
     };
     render(<EditorBars {...props} />);
-    const btn = within(getMainToolsToolbar()).getByRole('button', { name: 'Duplicate selection' });
+    await user.click(screen.getByRole('button', { name: 'Advanced tools' }));
+    const advanced = screen.getByRole('region', { name: 'Advanced tools' });
+    const btn = within(advanced).getByRole('button', { name: 'Duplicate selection' });
     expect(btn).toBeInTheDocument();
     await user.click(btn);
     expect(onDuplicateSelection).toHaveBeenCalledTimes(1);
