@@ -146,25 +146,9 @@ a {
   color: var(--text-primary);
 }
 
-.appIcon {
-  display: block;
-  width: 72px;
-  height: 72px;
-  image-rendering: pixelated;
-  border: 2px solid var(--border-prominent);
-  box-shadow: var(--shadow-md);
-  flex-shrink: 0;
-}
-
 .heroBrand {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-m);
-
   & h1 {
-    flex: 1 1 min(100%, 66rem);
-    min-width: min(100%, 20rem);
+    margin: 0;
   }
 }
 
