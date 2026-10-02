@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support — Pixelator for iOS</title>
+    <meta
+      name="description"
+      content="Support and contact for Pixelator for iOS."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="shell">
+        <nav class="nav" aria-label="Primary">
+          <a class="brand" href="../">
+            <svg class="mark" viewBox="0 0 16 16" aria-hidden="true">
+              <rect width="16" height="16" fill="currentColor" opacity="0.08" />
+              <rect x="2" y="2" width="4" height="4" fill="currentColor" />
+              <rect x="10" y="2" width="4" height="4" fill="currentColor" />
+              <rect x="6" y="6" width="4" height="4" fill="currentColor" />
+              <rect x="2" y="10" width="4" height="4" fill="currentColor" />
+              <rect x="10" y="10" width="4" height="4" fill="currentColor" />
+            </svg>
+            Pixelator
+          </a>
+          <div class="navLinks">
+            <a href="../">iOS</a>
+            <a href="../privacy/">Privacy</a>
+            <a href="/">Web app</a>
+          </div>
+        </nav>
+
+        <main class="panel prose">
+          <h1>Support</h1>
+          <p>
+            Need help with Pixelator for iOS? Start with the notes below, or
+            email us directly.
+          </p>
+
+          <div class="ctaRow spaced">
+            <a class="button" href="mailto:hello@f-90.co.uk?subject=Pixelator%20iOS%20support">
+              Email support
+            </a>
+            <a class="button secondary" href="../privacy/">Privacy Policy</a>
+          </div>
+
+          <h2>Where is my art stored?</h2>
+          <p>
+            Drawings stay on your device. Uninstalling the app, or erasing the
+            app’s data, removes local drawings. Export anything you want to keep
+            before deleting the app.
+          </p>
+
+          <h2>How do I export?</h2>
+          <p>
+            Use the in-app export / share actions to save PNG or SVG via the
+            system share sheet (Photos, Files, Messages, and so on).
+          </p>
+
+          <h2>Something looks wrong</h2>
+          <p>
+            Tell us your device model, iOS version, and what you were doing when
+            the issue happened. Screenshots help. Email
+            <a href="mailto:hello@f-90.co.uk">hello@f-90.co.uk</a>.
+          </p>
+
+          <h2>Web version</h2>
+          <p>
+            Prefer the browser?
+            <a href="/">Open the Pixelator web app</a>
+            at this same domain.
+          </p>
+
+          <h2>Contact</h2>
+          <p>
+            <a href="mailto:hello@f-90.co.uk">hello@f-90.co.uk</a>
+            <br />
+            We aim to reply within a few days.
+          </p>
+        </main>
+
+        <footer class="footer">
+          <span>© <span id="y"></span> Pixelator</span>
+          <div class="footerLinks">
+            <a href="../">iOS home</a>
+            <a href="../privacy/">Privacy Policy</a>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <script>
+      document.getElementById('y').textContent = String(new Date().getFullYear());
+    </script>
+  </body>
+</html>

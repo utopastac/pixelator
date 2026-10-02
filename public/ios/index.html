@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixelator for iOS</title>
+    <meta
+      name="description"
+      content="Pixelator for iOS — a local-first pixel art editor for iPhone and iPad."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="shell">
+        <nav class="nav" aria-label="Primary">
+          <a class="brand" href="./">
+            <svg class="mark" viewBox="0 0 16 16" aria-hidden="true">
+              <rect width="16" height="16" fill="currentColor" opacity="0.08" />
+              <rect x="2" y="2" width="4" height="4" fill="currentColor" />
+              <rect x="10" y="2" width="4" height="4" fill="currentColor" />
+              <rect x="6" y="6" width="4" height="4" fill="currentColor" />
+              <rect x="2" y="10" width="4" height="4" fill="currentColor" />
+              <rect x="10" y="10" width="4" height="4" fill="currentColor" />
+            </svg>
+            Pixelator
+          </a>
+          <div class="navLinks">
+            <a href="./support/">Support</a>
+            <a href="./privacy/">Privacy</a>
+            <a href="/">Web app</a>
+          </div>
+        </nav>
+
+        <main class="panel hero">
+          <h1>PIXELATOR</h1>
+          <p class="lede">
+            A local-first pixel art editor for iPhone and iPad. Draw on layers,
+            zoom into every pixel, and keep your work on device.
+          </p>
+
+          <div class="ctaRow">
+            <a
+              class="button"
+              href="#"
+              aria-disabled="true"
+              title="App Store link coming soon"
+            >
+              App Store — soon
+            </a>
+            <a class="button secondary" href="/">Try the web app</a>
+          </div>
+
+          <div class="preview" aria-hidden="true">
+            <svg viewBox="0 0 32 32" role="img">
+              <rect width="32" height="32" fill="#ffffff" />
+              <!-- mushroom / sprite nod -->
+              <rect x="10" y="6" width="12" height="2" fill="#e01515" />
+              <rect x="8" y="8" width="16" height="2" fill="#e01515" />
+              <rect x="6" y="10" width="20" height="4" fill="#e01515" />
+              <rect x="10" y="10" width="2" height="2" fill="#ffffff" />
+              <rect x="16" y="12" width="2" height="2" fill="#ffffff" />
+              <rect x="20" y="10" width="2" height="2" fill="#ffffff" />
+              <rect x="12" y="14" width="8" height="8" fill="#f5d6a8" />
+              <rect x="12" y="16" width="2" height="2" fill="#333333" />
+              <rect x="18" y="16" width="2" height="2" fill="#333333" />
+              <rect x="14" y="20" width="4" height="2" fill="#333333" />
+              <rect x="10" y="22" width="4" height="4" fill="#f5d6a8" />
+              <rect x="18" y="22" width="4" height="4" fill="#f5d6a8" />
+            </svg>
+          </div>
+
+          <ul class="features">
+            <li>
+              <span class="tick" aria-hidden="true">■</span>
+              <div>
+                <strong>Paint, erase, fill, shapes, and selection tools</strong>
+                <br />
+                <span>Built for crisp 1× pixel work on a touch canvas.</span>
+              </div>
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true">■</span>
+              <div>
+                <strong>Layers with opacity and reorder</strong>
+                <br />
+                <span>Stack sprites without flattening until you export.</span>
+              </div>
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true">■</span>
+              <div>
+                <strong>Private by default</strong>
+                <br />
+                <span>Drawings stay on your device. No account required.</span>
+              </div>
+            </li>
+          </ul>
+        </main>
+
+        <footer class="footer">
+          <span>© <span id="y"></span> Pixelator</span>
+          <div class="footerLinks">
+            <a href="./support/">Support</a>
+            <a href="./privacy/">Privacy Policy</a>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <script>
+      document.getElementById('y').textContent = String(new Date().getFullYear());
+    </script>
+  </body>
+</html>
