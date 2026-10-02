@@ -148,17 +148,21 @@ a {
 
 .appIcon {
   display: block;
-  width: min(180px, 48vw);
-  height: auto;
+  width: 72px;
+  height: 72px;
   image-rendering: pixelated;
   border: 2px solid var(--border-prominent);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
 }
 
 .logotypeHero {
   display: block;
   width: min(100%, 22rem);
   height: auto;
+  /* Scale the small pixel logotype up so letterforms stay chunky */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
   color: var(--text-primary);
 }
 
@@ -166,7 +170,7 @@ a {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-l);
+  gap: var(--space-m);
 }
 
 .panel {
