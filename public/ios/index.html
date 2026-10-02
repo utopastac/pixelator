@@ -8,6 +8,8 @@
       name="description"
       content="Pixelator for iOS — a local-first pixel art editor for iPhone and iPad."
     />
+    <link rel="icon" href="./assets/app-icon-256.png" type="image/png" />
+    <link rel="apple-touch-icon" href="./assets/app-icon-256.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -21,15 +23,20 @@
       <div class="shell">
         <nav class="nav" aria-label="Primary">
           <a class="brand" href="./">
-            <svg class="mark" viewBox="0 0 16 16" aria-hidden="true">
-              <rect width="16" height="16" fill="currentColor" opacity="0.08" />
-              <rect x="2" y="2" width="4" height="4" fill="currentColor" />
-              <rect x="10" y="2" width="4" height="4" fill="currentColor" />
-              <rect x="6" y="6" width="4" height="4" fill="currentColor" />
-              <rect x="2" y="10" width="4" height="4" fill="currentColor" />
-              <rect x="10" y="10" width="4" height="4" fill="currentColor" />
-            </svg>
-            Pixelator
+            <img
+              class="brandIcon"
+              src="./assets/app-icon-256.png"
+              width="36"
+              height="36"
+              alt=""
+            />
+            <img
+              class="brandLogotype"
+              src="./assets/logotype-sm.svg"
+              width="98"
+              height="24"
+              alt="Pixelator"
+            />
           </a>
           <div class="navLinks">
             <a href="./support/">Support</a>
@@ -39,7 +46,24 @@
         </nav>
 
         <main class="panel hero">
-          <h1>PIXELATOR</h1>
+          <div class="heroBrand">
+            <img
+              class="appIcon"
+              src="./assets/app-icon.png"
+              width="180"
+              height="180"
+              alt="Pixelator app icon"
+            />
+            <h1>
+              <img
+                class="logotypeHero"
+                src="./assets/logotype-lg.svg"
+                width="234"
+                height="58"
+                alt="Pixelator"
+              />
+            </h1>
+          </div>
           <p class="lede">
             A local-first pixel art editor for iPhone and iPad. Draw on layers,
             zoom into every pixel, and keep your work on device.
@@ -55,25 +79,6 @@
               App Store — soon
             </a>
             <a class="button secondary" href="/">Try the web app</a>
-          </div>
-
-          <div class="preview" aria-hidden="true">
-            <svg viewBox="0 0 32 32" role="img">
-              <rect width="32" height="32" fill="#ffffff" />
-              <!-- mushroom / sprite nod -->
-              <rect x="10" y="6" width="12" height="2" fill="#e01515" />
-              <rect x="8" y="8" width="16" height="2" fill="#e01515" />
-              <rect x="6" y="10" width="20" height="4" fill="#e01515" />
-              <rect x="10" y="10" width="2" height="2" fill="#ffffff" />
-              <rect x="16" y="12" width="2" height="2" fill="#ffffff" />
-              <rect x="20" y="10" width="2" height="2" fill="#ffffff" />
-              <rect x="12" y="14" width="8" height="8" fill="#f5d6a8" />
-              <rect x="12" y="16" width="2" height="2" fill="#333333" />
-              <rect x="18" y="16" width="2" height="2" fill="#333333" />
-              <rect x="14" y="20" width="4" height="2" fill="#333333" />
-              <rect x="10" y="22" width="4" height="4" fill="#f5d6a8" />
-              <rect x="18" y="22" width="4" height="4" fill="#f5d6a8" />
-            </svg>
           </div>
 
           <ul class="features">

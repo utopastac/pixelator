@@ -122,7 +122,6 @@ a {
   display: inline-flex;
   align-items: center;
   gap: var(--space-s);
-  font-size: var(--font-size-lead);
   color: var(--text-primary);
   text-decoration: none;
 
@@ -131,11 +130,43 @@ a {
   }
 }
 
-.mark {
-  width: 28px;
-  height: 28px;
+.brandIcon {
+  width: 36px;
+  height: 36px;
   image-rendering: pixelated;
   flex-shrink: 0;
+  border: 2px solid var(--border-prominent);
+  box-shadow: var(--shadow-md);
+}
+
+.brandLogotype {
+  display: block;
+  height: 22px;
+  width: auto;
+  color: var(--text-primary);
+}
+
+.appIcon {
+  display: block;
+  width: min(180px, 48vw);
+  height: auto;
+  image-rendering: pixelated;
+  border: 2px solid var(--border-prominent);
+  box-shadow: var(--shadow-xl);
+}
+
+.logotypeHero {
+  display: block;
+  width: min(100%, 22rem);
+  height: auto;
+  color: var(--text-primary);
+}
+
+.heroBrand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-l);
 }
 
 .panel {
@@ -213,34 +244,6 @@ a {
     opacity: 0.55;
     pointer-events: none;
     cursor: default;
-  }
-}
-
-.preview {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 16 / 10;
-  max-width: 28rem;
-  margin-top: var(--space-m);
-  background:
-    linear-gradient(45deg, var(--black-5) 25%, transparent 25%),
-    linear-gradient(-45deg, var(--black-5) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, var(--black-5) 75%),
-    linear-gradient(-45deg, transparent 75%, var(--black-5) 75%);
-  background-size: 16px 16px;
-  background-position:
-    0 0,
-    0 8px,
-    8px -8px,
-    -8px 0;
-  border: 2px solid var(--border-prominent);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-
-  & svg {
-    width: min(72%, 220px);
-    height: auto;
-    image-rendering: pixelated;
   }
 }
 
@@ -351,5 +354,10 @@ a {
 
   html {
     color-scheme: dark;
+  }
+
+  .brandLogotype,
+  .logotypeHero {
+    filter: invert(1);
   }
 }
