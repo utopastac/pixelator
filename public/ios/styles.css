@@ -156,21 +156,27 @@ a {
   flex-shrink: 0;
 }
 
-.logotypeHero {
-  display: block;
-  width: min(100%, 22rem);
-  height: auto;
-  /* Scale the small pixel logotype up so letterforms stay chunky */
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  color: var(--text-primary);
-}
-
 .heroBrand {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-m);
+
+  & h1 {
+    flex: 1 1 min(100%, 66rem);
+    min-width: min(100%, 20rem);
+  }
+}
+
+.logotypeHero {
+  display: block;
+  width: 100%;
+  max-width: 66rem;
+  height: auto;
+  /* Scale the small pixel logotype up so letterforms stay chunky */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  color: var(--text-primary);
 }
 
 .panel {
