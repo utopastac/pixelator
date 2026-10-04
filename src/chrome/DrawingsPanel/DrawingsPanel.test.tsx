@@ -173,6 +173,36 @@ describe('DrawingsPanel — new drawing', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Panel overflow menu — iOS landing link
+// ---------------------------------------------------------------------------
+
+describe('DrawingsPanel — iOS menu item', () => {
+  it('always exposes Pixelator for iOS in the drawings menu', async () => {
+    const user = userEvent.setup();
+    render(<DrawingsPanel {...makeProps()} />);
+    await user.click(screen.getByTestId('drawings-menu'));
+    expect(await screen.findByTestId('drawings-menu-ios')).toHaveTextContent('Pixelator for iOS');
+  });
+
+  it('navigates to /ios/ when Pixelator for iOS is chosen', async () => {
+    const user = userEvent.setup();
+    const assign = vi.fn();
+    const hrefSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
+      ...window.location,
+      assign,
+    } as Location);
+    try {
+      render(<DrawingsPanel {...makeProps()} />);
+      await user.click(screen.getByTestId('drawings-menu'));
+      await user.click(await screen.findByTestId('drawings-menu-ios'));
+      expect(assign).toHaveBeenCalledWith('/ios/');
+    } finally {
+      hrefSpy.mockRestore();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Per-row overflow menu
 // ---------------------------------------------------------------------------
 

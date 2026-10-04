@@ -1,0 +1,70 @@
+/* Dismissible promo — same top-center slot as the canvas status toast, but
+   interactive (link + dismiss). Visual language matches Toast.module.css. */
+.toast {
+  @mixin type-body-xs;
+  position: absolute;
+  top: calc(var(--floating-offset) + var(--floating-panel-height) + var(--floating-stack-gap));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-sheet);
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  max-width: calc(100% - var(--floating-offset) * 2);
+  padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-s);
+  background: var(--surface-inverted-primary);
+  color: var(--text-inverted-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+:global(html[data-mobile='true']) {
+  & .toast {
+    top: calc(
+      var(--floating-offset) + var(--mobile-editor-top-chrome-height) + var(--floating-stack-gap)
+    );
+  }
+}
+
+.copy {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link {
+  color: inherit;
+  font-weight: var(--font-weight-emphasis);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: var(--text-inverted-secondary);
+  }
+
+  &:focus-visible {
+    @mixin focus-ring;
+  }
+}
+
+.detail {
+  color: var(--text-inverted-secondary);
+}
+
+.dismiss {
+  @mixin icon-button;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  color: var(--text-inverted-primary);
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    background: var(--surface-inverted-subtle);
+  }
+
+  &:focus-visible {
+    @mixin focus-ring;
+  }
+}

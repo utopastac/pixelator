@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'; // useState kept for isDrawingsPanelOpen + isResetConfirmOpen
 import DrawingsPanel from '@/chrome/DrawingsPanel';
+import IosCornerLink from '@/chrome/IosCornerLink';
+import IosPromoToast from '@/chrome/IosPromoToast';
 import ConfirmDialog from '@/primitives/ConfirmDialog';
 import EditorView from '@/views/EditorView';
 import ErrorBoundary from '@/primitives/ErrorBoundary';
@@ -166,6 +168,9 @@ export default function App() {
             />
           </ErrorBoundary>
         )}
+        <IosPromoToast />
+        <IosCornerLink />
+
         {panelsVisible && <DrawingsPanel
           isOpen={isDrawingsPanelOpen}
           onDismiss={() => setIsDrawingsPanelOpen(false)}

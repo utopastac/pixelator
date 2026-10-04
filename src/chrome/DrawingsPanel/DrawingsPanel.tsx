@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { Smartphone } from 'lucide-react';
 import {
   DuplicateIcon,
   MoreIcon,
@@ -143,7 +144,8 @@ export default function DrawingsPanel({
 }: Props) {
   const isMobile = useAppMobileOptional()?.isMobile ?? false;
   const showMobileBackdrop = isMobile && isOpen && onDismiss != null;
-  const hasPanelMenu = Boolean(onExportAll || onExportCurrent || onImportClick || onResetApp);
+  // Always show the overflow menu — at minimum it links to the iOS landing page.
+  const hasPanelMenu = true;
   const [menuState, setMenuState] = useState<MenuState | null>(null);
   // Panel-level "more" menu. Separate state from the per-row menu so both can
   // live on screen without interference (only one visually, but the state
@@ -383,6 +385,16 @@ export default function DrawingsPanel({
                   },
                 ]
               : []),
+            { separator: true as const, label: '' },
+            {
+              label: 'Pixelator for iOS',
+              icon: Smartphone,
+              testId: 'drawings-menu-ios',
+              onClick: () => {
+                setPanelMenuPos(null);
+                window.location.assign('/ios/');
+              },
+            },
             ...(onResetApp
               ? [
                   { separator: true as const, label: '' },

@@ -1,0 +1,21 @@
+.link {
+  @mixin type-body-xs;
+  position: absolute;
+  bottom: var(--floating-offset);
+  right: var(--floating-offset);
+  z-index: var(--z-sheet);
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: var(--space-xs) var(--space-s);
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  &:focus-visible {
+    @mixin focus-ring;
+  }
+}
