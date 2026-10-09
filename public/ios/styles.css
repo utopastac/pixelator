@@ -11,7 +11,10 @@
   --black-alpha-25: rgb(0 0 0 / 0.25);
 
   --mint: #52eb9f;
-  --vivid: #ff4ad8;
+  --vivid: #ff92ea;
+  --lilac: #c9a6ff;
+  --aqua: #5ed6ff;
+  --amber: #ffb15e;
   --lavender: #d8e0ff;
   --butter: #fff4d1;
   --blush: #fde2e2;
@@ -380,17 +383,17 @@ button {
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  min-height: var(--px);
+  min-height: calc(var(--px) * 2);
 
   & span {
-    width: calc(var(--px) / 2);
-    height: calc(var(--px) / 2);
+    width: var(--px);
+    height: var(--px);
     background: var(--black-100);
   }
 
   & span[data-current] {
-    width: var(--px);
-    height: var(--px);
+    width: calc(var(--px) * 2);
+    height: calc(var(--px) * 2);
   }
 }
 
@@ -735,6 +738,10 @@ button {
 .toneCoral { background: var(--coral); }
 .toneLime { background: var(--lime); }
 .tonePeach { background: var(--peach); }
+.toneLilac { background: var(--lilac); }
+.toneAqua { background: var(--aqua); }
+.toneAmber { background: var(--amber); }
+.toneVivid { background: var(--vivid); }
 
 /* ── Feature catalog (headed columns) ────────────────────────────── */
 
