@@ -312,9 +312,10 @@ button {
 }
 
 .showcaseStage {
+  position: relative;
+
   & .frame,
-  & .showcaseDevice,
-  & .showcaseControls {
+  & .showcaseDevice {
     grid-area: 1 / 1;
   }
 
@@ -322,6 +323,21 @@ button {
     width: min(100%, calc(var(--content-max) + (var(--page-pad) * 2)));
     justify-self: center;
     pointer-events: none;
+  }
+
+  @media (max-width: 39.99rem) {
+    & .showcaseDevice {
+      width: min(24rem, calc(100% - (var(--page-pad) * 2)));
+      padding-block: var(--space-xl);
+    }
+
+    & .showcaseControls {
+      position: static;
+      translate: none;
+      width: auto;
+      justify-content: center;
+      padding-inline: 0;
+    }
   }
 }
 
@@ -398,9 +414,11 @@ button {
 }
 
 .showcaseControls {
-  justify-self: center;
-  align-self: center;
+  position: absolute;
   z-index: 2;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -796,6 +814,24 @@ button {
   gap: var(--space-m);
   min-width: 0;
 
+  & summary {
+    display: block;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::marker {
+      content: "";
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 3px;
+    }
+  }
+
   & h3 {
     margin: 0;
     padding-bottom: var(--space-s);
@@ -819,6 +855,55 @@ button {
     align-items: center;
     gap: var(--space-s);
     min-height: 1.5rem;
+  }
+
+  @media (min-width: 40rem) {
+    & summary {
+      pointer-events: none;
+    }
+
+    &:is(details)::details-content {
+      display: block;
+      height: auto;
+      content-visibility: visible;
+    }
+
+    &:is(details) > ul {
+      display: flex;
+    }
+  }
+
+  @media (max-width: 39.99rem) {
+    &:not([open]) > ul {
+      display: none;
+    }
+
+    & summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-m);
+      min-height: 2.75rem;
+      padding-bottom: var(--space-s);
+      border-bottom: 2px solid var(--border-prominent);
+      cursor: pointer;
+
+      & h3 {
+        padding-bottom: 0;
+        border-bottom: none;
+      }
+
+      &::after {
+        content: "+";
+        flex-shrink: 0;
+        font-size: var(--font-size-lead);
+        line-height: 1;
+      }
+    }
+
+    &[open] summary::after {
+      content: "−";
+    }
   }
 }
 
