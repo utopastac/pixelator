@@ -19,198 +19,243 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="page">
-      <div class="shell">
-        <nav class="nav" aria-label="Primary">
-          <a class="brand" href="./">
-            <img
-              class="brandIcon"
-              src="./assets/app-icon-256.png"
-              width="36"
-              height="36"
-              alt=""
-            />
-            <img
-              class="brandLogotype"
-              src="./assets/logotype-sm.svg"
-              width="98"
-              height="24"
-              alt="Pixelator"
-            />
+    <header class="siteHeader">
+      <div class="frame siteHeaderInner">
+        <a class="brand" href="./" aria-label="Pixelator">
+          <img
+            class="brandIcon"
+            src="./assets/app-icon-256.png"
+            width="40"
+            height="40"
+            alt=""
+          />
+          <img
+            class="brandLogotype"
+            src="./assets/logotype-sm.svg"
+            width="98"
+            height="24"
+            alt=""
+          />
+        </a>
+        <nav class="navLinks" aria-label="Primary">
+          <a href="/">Web app</a>
+          <a
+            class="button"
+            href="https://apps.apple.com/us/app/pixelator/id6818159986"
+          >
+            iOS app
           </a>
-          <div class="navLinks">
-            <a href="./support/">Support</a>
-            <a href="./privacy/">Privacy</a>
-            <a href="/">Web app</a>
-          </div>
         </nav>
+      </div>
+    </header>
 
-        <main class="panel hero">
-          <div class="heroBrand">
-            <h1>
-              <img
-                class="logotypeHero"
-                src="./assets/logotype-sm.svg"
-                width="98"
-                height="24"
-                alt="Pixelator"
-              />
-            </h1>
-          </div>
-          <p class="lede">
-            A local-first pixel art editor for iPhone, iPad, and Apple Watch.
-            Draw on layers, zoom into every pixel, and keep your work on device.
-          </p>
-
-          <div class="ctaRow">
-            <a
-              class="button"
-              href="https://apps.apple.com/us/app/pixelator/id6818159986"
-            >
-              App Store
-            </a>
-            <a class="button secondary" href="/">Try the web app</a>
-          </div>
-
-          <ul class="features">
+    <main>
+      <section class="gallery" aria-label="Made in Pixelator">
+        <div class="frame galleryFrame">
+          <ul class="galleryGrid">
             <li>
-              <span class="tick" aria-hidden="true">■</span>
-              <div>
-                <strong>Paint, erase, fill, shapes, and selection tools</strong>
-                <br />
-                <span>Built for crisp 1× pixel work on a touch canvas.</span>
-              </div>
+              <img src="./assets/gallery/sun.png" width="512" height="512" alt="Smiling sun pixel art" />
             </li>
             <li>
-              <span class="tick" aria-hidden="true">■</span>
-              <div>
-                <strong>Layers with opacity and reorder</strong>
-                <br />
-                <span>Stack sprites without flattening until you export.</span>
-              </div>
+              <img src="./assets/gallery/cat.png" width="512" height="512" alt="Pink cat pixel art" />
             </li>
             <li>
-              <span class="tick" aria-hidden="true">■</span>
-              <div>
-                <strong>Private by default</strong>
-                <br />
-                <span>Drawings stay on your device. No account required.</span>
-              </div>
+              <img src="./assets/gallery/man-1.png" width="512" height="512" alt="Bearded portrait pixel art" />
+            </li>
+            <li>
+              <img src="./assets/gallery/dog.png" width="512" height="512" alt="Purple dog pixel art" />
+            </li>
+            <li>
+              <img src="./assets/gallery/abstract.png" width="512" height="512" alt="Abstract shapes pixel art" />
+            </li>
+            <li>
+              <img src="./assets/gallery/scene.png" width="512" height="512" alt="Mountain landscape pixel art" />
+            </li>
+            <li>
+              <img src="./assets/gallery/man-2.png" width="512" height="512" alt="Portrait with glasses pixel art" loading="lazy" />
+            </li>
+            <li>
+              <img src="./assets/gallery/heart.png" width="256" height="256" alt="Red heart pixel art" loading="lazy" />
+            </li>
+            <li>
+              <img src="./assets/gallery/man-3.png" width="512" height="512" alt="White-bearded portrait pixel art" loading="lazy" />
+            </li>
+            <li>
+              <img src="./assets/gallery/abstract-2.png" width="512" height="512" alt="Dithered pattern pixel art" loading="lazy" />
+            </li>
+            <li>
+              <img src="./assets/gallery/beach.png" width="256" height="256" alt="Beach pixel art" loading="lazy" />
+            </li>
+            <li>
+              <img src="./assets/gallery/cityscape.png" width="256" height="256" alt="Cityscape pixel art" loading="lazy" />
             </li>
           </ul>
-        </main>
-      </div>
-
-      <section class="gallery" aria-label="App screenshots">
-        <div class="galleryHeader">
-          <h2 class="galleryTitle">On device</h2>
-          <div class="galleryNav">
-            <button
-              type="button"
-              class="galleryBtn"
-              data-gallery-prev
-              aria-label="Previous screenshot"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              class="galleryBtn"
-              data-gallery-next
-              aria-label="Next screenshot"
-            >
-              →
-            </button>
-          </div>
         </div>
+      </section>
 
-        <ul class="galleryTrack" data-gallery-track>
-          <li class="gallerySlide" style="--card: #52eb9f">
-            <div class="galleryCard">
-              <figure class="device phone">
-                <span class="sideBtn power" aria-hidden="true"></span>
-                <span class="sideBtn volUp" aria-hidden="true"></span>
-                <span class="sideBtn volDown" aria-hidden="true"></span>
-                <div class="bezel">
-                  <span class="island" aria-hidden="true"></span>
+      <section class="hero">
+        <div class="frame heroFrame">
+          <h1 class="lede">
+            <span class="brandWord">Pixelator</span> is a local-first pixel art
+            editor for iPhone, iPad, and Apple Watch.
+          </h1>
+        </div>
+      </section>
+
+      <section class="showcase" data-scroller aria-label="iPhone screens">
+        <div class="showcaseStage">
+          <div class="frame">
+            <div class="band bandMint"></div>
+          </div>
+          <div class="showcaseDevice">
+          <figure class="device phone">
+            <span class="sideBtn power" aria-hidden="true"></span>
+            <span class="sideBtn volUp" aria-hidden="true"></span>
+            <span class="sideBtn volDown" aria-hidden="true"></span>
+            <div class="bezel">
+              <span class="island" aria-hidden="true"></span>
+              <ul class="showcaseTrack" data-track>
+                <li>
                   <img
                     class="screen"
                     src="./assets/screenshots/iphone-01.png"
                     width="396"
                     height="860"
                     alt="Beach seed drawing open in the iPhone editor"
-                    loading="lazy"
                   />
-                </div>
-              </figure>
-            </div>
-          </li>
-
-          <li class="gallerySlide" style="--card: #d8e0ff">
-            <div class="galleryCard">
-              <figure class="device phone">
-                <span class="sideBtn power" aria-hidden="true"></span>
-                <span class="sideBtn volUp" aria-hidden="true"></span>
-                <span class="sideBtn volDown" aria-hidden="true"></span>
-                <div class="bezel">
-                  <span class="island" aria-hidden="true"></span>
+                </li>
+                <li>
                   <img
                     class="screen"
                     src="./assets/screenshots/iphone-02.png"
                     width="396"
                     height="860"
                     alt="Layers panel open on the beach drawing"
-                    loading="lazy"
                   />
-                </div>
-              </figure>
-            </div>
-          </li>
-
-          <li class="gallerySlide" style="--card: #fff4d1">
-            <div class="galleryCard">
-              <figure class="device phone">
-                <span class="sideBtn power" aria-hidden="true"></span>
-                <span class="sideBtn volUp" aria-hidden="true"></span>
-                <span class="sideBtn volDown" aria-hidden="true"></span>
-                <div class="bezel">
-                  <span class="island" aria-hidden="true"></span>
+                </li>
+                <li>
                   <img
                     class="screen"
                     src="./assets/screenshots/iphone-03.png"
                     width="396"
                     height="860"
                     alt="Cityscape with advanced canvas controls open"
-                    loading="lazy"
                   />
-                </div>
-              </figure>
-            </div>
-          </li>
-
-          <li class="gallerySlide" style="--card: #fde2e2">
-            <div class="galleryCard">
-              <figure class="device phone">
-                <span class="sideBtn power" aria-hidden="true"></span>
-                <span class="sideBtn volUp" aria-hidden="true"></span>
-                <span class="sideBtn volDown" aria-hidden="true"></span>
-                <div class="bezel">
-                  <span class="island" aria-hidden="true"></span>
+                </li>
+                <li>
                   <img
                     class="screen"
                     src="./assets/screenshots/iphone-04.png"
                     width="396"
                     height="860"
                     alt="Zoomed cityscape with scatter brush options open"
-                    loading="lazy"
                   />
-                </div>
-              </figure>
+                </li>
+                <li>
+                  <img
+                    class="screen"
+                    src="./assets/screenshots/iphone-05.png"
+                    width="396"
+                    height="860"
+                    alt="Colour picker and palette open on the beach drawing"
+                  />
+                </li>
+              </ul>
             </div>
-          </li>
+          </figure>
+            <div class="showcaseDots" data-dots aria-hidden="true">
+              <span data-current></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+          <div class="showcaseControls scrollerNav">
+            <button type="button" data-scroll="-1" aria-label="Previous screen">
+              ←
+            </button>
+            <button type="button" data-scroll="1" aria-label="Next screen">
+              →
+            </button>
+          </div>
+        </div>
+      </section>
 
-          <li class="gallerySlide" style="--card: #52eb9f">
-            <div class="galleryCard">
+      <section class="play" aria-labelledby="play-heading">
+        <div class="frame playFrame">
+          <h2 id="play-heading">Built for crisp 1× work</h2>
+          <ul class="iconStripTrack" aria-label="Drawing tools">
+            <li><img src="./assets/icons/color/pencil-40.svg" width="40" height="40" alt="Pencil" /></li>
+            <li><img src="./assets/icons/color/paintbrush-40.svg" width="40" height="40" alt="Paintbrush" /></li>
+            <li><img src="./assets/icons/color/eraser-40.svg" width="40" height="40" alt="Eraser" /></li>
+            <li><img src="./assets/icons/color/pen-40.svg" width="40" height="40" alt="Pen" /></li>
+            <li><img src="./assets/icons/color/paint-40.svg" width="40" height="40" alt="Paint" /></li>
+            <li><img src="./assets/icons/color/flood-40.svg" width="40" height="40" alt="Flood fill" /></li>
+            <li><img src="./assets/icons/color/gradient-40.svg" width="40" height="40" alt="Gradient" /></li>
+            <li><img src="./assets/icons/color/scatter-40.svg" width="40" height="40" alt="Scatter" /></li>
+            <li><img src="./assets/icons/color/smudge-40.svg" width="40" height="40" alt="Smudge" /></li>
+            <li><img src="./assets/icons/color/dither-40.svg" width="40" height="40" alt="Dither" /></li>
+            <li><img src="./assets/icons/color/line-40.svg" width="40" height="40" alt="Line" /></li>
+            <li><img src="./assets/icons/color/rectangle-filled-40.svg" width="40" height="40" alt="Rectangle" /></li>
+            <li><img src="./assets/icons/color/circle-filled-40.svg" width="40" height="40" alt="Circle" /></li>
+            <li><img src="./assets/icons/color/triangle-filled-40.svg" width="40" height="40" alt="Triangle" /></li>
+            <li><img src="./assets/icons/color/star-filled-40.svg" width="40" height="40" alt="Star" /></li>
+            <li><img src="./assets/icons/color/arrow-filled-40.svg" width="40" height="40" alt="Arrow" /></li>
+          </ul>
+          <div class="playGrid">
+            <article class="playCard">
+              <div class="playPanel playPanelMint">
+                <div class="miniGrid" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                  <span></span><span class="on"></span><span class="on"></span><span></span>
+                  <span></span><span class="on"></span><span class="on"></span><span></span>
+                  <span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <p>Paint, erase, fill, shapes, and selection tools tuned for touch.</p>
+            </article>
+            <article class="playCard">
+              <div class="playPanel playPanelLavender">
+                <div class="layerStack" aria-hidden="true">
+                  <span class="layerSheet"></span>
+                  <span class="layerSheet"></span>
+                  <span class="layerSheet"></span>
+                </div>
+              </div>
+              <p>Layers with opacity and reorder — stack sprites without flattening.</p>
+            </article>
+            <article class="playCard">
+              <div class="playPanel playPanelButter">
+                <div class="lockBadge" aria-hidden="true">
+                  <span class="lockDot"></span>
+                  <span>On device</span>
+                </div>
+              </div>
+              <p>Private by default. No account. Drawings stay on your device.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="watchShow" data-scroller aria-labelledby="watch-heading">
+        <div class="frame watchHeader">
+          <h2 id="watch-heading">Also on Apple Watch</h2>
+          <div class="scrollerNav">
+            <button type="button" data-scroll="-1" aria-label="Previous watch screen">
+              ←
+            </button>
+            <button type="button" data-scroll="1" aria-label="Next watch screen">
+              →
+            </button>
+          </div>
+        </div>
+        <div class="watchStage">
+          <div class="frame">
+            <div class="band bandLavender"></div>
+          </div>
+          <ul class="watchTrack" data-track>
+            <li>
               <figure class="device watch">
                 <div class="strap top" aria-hidden="true"></div>
                 <div class="watchBody">
@@ -228,11 +273,8 @@
                 </div>
                 <div class="strap bottom" aria-hidden="true"></div>
               </figure>
-            </div>
-          </li>
-
-          <li class="gallerySlide" style="--card: #d8e0ff">
-            <div class="galleryCard">
+            </li>
+            <li>
               <figure class="device watch">
                 <div class="strap top" aria-hidden="true"></div>
                 <div class="watchBody">
@@ -250,11 +292,8 @@
                 </div>
                 <div class="strap bottom" aria-hidden="true"></div>
               </figure>
-            </div>
-          </li>
-
-          <li class="gallerySlide" style="--card: #fff4d1">
-            <div class="galleryCard">
+            </li>
+            <li>
               <figure class="device watch">
                 <div class="strap top" aria-hidden="true"></div>
                 <div class="watchBody">
@@ -272,43 +311,291 @@
                 </div>
                 <div class="strap bottom" aria-hidden="true"></div>
               </figure>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="features" data-scroller aria-labelledby="features-heading">
+        <div class="frame featuresHeader">
+          <h2 id="features-heading">Pixel power features</h2>
+          <div class="scrollerNav">
+            <button type="button" data-scroll="-1" aria-label="Previous feature">
+              ←
+            </button>
+            <button type="button" data-scroll="1" aria-label="Next feature">
+              →
+            </button>
+          </div>
+        </div>
+        <ul class="featuresTrack" data-track>
+          <li class="featureSlide">
+            <div class="featureVisual">
+              <img
+                src="./assets/features/layers.png"
+                width="686"
+                height="774"
+                alt="Layers panel with opacity and reorder"
+                loading="lazy"
+              />
             </div>
+            <p>Layers with opacity and reorder — stack sprites without flattening.</p>
+          </li>
+          <li class="featureSlide">
+            <div class="featureVisual">
+              <img
+                src="./assets/features/canvas-tools.png"
+                width="694"
+                height="728"
+                alt="Canvas tools for mirror, wrap, and tile preview"
+                loading="lazy"
+              />
+            </div>
+            <p>Symmetry, wrap, and tiling so patterns stay sharp at every zoom.</p>
+          </li>
+          <li class="featureSlide">
+            <div class="featureVisual">
+              <img
+                src="./assets/features/selection.png"
+                width="696"
+                height="648"
+                alt="Selection tools including rectangle, ellipse, polygon, and magic wand"
+                loading="lazy"
+              />
+            </div>
+            <p>Selection tools to move, copy, and transform pixels with precision.</p>
+          </li>
+          <li class="featureSlide">
+            <div class="featureVisual">
+              <img
+                src="./assets/features/dither.png"
+                width="698"
+                height="594"
+                alt="Dither brush with pattern modes and cover control"
+                loading="lazy"
+              />
+            </div>
+            <p>Dither, scatter, and smudge brushes for textured pixel work.</p>
+          </li>
+          <li class="featureSlide">
+            <div class="featureVisual">
+              <img
+                src="./assets/features/colours.png"
+                width="700"
+                height="1008"
+                alt="Colour picker with palettes and generate"
+                loading="lazy"
+              />
+            </div>
+            <p>Palettes, recent colours, and a full colour picker that stays out of the way.</p>
           </li>
         </ul>
       </section>
 
-      <div class="shell">
-        <footer class="footer">
-          <span>© <span id="y"></span> Pixelator</span>
-          <div class="footerLinks">
-            <a href="./support/">Support</a>
-            <a href="./privacy/">Privacy Policy</a>
+      <section class="catalog" aria-labelledby="catalog-heading">
+        <div class="frame catalogFrame">
+          <h2 id="catalog-heading">Everything included</h2>
+          <div class="catalogGrid">
+            <div class="catalogColumn">
+              <div class="catalogGroup">
+                <h3>Drawing tools</h3>
+                <ul>
+                  <li><img class="featureIcon" src="./assets/icons/brush.svg" width="16" height="16" alt="" /><span class="featureName">Brush</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/eraser.svg" width="16" height="16" alt="" /><span class="featureName">Eraser</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/pen.svg" width="16" height="16" alt="" /><span class="featureName">Pen</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/fill.svg" width="16" height="16" alt="" /><span class="featureName">Solid fill</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/fill.svg" width="16" height="16" alt="" /><span class="featureName">Flood fill</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/gradient.svg" width="16" height="16" alt="" /><span class="featureName">Gradient fill</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/scatter.svg" width="16" height="16" alt="" /><span class="featureName">Scatter</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/smudge.svg" width="16" height="16" alt="" /><span class="featureName">Smudge</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/dither.svg" width="16" height="16" alt="" /><span class="featureName">Dither</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/line.svg" width="16" height="16" alt="" /><span class="featureName">Line</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/rectangle.svg" width="16" height="16" alt="" /><span class="featureName">Rectangle</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/circle.svg" width="16" height="16" alt="" /><span class="featureName">Circle</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/triangle.svg" width="16" height="16" alt="" /><span class="featureName">Triangle</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/star.svg" width="16" height="16" alt="" /><span class="featureName">Star</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/arrow.svg" width="16" height="16" alt="" /><span class="featureName">Arrow</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/rectangle-filled.svg" width="16" height="16" alt="" /><span class="featureName">Filled shapes</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/brush-round.svg" width="16" height="16" alt="" /><span class="featureName">Round brush</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/brush-square.svg" width="16" height="16" alt="" /><span class="featureName">Square brush</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/brush-medium.svg" width="16" height="16" alt="" /><span class="featureName">Brush sizes</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/eye-dropper.svg" width="16" height="16" alt="" /><span class="featureName">Eyedropper</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/back.svg" width="16" height="16" alt="" /><span class="featureName">Undo</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/forward.svg" width="16" height="16" alt="" /><span class="featureName">Redo</span></li>
+                </ul>
+              </div>
+              <div class="catalogGroup">
+                <h3>Selection &amp; transform</h3>
+                <ul>
+                  <li><img class="featureIcon" src="./assets/icons/marquee-rectangle.svg" width="16" height="16" alt="" /><span class="featureName">Rect marquee</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/marquee-circle.svg" width="16" height="16" alt="" /><span class="featureName">Ellipse marquee</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/polygon-select.svg" width="16" height="16" alt="" /><span class="featureName">Polygon select</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/magic-wand.svg" width="16" height="16" alt="" /><span class="featureName">Magic wand</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/select-all.svg" width="16" height="16" alt="" /><span class="featureName">Select all</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/move.svg" width="16" height="16" alt="" /><span class="featureName">Move</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/rotate.svg" width="16" height="16" alt="" /><span class="featureName">Rotate</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/flip-horizontal.svg" width="16" height="16" alt="" /><span class="featureName">Flip horizontal</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/flip-vertical.svg" width="16" height="16" alt="" /><span class="featureName">Flip vertical</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/duplicate.svg" width="16" height="16" alt="" /><span class="featureName">Duplicate selection</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/outline.svg" width="16" height="16" alt="" /><span class="featureName">Outline selection</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/clear.svg" width="16" height="16" alt="" /><span class="featureName">Clear selection</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/cut.svg" width="16" height="16" alt="" /><span class="featureName">Cut</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/copy.svg" width="16" height="16" alt="" /><span class="featureName">Copy</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/paste.svg" width="16" height="16" alt="" /><span class="featureName">Paste</span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="catalogColumn">
+              <div class="catalogGroup">
+                <h3>Layers</h3>
+                <ul>
+                  <li><img class="featureIcon" src="./assets/icons/layers.svg" width="16" height="16" alt="" /><span class="featureName">Multi-layer stack</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/plus.svg" width="16" height="16" alt="" /><span class="featureName">New layer</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/eye.svg" width="16" height="16" alt="" /><span class="featureName">Visibility</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/lock.svg" width="16" height="16" alt="" /><span class="featureName">Lock layer</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/duplicate.svg" width="16" height="16" alt="" /><span class="featureName">Duplicate layer</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/merge.svg" width="16" height="16" alt="" /><span class="featureName">Merge down</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/merge.svg" width="16" height="16" alt="" /><span class="featureName">Merge all</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/layers-split.svg" width="16" height="16" alt="" /><span class="featureName">Split by colour</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/outline.svg" width="16" height="16" alt="" /><span class="featureName">Outline content</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/rotate.svg" width="16" height="16" alt="" /><span class="featureName">Rotate layer</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/clear.svg" width="16" height="16" alt="" /><span class="featureName">Clear layer</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/trash.svg" width="16" height="16" alt="" /><span class="featureName">Delete layer</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/pencil.svg" width="16" height="16" alt="" /><span class="featureName">Rename layer</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/image.svg" width="16" height="16" alt="" /><span class="featureName">Import to layer</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/export.svg" width="16" height="16" alt="" /><span class="featureName">Export layer</span></li>
+                </ul>
+              </div>
+              <div class="catalogGroup">
+                <h3>Canvas &amp; view</h3>
+                <ul>
+                  <li><img class="featureIcon" src="./assets/icons/canvas.svg" width="16" height="16" alt="" /><span class="featureName">Canvas sizes</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/zoom.svg" width="16" height="16" alt="" /><span class="featureName">Zoom</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/fit-to-screen.svg" width="16" height="16" alt="" /><span class="featureName">Fit to screen</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/grid.svg" width="16" height="16" alt="" /><span class="featureName">Pixel grid</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/guides-center.svg" width="16" height="16" alt="" /><span class="featureName">Center guides</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/guides-thirds.svg" width="16" height="16" alt="" /><span class="featureName">Rule of thirds</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/symmetry-vertical.svg" width="16" height="16" alt="" /><span class="featureName">Vertical symmetry</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/symmetry-horizontal.svg" width="16" height="16" alt="" /><span class="featureName">Horizontal symmetry</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/symmetry-both.svg" width="16" height="16" alt="" /><span class="featureName">4-way symmetry</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/infinity.svg" width="16" height="16" alt="" /><span class="featureName">Wrap mode</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/tile.svg" width="16" height="16" alt="" /><span class="featureName">Tile preview</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/paint-inside.svg" width="16" height="16" alt="" /><span class="featureName">Paint inside</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/lock.svg" width="16" height="16" alt="" /><span class="featureName">Proportion lock</span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="catalogColumn">
+              <div class="catalogGroup">
+                <h3>Colour &amp; library</h3>
+                <ul>
+                  <li><img class="featureIcon" src="./assets/icons/palette.svg" width="16" height="16" alt="" /><span class="featureName">Built-in palettes</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/palette.svg" width="16" height="16" alt="" /><span class="featureName">Custom palettes</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/star-filled.svg" width="16" height="16" alt="" /><span class="featureName">Palette favorites</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/circle-filled.svg" width="16" height="16" alt="" /><span class="featureName">Recent colours</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/ai.svg" width="16" height="16" alt="" /><span class="featureName">Suggest palette</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/gradient.svg" width="16" height="16" alt="" /><span class="featureName">Gradient editor</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/folder.svg" width="16" height="16" alt="" /><span class="featureName">Drawings library</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/plus.svg" width="16" height="16" alt="" /><span class="featureName">New drawing</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/duplicate.svg" width="16" height="16" alt="" /><span class="featureName">Duplicate drawing</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/pencil.svg" width="16" height="16" alt="" /><span class="featureName">Rename drawing</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/ai.svg" width="16" height="16" alt="" /><span class="featureName">AI rename</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/trash.svg" width="16" height="16" alt="" /><span class="featureName">Delete drawing</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/star.svg" width="16" height="16" alt="" /><span class="featureName">Starter art</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/grid.svg" width="16" height="16" alt="" /><span class="featureName">Grid &amp; list views</span></li>
+                </ul>
+              </div>
+              <div class="catalogGroup">
+                <h3>Export, Watch &amp; more</h3>
+                <ul>
+                  <li><img class="featureIcon" src="./assets/icons/png.svg" width="16" height="16" alt="" /><span class="featureName">Export PNG</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/svg.svg" width="16" height="16" alt="" /><span class="featureName">Export SVG</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/json.svg" width="16" height="16" alt="" /><span class="featureName">Export JSON</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/upload.svg" width="16" height="16" alt="" /><span class="featureName">Import JSON</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/image.svg" width="16" height="16" alt="" /><span class="featureName">Import photo</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/ai.svg" width="16" height="16" alt="" /><span class="featureName">Image Playground</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/watch.svg" width="16" height="16" alt="" /><span class="featureName">Apple Watch editor</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/image.svg" width="16" height="16" alt="" /><span class="featureName">Home Screen widget</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/cloud.svg" width="16" height="16" alt="" /><span class="featureName">iCloud backup</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/moon.svg" width="16" height="16" alt="" /><span class="featureName">Dark mode</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/fonts.svg" width="16" height="16" alt="" /><span class="featureName">Pixel fonts</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/haptics.svg" width="16" height="16" alt="" /><span class="featureName">Haptics</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/cog.svg" width="16" height="16" alt="" /><span class="featureName">Settings</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/lock.svg" width="16" height="16" alt="" /><span class="featureName">Local-first</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/eye-off.svg" width="16" height="16" alt="" /><span class="featureName">No ads or tracking</span></li>
+                  <li><img class="featureIcon" src="./assets/icons/check.svg" width="16" height="16" alt="" /><span class="featureName">No account required</span></li>
+                </ul>
+              </div>
+            </div>
           </div>
-        </footer>
+        </div>
+      </section>
+
+      <section class="cta" aria-labelledby="cta-heading">
+        <div class="frame">
+          <div class="ctaPanel">
+            <div class="ctaCopy">
+              <img
+                class="heroIcon"
+                src="./assets/app-icon-256.png"
+                width="104"
+                height="104"
+                alt=""
+              />
+              <h2 id="cta-heading">Draw everywhere you are</h2>
+              <p>
+                No account. No cloud. No ads. Just a pixel editor that lives on
+                your iPhone, iPad, and Apple Watch.
+              </p>
+            </div>
+            <div class="ctaActions">
+              <a
+                class="button"
+                href="https://apps.apple.com/us/app/pixelator/id6818159986"
+              >
+                App Store
+              </a>
+              <a class="button secondary" href="/">Try the web app</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="siteFooter">
+      <div class="frame siteFooterFrame">
+        <div class="siteFooterBrand">
+          <a class="brand" href="./" aria-label="Pixelator">
+            <img
+              class="brandIcon"
+              src="./assets/app-icon-256.png"
+              width="36"
+              height="36"
+              alt=""
+            />
+            <img
+              class="brandLogotype"
+              src="./assets/logotype-sm.svg"
+              width="98"
+              height="24"
+              alt=""
+            />
+          </a>
+          <p>
+            A local-first pixel art editor for iPhone, iPad, and Apple Watch.
+          </p>
+          <p class="compat">Draw on device. No account required.</p>
+        </div>
+        <div class="siteFooterMeta">
+          <nav class="navLinks" aria-label="Legal">
+            <a href="./support/">Support</a>
+            <a href="./privacy/">Privacy</a>
+            <a href="/">Web app</a>
+          </nav>
+          <p class="compat">© <span id="y"></span> Pixelator</p>
+        </div>
       </div>
-    </div>
-    <script>
-      document.getElementById('y').textContent = String(new Date().getFullYear());
-
-      (function () {
-        const track = document.querySelector('[data-gallery-track]');
-        if (!track) return;
-
-        const scrollByCard = (direction) => {
-          const card = track.querySelector('.gallerySlide');
-          const styles = getComputedStyle(track);
-          const gap = parseFloat(styles.columnGap || styles.gap) || 24;
-          const amount = (card?.clientWidth ?? 280) + gap;
-          track.scrollBy({ left: amount * direction, behavior: 'smooth' });
-        };
-
-        document
-          .querySelector('[data-gallery-prev]')
-          ?.addEventListener('click', () => scrollByCard(-1));
-        document
-          .querySelector('[data-gallery-next]')
-          ?.addEventListener('click', () => scrollByCard(1));
-      })();
-    </script>
+    </footer>
+    <script src="./site.js"></script>
   </body>
 </html>

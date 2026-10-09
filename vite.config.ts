@@ -1,10 +1,27 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
+/** Serve `public/ios/index.html` for `/ios` + `/ios/` in the Vite dev server
+ *  (SPA fallback otherwise swallows the directory and loads the React app). */
+function iosMarketingIndex(): Plugin {
+  return {
+    name: 'ios-marketing-index',
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const url = req.url?.split('?')[0];
+        if (url === '/ios' || url === '/ios/') {
+          req.url = '/ios/index.html';
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), iosMarketingIndex()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
